@@ -17,6 +17,7 @@ import { validateBackup, type BackupIssue } from '../../core/storage';
 import { describeBackupIssue } from '../../core/i18n/backup-error';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
+import { formatBytes } from '../../core/time';
 
 @Component({
   selector: 'app-settings-page',
@@ -63,6 +64,9 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
     <section class="card block">
       <h2>{{ t().settings.storageHeading }}</h2>
       <p class="muted">{{ storageStatus() }}</p>
+      @if (storageUsage(); as usage) {
+        <p class="muted">{{ usage }}</p>
+      }
       @if (canPersist()) {
         <button type="button" class="btn" (click)="requestPersist()">
           {{ t().settings.persistAction }}
@@ -328,6 +332,17 @@ export class SettingsPage {
 
   protected readonly storageStatus = signal<string>('');
   protected readonly canPersist = signal(false);
+  private readonly storageEstimate = signal<{ usage: number; quota: number } | null>(null);
+  /** `navigator.storage.estimate()` als Info (SPEC 8.3). */
+  protected readonly storageUsage = computed(() => {
+    const estimate = this.storageEstimate();
+    if (!estimate) return null;
+    const locale = this.settings.language();
+    return this.t().settings.storageUsage(
+      formatBytes(estimate.usage, locale),
+      formatBytes(estimate.quota, locale),
+    );
+  });
   protected readonly canShare = signal(false);
   protected readonly importErrors = signal<BackupIssue[]>([]);
   protected readonly importErrorTexts = computed(() =>
@@ -352,6 +367,7 @@ export class SettingsPage {
     this.storageStatus.set(this.t().settings.storagePending);
     this.canShare.set(this.backup.canShare());
     void this.checkStorage();
+    void this.checkEstimate();
   }
 
   protected async requestPersist(): Promise<void> {
@@ -431,6 +447,18 @@ export class SettingsPage {
   private openImport(): void {
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     this.importDlg().nativeElement.showModal();
+  }
+
+  private async checkEstimate(): Promise<void> {
+    if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return;
+    try {
+      const { usage, quota } = await navigator.storage.estimate();
+      if (typeof usage === 'number' && typeof quota === 'number' && quota > 0) {
+        this.storageEstimate.set({ usage, quota });
+      }
+    } catch {
+      // Nur eine Info – fehlt sie, wird nichts angezeigt.
+    }
   }
 
   private async checkStorage(): Promise<void> {

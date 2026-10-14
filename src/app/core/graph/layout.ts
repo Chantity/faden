@@ -19,6 +19,8 @@ export interface LayoutOptions {
   vGap?: number;
   componentGap?: number;
   padding?: number;
+  /** Abstand oben (Standard: `padding`), z. B. Platz für Strang-Beschriftungen. */
+  paddingTop?: number;
 }
 
 export interface LayoutNode {
@@ -43,8 +45,16 @@ export interface LayoutEdge {
   midY: number;
 }
 
+/** Ein unabhängiger Strang und sein horizontaler Platz im Diagramm. */
+export interface LayoutStrand {
+  taskIds: string[];
+  x: number;
+  width: number;
+}
+
 export interface Layout {
   nodes: LayoutNode[];
+  strands: LayoutStrand[];
   edges: LayoutEdge[];
   width: number;
   height: number;
@@ -52,7 +62,7 @@ export interface Layout {
   nodeHeight: number;
 }
 
-const DEFAULTS: Required<LayoutOptions> = {
+const DEFAULTS: Omit<ResolvedOptions, 'paddingTop'> = {
   nodeWidth: 200,
   nodeHeight: 76,
   nodeLineHeight: 24,
@@ -70,30 +80,37 @@ const DEFAULTS: Required<LayoutOptions> = {
  * ohnehin per `line-clamp` auf dieselbe Zeilenzahl begrenzt, Temperaturschwankung
  * zwischen Schätzung und Rendering gibt es damit nicht.
  */
-function estimateLines(title: string, opts: Required<LayoutOptions>): number {
+type ResolvedOptions = Required<LayoutOptions>;
+
+function estimateLines(title: string, opts: ResolvedOptions): number {
   const length = title.trim().length;
   if (length === 0) return 1;
   const lines = Math.ceil(length / opts.nodeCharsPerLine);
   return Math.min(opts.nodeMaxLines, Math.max(1, lines));
 }
 
-function estimateNodeHeight(lines: number, opts: Required<LayoutOptions>): number {
+function estimateNodeHeight(lines: number, opts: ResolvedOptions): number {
   return opts.nodeHeight + (lines - 1) * opts.nodeLineHeight;
 }
 
 export function layoutList(list: TodoList, options: LayoutOptions = {}): Layout {
-  const opts = { ...DEFAULTS, ...options };
+  const merged = { ...DEFAULTS, ...options };
+  const opts: ResolvedOptions = { ...merged, paddingTop: merged.paddingTop ?? merged.padding };
   const components = connectedComponents(list);
 
   const nodes: LayoutNode[] = [];
   const edges: LayoutEdge[] = [];
+  const strands: LayoutStrand[] = [];
   let xOffset = opts.padding;
-  let maxBottom = opts.padding;
+  let maxBottom = opts.paddingTop;
 
   for (const component of components) {
     const placed = layoutComponent(component.tasks, component.edges, opts, xOffset);
     nodes.push(...placed.nodes);
     edges.push(...placed.edges);
+    if (component.tasks.length > 0) {
+      strands.push({ taskIds: component.tasks.map((t) => t.id), x: xOffset, width: placed.width });
+    }
     xOffset += placed.width + opts.componentGap;
     maxBottom = Math.max(maxBottom, placed.height);
   }
@@ -101,6 +118,7 @@ export function layoutList(list: TodoList, options: LayoutOptions = {}): Layout 
   const width = nodes.length === 0 ? opts.padding : xOffset - opts.componentGap + opts.padding;
   return {
     nodes,
+    strands,
     edges,
     width,
     height: maxBottom,
@@ -112,11 +130,11 @@ export function layoutList(list: TodoList, options: LayoutOptions = {}): Layout 
 function layoutComponent(
   tasks: Task[],
   edges: Edge[],
-  opts: Required<LayoutOptions>,
+  opts: ResolvedOptions,
   xOffset: number,
 ): { nodes: LayoutNode[]; edges: LayoutEdge[]; width: number; height: number } {
   if (tasks.length === 0) {
-    return { nodes: [], edges: [], width: 0, height: opts.padding };
+    return { nodes: [], edges: [], width: 0, height: opts.paddingTop };
   }
 
   const index = new Map<string, number>(tasks.map((t, i) => [t.id, i]));
@@ -173,7 +191,7 @@ function layoutComponent(
   // Karte der vorigen Schicht, damit auch mehrzeilige Karten Platz bekommen.
   const sortedLayers = [...byLayer.keys()].sort((a, b) => a - b);
   const layerY = new Map<number, number>();
-  let cursor = opts.padding;
+  let cursor = opts.paddingTop;
   for (const l of sortedLayers) {
     layerY.set(l, cursor);
     const maxHeight = Math.max(...(byLayer.get(l) as string[]).map(heightOf));
@@ -189,7 +207,7 @@ function layoutComponent(
       const node: LayoutNode = {
         id,
         x: xOffset + order * xStep,
-        y: layerY.get(l) ?? opts.padding,
+        y: layerY.get(l) ?? opts.paddingTop,
         width: opts.nodeWidth,
         height: estimateNodeHeight(lines, opts),
         layer: l,

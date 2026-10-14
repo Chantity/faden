@@ -1,4 +1,4 @@
-import { History } from './history';
+import { CommandHistory, History } from './history';
 
 describe('History (Undo/Redo)', () => {
   it('macht Änderungen in umgekehrter Reihenfolge rückgängig und wieder her', () => {
@@ -39,5 +39,24 @@ describe('History (Undo/Redo)', () => {
     expect(history.undo(4)).toBe(3);
     expect(history.undo(3)).toBe(2);
     expect(history.undo(2)).toBeUndefined();
+  });
+});
+
+describe('CommandHistory', () => {
+  it('führt undo/redo der Befehle in umgekehrter Reihenfolge aus und verwirft Redo', () => {
+    const log: string[] = [];
+    const history = new CommandHistory(2);
+    const cmd = (name: string) => ({ undo: () => log.push(`-${name}`), redo: () => log.push(`+${name}`) });
+    history.record(cmd('a'));
+    history.record(cmd('b'));
+    history.record(cmd('c')); // Grenze 2 → „a" fällt heraus
+    expect(history.undo()).toBe(true);
+    expect(history.undo()).toBe(true);
+    expect(history.undo()).toBe(false);
+    expect(log).toEqual(['-c', '-b']);
+    expect(history.redo()).toBe(true);
+    expect(log).toEqual(['-c', '-b', '+b']);
+    history.record(cmd('d'));
+    expect(history.canRedo()).toBe(false);
   });
 });

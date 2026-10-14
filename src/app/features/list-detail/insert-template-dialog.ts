@@ -154,7 +154,7 @@ export class InsertTemplateDialog {
     this.close();
     this.snackbar.show(this.t().templates.insertedSnack(template.title), {
       label: this.t().common.undo,
-      run: () => this.store.undo(),
+      run: () => this.store.undo(listId),
     });
   }
 }

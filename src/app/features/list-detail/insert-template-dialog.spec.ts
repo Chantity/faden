@@ -42,7 +42,7 @@ describe('InsertTemplateDialog', () => {
     expect(after.tasks.slice(1).every((t) => !t.done && t.id !== 'x' && t.id !== 'y')).toBe(true);
     expect(connectedComponents(after).length).toBe(2);
 
-    store.undo();
+    store.undo(target.id);
     expect(store.getList(target.id)!.tasks.length).toBe(1);
   });
 });

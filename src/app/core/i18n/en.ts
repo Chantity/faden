@@ -194,6 +194,8 @@ export const en = {
   },
 
   flow: {
+    strandSum: (duration: string): string => `Σ ${duration} open`,
+    strandSumLabel: 'Subtotal of this strand',
     zoomIn: 'Zoom in',
     zoomOut: 'Zoom out',
     fit: 'Fit all',
@@ -338,6 +340,7 @@ export const en = {
     updateHint: 'Faden never updates by itself. Only here can you get a new version.',
     storageHeading: 'Storage',
     storagePending: 'Checking storage status …',
+    storageUsage: (used: string, quota: string): string => `In use: ${used} of ${quota} available.`,
     storagePersisted: 'Storage is protected permanently.',
     storageUnprotected: 'The browser may clear storage when space is low – create backups.',
     persistAction: 'Protect permanently',

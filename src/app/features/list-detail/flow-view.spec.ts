@@ -139,4 +139,26 @@ describe('FlowView', () => {
       expect(after.edges.length).toBe(edges);
     }
   });
+
+  it('zeigt im Modus Zeitschätzung je Strang eine Teilsumme (nur bei mehreren Strängen)', async () => {
+    const store = TestBed.inject(ListsStore);
+    const list = createList('Test', 'estimate');
+    list.tasks = [
+      { ...createTask('A', 'a'), estimateMinutes: 30 },
+      { ...createTask('B', 'b'), estimateMinutes: 15 },
+      createTask('C', 'c'),
+    ];
+    list.edges = [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }];
+    store.addExisting(list);
+    const fixture = TestBed.createComponent(FlowView);
+    fixture.componentRef.setInput('list', list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const labels = [...root.querySelectorAll('.strand-sum')].map((e) => e.textContent?.trim());
+    expect(labels).toEqual(['Σ 45 min open', 'Σ 0 min open · 1 without estimate']);
+
+    fixture.componentRef.setInput('list', { ...list, tasks: list.tasks.slice(0, 2) });
+    await fixture.whenStable();
+    expect(root.querySelectorAll('.strand-sum').length).toBe(0);
+  });
 });

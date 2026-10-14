@@ -13,7 +13,7 @@ import { PageTitleService } from '../../core/i18n/page-title';
 import type { TimeboxMode, TodoList } from '../../core/model';
 import { progress } from '../../core/graph';
 import { listToTemplate } from '../../core/templates';
-import { estimateSums, formatDuration, modeSwitchOffer } from '../../core/time';
+import { estimateSums, formatDuration, modeSwitchOffer, withTimeboxMode } from '../../core/time';
 import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { ViewStore, type ListView } from '../../core/state/view.store';
@@ -48,7 +48,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
           <button
             type="button"
             class="icon-btn"
-            [disabled]="!store.canUndo()"
+            [disabled]="!store.canUndo(current.id)"
             [attr.aria-label]="t().common.undo"
             (click)="undo()"
           >
@@ -57,7 +57,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
           <button
             type="button"
             class="icon-btn"
-            [disabled]="!store.canRedo()"
+            [disabled]="!store.canRedo(current.id)"
             [attr.aria-label]="t().common.redo"
             (click)="redo()"
           >
@@ -312,7 +312,11 @@ export class ListDetailPage {
   protected onListSaved(event: { id: string | null; title: string; timeboxMode: TimeboxMode }): void {
     const before = event.id ? this.store.getList(event.id) : undefined;
     if (!before) return;
-    this.store.update(before.id, { title: event.title, timeboxMode: event.timeboxMode });
+    // Im Zettel geändert → ein Schritt im Verlauf dieses Zettels.
+    this.store.editList(before.id, (l) => ({
+      ...withTimeboxMode(l, event.timeboxMode, new Date()),
+      title: event.title,
+    }));
     const offer = modeSwitchOffer(before, event.timeboxMode);
     const updated = this.store.getList(before.id);
     if (offer === 'convert' && updated) this.planEditor().openConvert(updated);
@@ -320,11 +324,13 @@ export class ListDetailPage {
   }
 
   protected undo(): void {
-    this.store.undo();
+    const id = this.list()?.id;
+    if (id) this.store.undo(id);
   }
 
   protected redo(): void {
-    this.store.redo();
+    const id = this.list()?.id;
+    if (id) this.store.redo(id);
   }
 
   protected archive(current: TodoList): void {

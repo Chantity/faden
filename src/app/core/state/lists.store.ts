@@ -8,39 +8,58 @@ import {
 } from '../model';
 import { FadenDb } from '../storage';
 import { withTimeboxMode } from '../time';
-import { History } from './history';
+import { CommandHistory, History } from './history';
 
 const CHANNEL_NAME = 'faden';
 const PERSIST_DELAY_MS = 300;
+const UNDO_LIMIT = 100;
+
+/**
+ * Frist, nach der ein gelöschter Zettel endgültig aus IndexedDB verschwindet
+ * (SPEC 5.5). Etwas länger als das Hinweisband mit „Rückgängig" (8 s).
+ */
+export const DELETE_GRACE_MS = 10_000;
 
 /**
  * Zentraler Signal-Store für Zettel (SPEC 8). Schreibt entprellt nach
- * IndexedDB, hält Undo/Redo und synchronisiert mehrere Tabs über BroadcastChannel.
+ * IndexedDB und synchronisiert mehrere Tabs über BroadcastChannel.
+ *
+ * Rückgängig/Wiederholen (SPEC 5.5):
+ * - **pro Zettel** ein eigener Verlauf (Snapshots) für alles, was im Zettel
+ *   passiert (`editList`);
+ * - **Übersicht** mit eigenem Befehls-Verlauf (Anlegen, Duplizieren,
+ *   Archivieren, Löschen, Verschieben, Umbenennen, Import). Ein Befehl kehrt nur
+ *   seine eigene Wirkung um und lässt spätere Änderungen im Zettel stehen.
  */
 @Injectable({ providedIn: 'root' })
 export class ListsStore {
   private readonly db = inject(FadenDb);
+  /** Alle Zettel inkl. archivierter und (noch) gelöschter. */
   private readonly all = signal<TodoList[]>([]);
-  private readonly history = new History<TodoList[]>(100);
+  private readonly listHistories = new Map<string, History<TodoList>>();
+  private readonly overviewHistory = new CommandHistory(UNDO_LIMIT);
+  /** Zählt Verlaufsänderungen, damit `canUndo`/`canRedo` reaktiv sind. */
+  private readonly historyTick = signal(0);
 
   private persistedIds = new Set<string>();
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  private purgeTimer: ReturnType<typeof setTimeout> | null = null;
   private channel: BroadcastChannel | null = null;
   private loaded = false;
 
-  readonly canUndo = signal(false);
-  readonly canRedo = signal(false);
   readonly saveError = signal(false);
 
+  private readonly visible = computed(() => this.all().filter((l) => !l.deletedAt));
+
   readonly lists = computed(() =>
-    this.all()
+    this.visible()
       .filter((l) => !l.archived)
       .slice()
       .sort((a, b) => a.sortOrder - b.sortOrder),
   );
 
   readonly archived = computed(() =>
-    this.all()
+    this.visible()
       .filter((l) => l.archived)
       .slice()
       .sort((a, b) => a.sortOrder - b.sortOrder),
@@ -55,20 +74,25 @@ export class ListsStore {
   async load(): Promise<void> {
     try {
       const stored = await this.db.getLists();
+      // Gelöschte Zettel aus einer früheren Sitzung: Ihre Frist ist vorbei (der
+      // Rückgängig-Verlauf existiert nicht mehr) → jetzt endgültig entfernen.
       // Ältere Tagespläne ohne Bezugstag: ab heute gültig (SPEC 7.3).
-      const lists = stored.map((l) => withTimeboxMode(l, l.timeboxMode, new Date()));
+      const lists = stored
+        .filter((l) => !l.deletedAt)
+        .map((l) => withTimeboxMode(l, l.timeboxMode, new Date()));
       this.all.set(lists);
       this.persistedIds = new Set(stored.map((l) => l.id));
-      if (lists.some((l, i) => l !== stored[i])) this.schedulePersist();
+      if (lists.length !== stored.length || lists.some((l, i) => l !== stored[i])) {
+        this.schedulePersist();
+      }
     } catch {
       // Ohne IndexedDB (z. B. Tests) startet der Store leer und ohne Persistenz.
       this.loaded = false;
-      this.syncHistoryFlags();
+      this.clearHistories();
       return;
     }
     this.loaded = true;
-    this.history.clear();
-    this.syncHistoryFlags();
+    this.clearHistories();
   }
 
   private schedulePersist(): void {
@@ -105,172 +129,260 @@ export class ListsStore {
     }
   }
 
-  // --- Mutationen ----------------------------------------------------------
+  // --- Lesen ---------------------------------------------------------------
 
+  /** Ein sichtbarer (nicht gelöschter) Zettel. */
   getList(id: string): TodoList | undefined {
-    return this.all().find((l) => l.id === id);
+    return this.visible().find((l) => l.id === id);
   }
+
+  /** Alle sichtbaren Zettel inkl. archivierter (für Export/Backup). */
+  allItems(): TodoList[] {
+    return this.visible();
+  }
+
+  // --- Änderungen in einem Zettel (Verlauf pro Zettel) ---------------------
 
   /**
    * Wendet eine reine Graph-/Task-Änderung auf genau einen Zettel an (ein
-   * Undo-Schritt). Wirft die Änderungsfunktion (z. B. GraphError), bleiben die
-   * Daten unverändert.
+   * Undo-Schritt in dessen Verlauf). Wirft die Änderungsfunktion (z. B.
+   * GraphError), bleiben die Daten unverändert.
    */
   editList(id: string, change: (list: TodoList) => TodoList): void {
     const current = this.getList(id);
     if (!current) return;
     const updated = change(current);
-    const now = new Date().toISOString();
-    this.commit((lists) => lists.map((l) => (l.id === id ? { ...updated, updatedAt: now } : l)));
-  }
-
-  private commit(mutator: (lists: TodoList[]) => TodoList[]): void {
-    this.history.push(this.all());
-    this.all.set(mutator(this.all()));
-    this.syncHistoryFlags();
-    this.schedulePersist();
-  }
-
-  create(title: string, timeboxMode: TimeboxMode = 'none'): string {
-    const list = withTimeboxMode(createList(title), timeboxMode, new Date());
-    list.sortOrder = this.nextSortOrder();
-    this.commit((lists) => [...lists, list]);
-    return list.id;
+    this.historyOf(id).push(current);
+    this.replace(id, () => ({ ...updated, updatedAt: new Date().toISOString() }));
+    this.touchHistory();
   }
 
   rename(id: string, title: string): void {
-    this.commit((lists) =>
-      lists.map((l) => (l.id === id ? { ...l, title, updatedAt: new Date().toISOString() } : l)),
-    );
+    this.editList(id, (l) => ({ ...l, title }));
   }
 
   setTimeboxMode(id: string, timeboxMode: TimeboxMode): void {
-    this.commit((lists) =>
-      lists.map((l) =>
-        l.id === id
-          ? { ...withTimeboxMode(l, timeboxMode, new Date()), updatedAt: new Date().toISOString() }
-          : l,
-      ),
-    );
+    this.editList(id, (l) => withTimeboxMode(l, timeboxMode, new Date()));
   }
 
-  /** Titel und Modus in einem Schritt (ein Undo-Schritt). */
-  update(id: string, changes: { title: string; timeboxMode: TimeboxMode }): void {
-    const now = new Date().toISOString();
-    this.commit((lists) =>
-      lists.map((l) =>
-        l.id === id
-          ? {
-              ...withTimeboxMode(l, changes.timeboxMode, new Date()),
-              title: changes.title,
-              updatedAt: now,
-            }
-          : l,
-      ),
-    );
-  }
+  // --- Änderungen in der Übersicht (Befehls-Verlauf) ------------------------
 
-  duplicate(id: string): string | undefined {
-    const source = this.all().find((l) => l.id === id);
-    if (!source) return undefined;
-    const copy = this.cloneList(source);
-    copy.title = `${source.title} (Kopie)`;
-    copy.sortOrder = this.nextSortOrder();
-    this.commit((lists) => [...lists, copy]);
-    return copy.id;
-  }
-
-  archive(id: string): void {
-    this.commit((lists) =>
-      lists.map((l) =>
-        l.id === id ? { ...l, archived: true, updatedAt: new Date().toISOString() } : l,
-      ),
-    );
-  }
-
-  restore(id: string): void {
-    this.commit((lists) =>
-      lists.map((l) =>
-        l.id === id ? { ...l, archived: false, updatedAt: new Date().toISOString() } : l,
-      ),
-    );
-  }
-
-  remove(id: string): void {
-    this.commit((lists) => lists.filter((l) => l.id !== id));
+  create(title: string, timeboxMode: TimeboxMode = 'none'): string {
+    return this.addNew(withTimeboxMode(createList(title), timeboxMode, new Date()));
   }
 
   /** Fügt einen fertig aufgebauten neuen Zettel (z. B. aus einer Vorlage) unten an. */
   addNew(list: TodoList): string {
     const added = { ...list, sortOrder: this.nextSortOrder() };
-    this.commit((lists) => [...lists, added]);
+    this.insertListCommand(added);
     return added.id;
   }
 
-  /** Rückgängig-/Wiederholen-gerechte Wiederherstellung eines ganzen Zettels. */
-  addExisting(list: TodoList): void {
-    this.commit((lists) => [...lists, list]);
+  duplicate(id: string): string | undefined {
+    const source = this.getList(id);
+    if (!source) return undefined;
+    const copy = this.cloneList(source);
+    copy.title = `${source.title} (Kopie)`;
+    copy.sortOrder = this.nextSortOrder();
+    this.insertListCommand(copy);
+    return copy.id;
+  }
+
+  /** Titel und Modus in einem Schritt (aus der Übersicht; ein Undo-Schritt dort). */
+  update(id: string, changes: { title: string; timeboxMode: TimeboxMode }): void {
+    const before = this.getList(id);
+    if (!before) return;
+    const old = listFields(before);
+    const next = listFields({
+      ...withTimeboxMode(before, changes.timeboxMode, new Date()),
+      title: changes.title,
+    });
+    const apply = (values: ListFields) => () =>
+      this.replace(id, (l) => ({ ...l, ...values, updatedAt: new Date().toISOString() }));
+    this.run({ undo: apply(old), redo: apply(next) });
+  }
+
+  archive(id: string): void {
+    this.setArchivedCommand(id, true);
+  }
+
+  restore(id: string): void {
+    this.setArchivedCommand(id, false);
+  }
+
+  /**
+   * Löschen mit Rückgängig (SPEC 5.5): Der Zettel wird zunächst nur als gelöscht
+   * markiert (und so gespeichert) und erst nach `DELETE_GRACE_MS` endgültig
+   * entfernt. Auch danach stellt „Rückgängig" in der Übersicht ihn wieder her.
+   */
+  remove(id: string): void {
+    if (!this.getList(id)) return;
+    let snapshot: TodoList | undefined;
+    const softDelete = () => {
+      snapshot = this.getList(id) ?? snapshot;
+      this.replace(id, (l) => ({ ...l, deletedAt: new Date().toISOString() }));
+      this.schedulePurge();
+    };
+    const bringBack = () => {
+      if (this.all().some((l) => l.id === id)) {
+        this.replace(id, ({ deletedAt: _deletedAt, ...l }) => l);
+      } else if (snapshot) {
+        this.setAll([...this.all(), snapshot]);
+      }
+    };
+    this.run({ undo: bringBack, redo: softDelete });
   }
 
   move(id: string, direction: 'up' | 'down'): void {
     const ordered = this.lists();
     const index = ordered.findIndex((l) => l.id === id);
-    const other = direction === 'up' ? index - 1 : index + 1;
-    const neighbor = ordered[other];
     const current = ordered[index];
+    const neighbor = ordered[direction === 'up' ? index - 1 : index + 1];
     if (!current || !neighbor) return;
-    this.commit((lists) =>
-      lists.map((l) => {
-        if (l.id === current.id) return { ...l, sortOrder: neighbor.sortOrder };
-        if (l.id === neighbor.id) return { ...l, sortOrder: current.sortOrder };
-        return l;
-      }),
-    );
+    const orders = (a: number, b: number) => () =>
+      this.setAll(
+        this.all().map((l) => {
+          if (l.id === current.id) return { ...l, sortOrder: a };
+          if (l.id === neighbor.id) return { ...l, sortOrder: b };
+          return l;
+        }),
+      );
+    this.run({
+      undo: orders(current.sortOrder, neighbor.sortOrder),
+      redo: orders(neighbor.sortOrder, current.sortOrder),
+    });
   }
 
-  // --- Undo / Redo ---------------------------------------------------------
-
-  undo(): boolean {
-    const previous = this.history.undo(this.all());
-    if (previous === undefined) return false;
-    this.all.set(previous);
-    this.syncHistoryFlags();
-    this.schedulePersist();
-    return true;
+  /** Fügt einen Zettel ohne Verlaufseintrag hinzu (Testaufbau, Wiederherstellung). */
+  addExisting(list: TodoList): void {
+    this.setAll([...this.all().filter((l) => l.id !== list.id), list]);
   }
 
-  redo(): boolean {
-    const next = this.history.redo(this.all());
-    if (next === undefined) return false;
-    this.all.set(next);
-    this.syncHistoryFlags();
-    this.schedulePersist();
-    return true;
-  }
-
-  // --- Import --------------------------------------------------------------
-
-  /** Alle Zettel inkl. archivierter (für Export/Backup). */
-  allItems(): TodoList[] {
-    return this.all();
-  }
-
+  /** Import (SPEC 8.5): ersetzt alle Zettel; in der Übersicht rückgängig machbar. */
   replaceAll(lists: readonly TodoList[]): void {
-    this.history.push(this.all());
-    this.all.set([...lists]);
-    this.syncHistoryFlags();
-    this.schedulePersist();
+    const before = this.all();
+    const after = [...lists];
+    const apply = (value: TodoList[]) => () => {
+      this.listHistories.clear();
+      this.setAll(value);
+    };
+    this.run({ undo: apply(before), redo: apply(after) });
+  }
+
+  // --- Rückgängig / Wiederholen --------------------------------------------
+
+  /** Mit `listId`: Verlauf dieses Zettels; ohne: Verlauf der Übersicht. */
+  canUndo(listId?: string): boolean {
+    this.historyTick();
+    return listId
+      ? (this.listHistories.get(listId)?.canUndo() ?? false)
+      : this.overviewHistory.canUndo();
+  }
+
+  canRedo(listId?: string): boolean {
+    this.historyTick();
+    return listId
+      ? (this.listHistories.get(listId)?.canRedo() ?? false)
+      : this.overviewHistory.canRedo();
+  }
+
+  undo(listId?: string): boolean {
+    const done = listId ? this.stepList(listId, 'undo') : this.overviewHistory.undo();
+    this.touchHistory();
+    return done;
+  }
+
+  redo(listId?: string): boolean {
+    const done = listId ? this.stepList(listId, 'redo') : this.overviewHistory.redo();
+    this.touchHistory();
+    return done;
   }
 
   // --- Intern --------------------------------------------------------------
 
-  private nextSortOrder(): number {
-    return this.all().reduce((max, l) => Math.max(max, l.sortOrder), -1) + 1;
+  private stepList(id: string, direction: 'undo' | 'redo'): boolean {
+    const current = this.getList(id);
+    const history = this.listHistories.get(id);
+    if (!current || !history) return false;
+    const target = direction === 'undo' ? history.undo(current) : history.redo(current);
+    if (target === undefined) return false;
+    // Archiv-Status und Reihenfolge gehören der Übersicht und bleiben, wie sie sind.
+    this.replace(id, (l) => ({ ...target, archived: l.archived, sortOrder: l.sortOrder }));
+    return true;
   }
 
-  private syncHistoryFlags(): void {
-    this.canUndo.set(this.history.canUndo());
-    this.canRedo.set(this.history.canRedo());
+  private historyOf(id: string): History<TodoList> {
+    let history = this.listHistories.get(id);
+    if (!history) {
+      history = new History<TodoList>(UNDO_LIMIT);
+      this.listHistories.set(id, history);
+    }
+    return history;
+  }
+
+  /** Führt einen Befehl aus und merkt ihn sich im Verlauf der Übersicht. */
+  private run(command: { undo: () => void; redo: () => void }): void {
+    command.redo();
+    this.overviewHistory.record(command);
+    this.touchHistory();
+  }
+
+  private insertListCommand(list: TodoList): void {
+    let latest = list;
+    this.run({
+      undo: () => {
+        latest = this.all().find((l) => l.id === list.id) ?? latest;
+        this.setAll(this.all().filter((l) => l.id !== list.id));
+      },
+      redo: () => this.setAll([...this.all().filter((l) => l.id !== list.id), latest]),
+    });
+  }
+
+  private setArchivedCommand(id: string, archived: boolean): void {
+    if (!this.getList(id)) return;
+    const apply = (value: boolean) => () =>
+      this.replace(id, (l) => ({ ...l, archived: value, updatedAt: new Date().toISOString() }));
+    this.run({ undo: apply(!archived), redo: apply(archived) });
+  }
+
+  private replace(id: string, change: (list: TodoList) => TodoList): void {
+    this.setAll(this.all().map((l) => (l.id === id ? change(l) : l)));
+  }
+
+  private setAll(lists: TodoList[]): void {
+    this.all.set(lists);
+    this.schedulePersist();
+  }
+
+  private touchHistory(): void {
+    this.historyTick.update((n) => n + 1);
+  }
+
+  private clearHistories(): void {
+    this.listHistories.clear();
+    this.overviewHistory.clear();
+    this.touchHistory();
+  }
+
+  /** Entfernt gelöschte Zettel endgültig, sobald ihre Frist abgelaufen ist. */
+  private schedulePurge(): void {
+    if (this.purgeTimer !== null) clearTimeout(this.purgeTimer);
+    this.purgeTimer = setTimeout(() => {
+      this.purgeTimer = null;
+      this.purgeExpired(Date.now());
+    }, DELETE_GRACE_MS);
+  }
+
+  private purgeExpired(now: number): void {
+    const expired = (l: TodoList) =>
+      l.deletedAt !== undefined && now - new Date(l.deletedAt).getTime() >= DELETE_GRACE_MS;
+    if (this.all().some(expired)) this.setAll(this.all().filter((l) => !expired(l)));
+    // Später gelöschte Zettel bekommen eine weitere Runde.
+    if (this.all().some((l) => l.deletedAt)) this.schedulePurge();
+  }
+
+  private nextSortOrder(): number {
+    return this.all().reduce((max, l) => Math.max(max, l.sortOrder), -1) + 1;
   }
 
   private cloneList(source: TodoList): TodoList {
@@ -326,12 +438,23 @@ export class ListsStore {
       if (maxUpdated(lists) !== maxUpdated(this.all())) {
         this.all.set(lists);
         this.persistedIds = new Set(lists.map((l) => l.id));
-        this.syncHistoryFlags();
+        // Ein anderer Tab hat geändert: alte Verläufe würden dessen Stand überschreiben.
+        this.clearHistories();
       }
     } catch {
       // Ohne IndexedDB (z. B. Tests) nichts zu tun.
     }
   }
+}
+
+type ListFields = Pick<TodoList, 'title' | 'timeboxMode' | 'dayPlanReferenceDate'>;
+
+function listFields(list: TodoList): ListFields {
+  return {
+    title: list.title,
+    timeboxMode: list.timeboxMode,
+    dayPlanReferenceDate: list.dayPlanReferenceDate,
+  };
 }
 
 function maxUpdated(lists: readonly TodoList[]): string {

@@ -318,3 +318,18 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* Ablauf: Teilsumme je Strang (Modus Zeitschätzung, SPEC 7.2). */
+.strand-sum {
+  position: absolute;
+  max-width: 200px;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}

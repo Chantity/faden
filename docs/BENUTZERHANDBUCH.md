@@ -73,6 +73,14 @@ Fast jede Aktion lässt sich rückgängig machen – Anlegen, Umbenennen,
 Archivieren, Löschen und (in der Detailansicht) auch das Abhaken. Nutze die
 Pfeil-Buttons oben oder die Tastatur:
 
+- **In einem Zettel** wirken Rückgängig/Wiederholen nur auf **diesen Zettel**.
+  Jeder Zettel merkt sich seine eigenen letzten 100 Schritte.
+- **In der Übersicht** wirken sie auf das, was du dort getan hast (Anlegen,
+  Umbenennen, Archivieren, Löschen, Reihenfolge). Änderungen, die du inzwischen
+  in einem Zettel gemacht hast, bleiben dabei erhalten.
+- Ein **gelöschter Zettel** wird erst nach ein paar Sekunden endgültig entfernt.
+  Solange die App offen ist, holt „Rückgängig" in der Übersicht ihn zurück.
+
 - **Strg/Cmd + Z** – rückgängig
 - **Strg/Cmd + Shift + Z** bzw. **Strg + Y** – wiederholen
 
@@ -166,6 +174,8 @@ Benachrichtigungen** – Faden rechnet nur mit.
 - **Keine Zeitplanung** – nur ToDos.
 - **Zeitschätzung** – Dauer je ToDo (5, 10, 15, 30, 45, 60, 90 Min oder frei).
   Der Zettel zeigt Summen: offen, gesamt, erledigt und „3 ohne Schätzung".
+  Hat der Zettel mehrere unabhängige Stränge, steht im **Ablauf** über jedem
+  Strang dessen offene Teilsumme.
 - **Tagesplan** – Von-/Bis-Uhrzeit ohne Datum. ToDos sind „Läuft gerade", „Als
   Nächstes" oder „Nicht abgehakt" (dann mit **„Nachträglich abhaken"**).
   Die Uhrzeiten gelten für den Tag, an dem du den Tagesplan eingeschaltet
@@ -225,7 +235,7 @@ bestehende ToDos bleiben unverändert (mit „Rückgängig").
 
 - **Design**: System, Hell oder Dunkel. Dunkel ist gleichwertig gestaltet.
 - **Sprache**: Englisch (Standard) oder Deutsch. Die Umschaltung wirkt sofort.
-- **Speicher**: zeigt, ob der Browser die Daten dauerhaft schützt. Fehlt der
+- **Speicher**: zeigt, wie viel Platz Faden belegt, und ob der Browser die Daten dauerhaft schützt. Fehlt der
   Schutz, kannst du auf **„Dauerhaft schützen"** tippen (der Browser fragt nach
   der ersten Nutzerinteraktion danach).
 - **Version**: die installierte App-Version. Faden aktualisiert sich **nie von

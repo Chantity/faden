@@ -106,4 +106,13 @@ describe('layoutList', () => {
     const layout = layoutList(input);
     expect(layout.nodes[0]?.lines).toBe(3);
   });
+
+  it('liefert die Stränge mit Position und hält paddingTop ein', () => {
+    const layout = layoutList(list(['a', 'b', 'c'], [['a', 'b']]), { padding: 20, paddingTop: 90 });
+    expect(layout.strands.map((s) => s.taskIds)).toEqual([['a', 'b'], ['c']]);
+    expect(layout.strands[0]?.x).toBe(20);
+    expect(layout.strands[1]!.x).toBeGreaterThan(layout.strands[0]!.x + layout.strands[0]!.width);
+    expect(Math.min(...layout.nodes.map((n) => n.y))).toBe(90);
+    expect(layout.nodes.find((n) => n.id === 'c')?.x).toBe(layout.strands[1]?.x);
+  });
 });

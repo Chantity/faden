@@ -44,3 +44,57 @@ export class History<T> {
     this.future = [];
   }
 }
+
+/** Eine rückgängig machbare Änderung, die nur genau ihre eigene Wirkung umkehrt. */
+export interface Command {
+  undo(): void;
+  redo(): void;
+}
+
+/**
+ * Rückgängig/Wiederholen als Befehle statt Snapshots (SPEC 5.5). Für die
+ * Zettel-Übersicht: Ein Schritt dort (z. B. Archivieren) soll beim Rückgängig-
+ * machen nicht nebenbei spätere Änderungen in einem Zettel verwerfen.
+ */
+export class CommandHistory {
+  private past: Command[] = [];
+  private future: Command[] = [];
+
+  constructor(private readonly limit = 100) {}
+
+  /** Merkt sich eine bereits ausgeführte Änderung. */
+  record(command: Command): void {
+    this.past.push(command);
+    if (this.past.length > this.limit) this.past.shift();
+    this.future = [];
+  }
+
+  undo(): boolean {
+    const command = this.past.pop();
+    if (!command) return false;
+    command.undo();
+    this.future.push(command);
+    return true;
+  }
+
+  redo(): boolean {
+    const command = this.future.pop();
+    if (!command) return false;
+    command.redo();
+    this.past.push(command);
+    return true;
+  }
+
+  canUndo(): boolean {
+    return this.past.length > 0;
+  }
+
+  canRedo(): boolean {
+    return this.future.length > 0;
+  }
+
+  clear(): void {
+    this.past = [];
+    this.future = [];
+  }
+}

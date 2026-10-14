@@ -1,6 +1,20 @@
 // Formatierung von Dauern, Uhrzeiten und Tagen (SPEC 7).
 // Reine Funktionen, ohne Angular.
 
+/** Bytes lesbar formatieren (z. B. „1,2 MB" / „1.2 MB"), Basis 1024. */
+export function formatBytes(bytes: number, locale: 'de' | 'en' = 'de'): string {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = Math.max(0, bytes);
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  const digits = unit === 0 || value >= 100 ? 0 : 1;
+  const text = new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value);
+  return `${text} ${units[unit]}`;
+}
+
 /** Liefert die Minutenzahl, sofern der Eingabewert eine gültige „HH:mm"-Uhrzeit ist. */
 export function parseHhMm(value: string | undefined): number | null {
   if (!value) return null;

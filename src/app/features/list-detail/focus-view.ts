@@ -562,7 +562,7 @@ export class FocusView {
     }));
     this.snackbar.show(this.t().focus.markDone, {
       label: this.t().common.undo,
-      run: () => this.store.undo(),
+      run: () => this.store.undo(list.id),
     });
   }
 
@@ -581,7 +581,7 @@ export class FocusView {
     this.store.editList(list.id, (l) => deleteTask(l, task.id, mode));
     this.snackbar.show(this.t().common.delete, {
       label: this.t().common.undo,
-      run: () => this.store.undo(),
+      run: () => this.store.undo(list.id),
     });
   }
 

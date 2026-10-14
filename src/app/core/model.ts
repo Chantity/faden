@@ -30,6 +30,11 @@ export interface TodoList {
   /** ISO */
   updatedAt: string;
   sortOrder: number;
+  /**
+   * ISO; gesetzt = gelöscht, aber noch innerhalb der Rückgängig-Frist (Soft-Delete,
+   * SPEC 5.5). Solche Zettel sind unsichtbar und werden danach endgültig entfernt.
+   */
+  deletedAt?: string;
 }
 
 export interface Task {

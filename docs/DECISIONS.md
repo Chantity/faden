@@ -147,8 +147,8 @@ anschließend Review, dann Phase 2 und 3.
 
 | Thema | Ist-Stand in Phase 1 | SPEC-Referenz | Einordnung |
 |---|---|---|---|
-| Undo/Redo-Verlauf | **Globaler Snapshot-Verlauf** für die Zettel-Übersicht (bis 100 Schritte). | 5.5: „Pro Zettel ein Verlauf" | Ein expliziter Verlauf pro Zettel ist erst mit der Detailansicht (Phase 2) sinnvoll; `History<T>` ist bereits generisch vorbereitet. |
-| Löschen von Zetteln | Sofort aus IndexedDB entfernt, **Undo im Speicher** (Hinweisband 8 s). | 5.5: verzögertes/Soft-Delete | Verhalten für den Nutzer identisch; verzögertes Schreiben kann später ergänzt werden. |
+| Undo/Redo-Verlauf | **Globaler Snapshot-Verlauf** für die Zettel-Übersicht (bis 100 Schritte). | 5.5: „Pro Zettel ein Verlauf" | Ein expliziter Verlauf pro Zettel ist erst mit der Detailansicht (Phase 2) sinnvoll; `History<T>` ist bereits generisch vorbereitet. **Erledigt** (Kap. 6h). |
+| Löschen von Zetteln | Sofort aus IndexedDB entfernt, **Undo im Speicher** (Hinweisband 8 s). | 5.5: verzögertes/Soft-Delete | Verhalten für den Nutzer identisch; verzögertes Schreiben kann später ergänzt werden. **Erledigt** (Kap. 6h). |
 | App-Version | `APP_VERSION` fällt auf `0.0.0` zurück; `define` aus `package.json` folgt. **Erledigt in 3.11.** | 9.3: Version aus `package.json` | Wird in Phase 3 mit dem Build verdrahtet. |
 | Service Worker, Manifest, Icons | Noch nicht vorhanden (keine Referenzen in `index.html`). **Erledigt in 3.11.** | Kap. 9 | Bewusst Phase 3; vermeidet 404-Referenzen im Zwischenstand. |
 | `@angular/cdk` | Noch nicht installiert. | Kap. 2 (optional) | Wird nur bei konkretem Bedarf ergänzt. |
@@ -180,7 +180,7 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 
 | Thema | Ist-Stand in Phase 2 | SPEC-Referenz | Einordnung |
 |---|---|---|---|
-| Undo/Redo-Verlauf | Weiterhin **ein globaler Snapshot-Verlauf** über alle Zettel. | 5.5: „Pro Zettel ein Verlauf" | Verhalten identisch (≥100 Schritte); ein Verlauf pro Zettel kann später ergänzt werden. |
+| Undo/Redo-Verlauf | Weiterhin **ein globaler Snapshot-Verlauf** über alle Zettel. | 5.5: „Pro Zettel ein Verlauf" | Verhalten identisch (≥100 Schritte); ein Verlauf pro Zettel kann später ergänzt werden. **Erledigt** (Kap. 6h). |
 | „Mit anderem ToDo verbinden" | **Auswahl-Dialog** statt Banner-Modus „Ziel wählen" (Punkt 1) bzw. Drag (Punkt 2). | 5.4, Punkte 1–2 | Der Dialog ist per Tastatur/Screenreader bedienbar und funktional gleichwertig; Drag-to-connect bleibt optional. |
 | Pfeil-Aktionen / „+"-Anordnung | **Ein** „+" pro Verbindung (auf der Kante, `insertBetween`); das Karten-„+" **über** einer Karte wird am Strang-Anfang (kein Vorgänger) gezeigt, das Karten-„+" **unter** einer Karte am Strang-Ende (kein Nachfolger) und **an einer Verzweigung** (≥2 Nachfolger). Bei genau **einem** Nachfolger ersetzt das Kanten-„+" das Karten-„+". Zusätzlich öffnet ein Tap auf die Kante ein kleines Menü. | 5.4: „auf jedem Pfeil · über jeder Karte · unter jeder Karte" | In einer Kette wären die drei „+" deckungsgleich und täten dasselbe. Ein „+" pro Verbindung plus Rand-„+" ist überlappungsfrei; `insertBefore`/`insertAfter` an Mittelknoten entspricht `insertBetween` auf der jeweiligen Kante. |
 | Karten-„+" an Verzweigungen (Fan-out) | Hat ein ToDo **≥2 direkte Nachfolger**, erscheint unter ihm wieder ein „+" (`showsAfterPlus`: 0 oder ≥2 Nachfolger). Es fügt einen Knoten ein, **von dem alle bisherigen Nachfolger abhängen** (vorhandenes `insertAfter` = Engpass-Einfügung: alle `A→s` werden zu `D→s`, dazu `A→D`). Der Schichtabstand im Ablauf ist **128 px** (vorher 72 px), damit Karten-„+" und die Kanten-„+" der abgehenden Pfeile nebeneinander Platz haben; auf **jedem** Pfeil bleibt ein „+" sichtbar. Die Überlagerungsprüfung (`edgePlusHidden`) bleibt als Absicherung bestehen. | Nutzerwunsch (Ablauf, Bugfix-Runde) | In einer Verzweigung A→{B,C,…} ließ sich bisher nicht *vor* der Verzweigung ein neuer gemeinsamer Schritt einfügen. Beim ersten Wurf wurde das senkrechte Kanten-„+" A→B ausgeblendet; der Nutzer wollte stattdessen längere Pfeile mit sichtbarem „+". |
@@ -255,6 +255,15 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | Löschen ohne Überbrücken | Zweiter Menüeintrag **„Löschen, ohne zu verbinden"** (Jetzt dran + Ablauf), nur wenn das ToDo Vorgänger **und** Nachfolger hat. | 4.3 („zweite Option im Dialog") | Kein Dialog vor jedem Löschen (Leitprinzip „keine Pop-ups ohne Not", Undo genügt); die Option erscheint nur, wo sie einen Unterschied macht. `Entf` im Ablauf überbrückt. |
 | Moduswechsel Tagesplan ↔ fester Zeitplan | `dayPlan` → `schedule` mit Tageszeiten: In der Zettel-Ansicht öffnet sich „Tageszeiten auf ein Datum übertragen" (Datum = Bezugstag, „Nicht übertragen" möglich). Aus der Übersicht heraus nur ein Hinweis, wo das geht. `schedule` → `dayPlan`: Hinweis im Hinweisband. | 7.4 | Entscheidung als reine Funktion `modeSwitchOffer` (getestet). |
 | Import-Fehlermeldungen | `validateBackup` liefert strukturierte Befunde (`BackupIssue`: Code + Fundstelle), `describeBackupIssue` übersetzt sie (de/en). | 8.5, Kap. 6a hier | Vorher fest deutsch; bei kaputtem JSON zeigte die UI den internen Code `json`. |
+
+## 6h. Nachgerüstete Vereinfachungen (Verlauf, Löschen, Teilsummen, Speicher)
+
+| Thema | Ist-Stand | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Rückgängig/Wiederholen | **Pro Zettel ein Verlauf** (Snapshots, 100 Schritte) für alles im Zettel (`editList`, auch Umbenennen/Moduswechsel in der Zettel-Ansicht). Die **Übersicht** hat einen eigenen **Befehls-Verlauf** (`CommandHistory`, 100 Schritte): Anlegen, Duplizieren, Umbenennen/Modus aus der Übersicht, Archivieren/Wiederherstellen, Löschen, Verschieben, Import. | 5.5 | Ein Befehl kehrt nur seine eigene Wirkung um. Vorher setzte ein globaler Snapshot beim Rückgängigmachen in der Übersicht auch spätere Änderungen in Zetteln zurück. Ein Undo im Zettel lässt Archiv-Status und Reihenfolge unberührt. Ändert ein anderer Tab Daten, werden die Verläufe geleert (sonst überschriebe ein Undo dessen Stand). |
+| Zettel löschen | **Soft-Delete:** `deletedAt` wird gesetzt und gespeichert; der Zettel ist sofort unsichtbar und wird nach `DELETE_GRACE_MS` (10 s, länger als das 8-s-Hinweisband) endgültig aus IndexedDB entfernt. Beim Start werden markierte Zettel früherer Sitzungen aufgeräumt. „Rückgängig" in der Übersicht stellt den Zettel auch nach Ablauf der Frist wieder her (aus dem Verlauf). | 5.5 | Wortlaut der SPEC. `deletedAt` ist optional → keine Schema-Migration; Export/Backup enthält gelöschte Zettel nicht. |
+| Teilsummen je Strang | Im **Ablauf**, Modus „Zeitschätzung", **nur bei ≥ 2 Strängen**: kleine Beschriftung über jedem Strang „Σ 45 Min offen · 1 ohne Schätzung". Das Layout liefert dafür `strands` (x/Breite) und einen größeren oberen Rand (`paddingTop`). | 7.2 (optional) | Bei nur einem Strang steht dieselbe Summe schon in der Kopfzeile. Stil liegt global in `styles.css` (Komponenten-CSS-Budget 4 kB). |
+| Speicherbelegung | Einstellungen → Speicher: „Belegt: 1,2 MB von 2 GB verfügbar." aus `navigator.storage.estimate()`; fehlt die API, wird nichts angezeigt. | 8.3 (optional) | Reine Info. |
 
 ## 7. Fortschritt
 
@@ -342,6 +351,14 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
   - `scripts/pwa-test.mjs`: **9/9 Pflichttests bestanden** (`docs/PWA-TESTS.md`).
   - `npm test` = **132 Tests** grün; `npm run build` ohne Warnungen.
 
+- **Nachrüstungen nach 3.12: abgeschlossen** (siehe Kap. 6h).
+  - `core/state/lists.store.ts` umgebaut (Verlauf pro Zettel + Befehls-Verlauf
+    der Übersicht, Soft-Delete mit Frist), `CommandHistory` in `history.ts`.
+  - Teilsummen je Strang im Ablauf, Speicherbelegung in den Einstellungen.
+  - Tests: `lists.store.spec.ts` (9), `history.spec`, `layout.spec`,
+    `flow-view.spec`, `time.spec`; `npm test` = **160 Tests** grün;
+    `npm run test:pwa` = **11/11** grün; `npm run build` ohne Warnungen.
+
 - **Phase 3.12 – Optionale Punkte: abgeschlossen.**
   - „Nach neuer Version suchen" (SPEC 9.3) im `PwaService` + Einstellungen.
   - „Vorlage in Zettel einfügen" (`insert-template-dialog.ts`).
@@ -372,5 +389,6 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | Phase 3.10 (Backup & Speicher) umgesetzt | Kap. 8; `navigator.storage.persist()` nach erster Interaktion. |
 | 2026-10-14 | Bugfix-Runde: längere Pfeile, neue Menünamen, Vorlage + Menü-Schließen in der Übersicht | Nutzerwünsche (Kap. 6e). |
 | 2026-10-14 | Phase 3.11: eigener SW mit stabiler `sw.js` + separater Precache-Liste; PWA-Tests automatisiert, alle grün | Kap. 6f; keine Auto-Updates. |
+| 2026-10-14 | Verlauf pro Zettel + Befehls-Verlauf der Übersicht; Soft-Delete mit 10-s-Frist; Teilsummen je Strang; Speicherbelegung | Kap. 6h. |
 | 2026-10-14 | Phase 3.12: Update auf Knopfdruck, Vorlage in Zettel einfügen | Optionale Punkte aus Kap. 11. |
 | 2026-10-14 | Lückenschluss: Bezugstag-Bug, Vorlage im Anlegen-Dialog, Löschen ohne Verbinden, Moduswechsel-Angebot, Import-Fehler übersetzt | Kap. 6g. |

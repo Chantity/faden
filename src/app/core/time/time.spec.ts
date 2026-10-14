@@ -3,6 +3,7 @@ import { createList, createTask, type Task, type TodoList } from '../model';
 import {
   earliestNextTask,
   estimateSums,
+  formatBytes,
   formatDayLabel,
   formatDuration,
   formatPlannedRange,
@@ -364,5 +365,15 @@ describe('modeSwitchOffer (SPEC 7.4)', () => {
     list.tasks = [task({ id: 'a', title: 'A', startAt: '2026-03-12T09:00' })];
     expect(modeSwitchOffer(list, 'dayPlan')).toBe('scheduleKept');
     expect(modeSwitchOffer(list, 'estimate')).toBeNull();
+  });
+});
+
+describe('formatBytes', () => {
+  it('formatiert Bytes lesbar und lokalisiert', () => {
+    expect(formatBytes(512, 'en')).toBe('512 B');
+    expect(formatBytes(1536, 'de')).toBe('1,5 KB');
+    expect(formatBytes(1536, 'en')).toBe('1.5 KB');
+    expect(formatBytes(5 * 1024 ** 3, 'en')).toBe('5 GB');
+    expect(formatBytes(300 * 1024 ** 2, 'en')).toBe('300 MB');
   });
 });

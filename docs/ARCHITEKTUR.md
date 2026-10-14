@@ -180,9 +180,19 @@ CRUD und Undo-Snackbar beim Löschen.
 
 - **Signals** als einzige Zustandsquelle. `computed` leitet ab (z. B. aktive vs.
   archivierte Zettel).
-- **Undo/Redo** (`history.ts`): generischer Snapshot-Verlauf, Obergrenze 100,
-  Redo wird nach neuer Änderung verworfen. Der `ListsStore` schiebt vor jeder
-  Mutation einen Schnappschuss.
+- **Undo/Redo** (`history.ts`), jeweils Obergrenze 100, Redo wird nach neuer
+  Änderung verworfen:
+  - `History<TodoList>` **pro Zettel**: `ListsStore.editList` schiebt vor jeder
+    Änderung im Zettel einen Schnappschuss; `undo(listId)` setzt ihn zurück
+    (Archiv-Status und Reihenfolge bleiben).
+  - `CommandHistory` für die **Übersicht**: Anlegen, Duplizieren, Umbenennen,
+    Archivieren, Löschen, Verschieben und Import sind Befehle mit `undo`/`redo`,
+    die nur ihre eigene Wirkung umkehren. `undo()` ohne ID gilt der Übersicht.
+  - `canUndo(listId?)`/`canRedo(listId?)` sind über ein internes Zähl-Signal
+    reaktiv.
+- **Löschen** ist ein Soft-Delete (`TodoList.deletedAt`): sofort unsichtbar,
+  gespeichert, nach `DELETE_GRACE_MS` (10 s) endgültig entfernt; beim Start
+  werden Reste früherer Sitzungen aufgeräumt.
 - **Schreiben:** Änderungen landen sofort im Signal und werden **entprellt
   (~300 ms)** sowie **sofort bei `visibilitychange: hidden`/`pagehide`** nach
   IndexedDB geschrieben (`flush()`). Fehler setzen `saveError` und zeigen ein

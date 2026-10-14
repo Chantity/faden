@@ -193,6 +193,8 @@ export const de = {
   },
 
   flow: {
+    strandSum: (duration: string): string => `Σ ${duration} offen`,
+    strandSumLabel: 'Teilsumme dieses Strangs',
     zoomIn: 'Vergrößern',
     zoomOut: 'Verkleinern',
     fit: 'Alles einpassen',
@@ -336,6 +338,7 @@ export const de = {
     updateHint: 'Faden aktualisiert sich nie von selbst. Nur hier kannst du eine neue Version holen.',
     storageHeading: 'Speicher',
     storagePending: 'Speicherstatus wird geprüft …',
+    storageUsage: (used: string, quota: string): string => `Belegt: ${used} von ${quota} verfügbar.`,
     storagePersisted: 'Speicher ist dauerhaft geschützt.',
     storageUnprotected: 'Der Browser kann den Speicher bei Platzmangel räumen – erstelle Backups.',
     persistAction: 'Dauerhaft schützen',

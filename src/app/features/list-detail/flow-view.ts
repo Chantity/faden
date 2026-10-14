@@ -24,6 +24,7 @@ import {
   insertBetween,
   isAvailable,
   isBlocked,
+  connectedComponents,
   layoutList,
   transitiveReduction,
   type Layout,
@@ -33,7 +34,13 @@ import { createTask, type Task, type TodoList } from '../../core/model';
 import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { strandToTemplate } from '../../core/templates';
-import { plannedTimeParts, timeStatus, type TimeStatus } from '../../core/time';
+import {
+  estimateSums,
+  formatDuration,
+  plannedTimeParts,
+  timeStatus,
+  type TimeStatus,
+} from '../../core/time';
 import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { TemplatesStore } from '../../core/state/templates.store';
@@ -141,6 +148,17 @@ const MAX_SCALE = 2;
               />
             }
           </svg>
+
+          @for (sum of strandSums(); track sum.x) {
+            <span
+              class="strand-sum"
+              [style.left.px]="sum.x"
+              [style.top.px]="strandSumTop"
+              [attr.title]="t().flow.strandSumLabel"
+            >
+              {{ sum.text }}
+            </span>
+          }
 
           @for (node of layout().nodes; track node.id) {
             @if (taskById(node.id); as task) {
@@ -614,9 +632,38 @@ export class FlowView {
     return { ...list, edges: transitiveReduction(list) };
   });
 
-  protected readonly layout = computed<Layout>(() =>
-    layoutList(this.displayList(), { vGap: 128, padding: 56 }),
+  /**
+   * Teilsummen je Strang (SPEC 7.2, optional): nur im Modus „Zeitschätzung" und
+   * nur bei mehreren Strängen – bei einem Strang steht die Summe schon im Kopf.
+   */
+  private readonly showStrandSums = computed(
+    () => this.list().timeboxMode === 'estimate' && connectedComponents(this.list()).length > 1,
   );
+
+  protected readonly layout = computed<Layout>(() =>
+    layoutList(this.displayList(), {
+      vGap: 128,
+      padding: 56,
+      paddingTop: this.showStrandSums() ? 96 : 56,
+    }),
+  );
+
+  protected readonly strandSumTop = 12;
+
+  protected readonly strandSums = computed(() => {
+    if (!this.showStrandSums()) return [];
+    const list = this.list();
+    const locale = this.i18n.locale();
+    const t = this.t();
+    return this.layout().strands.flatMap((strand) => {
+      const ids = new Set(strand.taskIds);
+      const sums = estimateSums({ ...list, tasks: list.tasks.filter((task) => ids.has(task.id)) });
+      if (sums.openMinutes === 0 && sums.openWithoutEstimate === 0) return [];
+      const parts = [t.flow.strandSum(formatDuration(sums.openMinutes, locale))];
+      if (sums.openWithoutEstimate > 0) parts.push(t.time.withoutEstimate(sums.openWithoutEstimate));
+      return [{ x: strand.x, text: parts.join(' · ') }];
+    });
+  });
 
   protected readonly scale = signal(1);
   protected readonly tx = signal(0);
@@ -857,7 +904,7 @@ export class FlowView {
     }));
     this.snackbar.show(nowDone ? this.t().flow.check : this.t().flow.uncheck, {
       label: this.t().common.undo,
-      run: () => this.store.undo(),
+      run: () => this.store.undo(list.id),
     });
   }
 
@@ -895,7 +942,7 @@ export class FlowView {
     this.store.editList(list.id, (l) => deleteTask(l, id, mode));
     this.snackbar.show(this.t().common.delete, {
       label: this.t().common.undo,
-      run: () => this.store.undo(),
+      run: () => this.store.undo(list.id),
     });
   }
 
@@ -923,7 +970,7 @@ export class FlowView {
     this.store.editList(list.id, (l) => disconnect(l, edgeId));
     this.snackbar.show(this.t().flow.removeEdge, {
       label: this.t().common.undo,
-      run: () => this.store.undo(),
+      run: () => this.store.undo(list.id),
     });
   }
 
@@ -950,7 +997,7 @@ export class FlowView {
       this.store.editList(list.id, (l) => deleteTask(l, id, 'bridge'));
       this.snackbar.show(this.t().common.delete, {
         label: this.t().common.undo,
-        run: () => this.store.undo(),
+        run: () => this.store.undo(list.id),
       });
     } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
       event.preventDefault();
