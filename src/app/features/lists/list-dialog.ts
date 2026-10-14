@@ -2,12 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  inject,
   output,
   signal,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { de } from '../../core/i18n/de';
+import { I18nStore } from '../../core/i18n/i18n.store';
 import {
   TIMEBOX_MODES,
   TITLE_MAX_LENGTH,
@@ -22,15 +23,15 @@ import {
   template: `
     <dialog #dlg class="sheet" (close)="onClosed()">
       <form class="sheet__form" (ngSubmit)="submit()">
-        <h2>{{ editing() ? labels.editTitle : labels.newTitle }}</h2>
+        <h2>{{ editing() ? t().listDialog.editTitle : t().listDialog.newTitle }}</h2>
 
         <label class="field">
-          <span class="field__label">{{ labels.nameLabel }}</span>
+          <span class="field__label">{{ t().listDialog.nameLabel }}</span>
           <input
             #titleInput
             type="text"
             name="title"
-            [placeholder]="labels.namePlaceholder"
+            [placeholder]="t().listDialog.namePlaceholder"
             [maxlength]="maxTitle"
             [ngModel]="title()"
             (ngModelChange)="onTitleChange($event)"
@@ -43,7 +44,7 @@ import {
         }
 
         <fieldset class="modes">
-          <legend class="field__label">{{ labels.timeboxLabel }}</legend>
+          <legend class="field__label">{{ t().listDialog.timeboxLabel }}</legend>
           @for (mode of modes; track mode) {
             <label class="mode" [class.is-selected]="timeboxMode() === mode">
               <input
@@ -54,17 +55,17 @@ import {
                 (ngModelChange)="timeboxMode.set($event)"
               />
               <span class="mode__text">
-                <span class="mode__title">{{ modeLabels[mode] }}</span>
-                <span class="mode__hint muted">{{ modeHints[mode] }}</span>
+                <span class="mode__title">{{ t().timebox.modes[mode] }}</span>
+                <span class="mode__hint muted">{{ t().timebox.modeDescriptions[mode] }}</span>
               </span>
             </label>
           }
         </fieldset>
 
         <div class="sheet__actions">
-          <button type="button" class="btn" (click)="close()">{{ labels.cancel }}</button>
+          <button type="button" class="btn" (click)="close()">{{ t().common.cancel }}</button>
           <button type="submit" class="btn btn--primary">
-            {{ editing() ? labels.save : labels.create }}
+            {{ editing() ? t().common.save : t().listDialog.create }}
           </button>
         </div>
       </form>
@@ -169,14 +170,10 @@ import {
 export class ListDialog {
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
   private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  private readonly i18n = inject(I18nStore);
 
-  protected readonly labels = {
-    ...de.listDialog,
-    ...de.common,
-  };
+  protected readonly t = this.i18n.t;
   protected readonly modes = TIMEBOX_MODES;
-  protected readonly modeLabels = de.timebox.modes;
-  protected readonly modeHints = de.timebox.modeDescriptions;
   protected readonly maxTitle = TITLE_MAX_LENGTH;
 
   protected readonly title = signal('');
@@ -219,11 +216,11 @@ export class ListDialog {
   protected submit(): void {
     const title = this.title().trim();
     if (title.length === 0) {
-      this.error.set(de.errors.titleRequired);
+      this.error.set(this.i18n.t().errors.titleRequired);
       return;
     }
     if (title.length > TITLE_MAX_LENGTH) {
-      this.error.set(de.errors.titleTooLong(TITLE_MAX_LENGTH));
+      this.error.set(this.i18n.t().errors.titleTooLong(TITLE_MAX_LENGTH));
       return;
     }
     this.saved.emit({ id: this.editingId, title, timeboxMode: this.timeboxMode() });

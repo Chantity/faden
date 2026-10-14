@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { de } from '../../core/i18n/de';
+import { I18nStore } from '../../core/i18n/i18n.store';
 import { SnackbarService } from './snackbar.service';
 
 @Component({
   selector: 'app-snackbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="snackbar-host" aria-live="polite" role="region" [attr.aria-label]="labels.snackbarRegion">
+    <div class="snackbar-host" aria-live="polite" role="region" [attr.aria-label]="t().a11y.snackbarRegion">
       @if (snackbar.state(); as state) {
         <div class="snackbar">
           <span class="snackbar__message">{{ state.message }}</span>
@@ -18,7 +18,7 @@ import { SnackbarService } from './snackbar.service';
           <button
             type="button"
             class="snackbar__close"
-            [attr.aria-label]="labels.close"
+            [attr.aria-label]="t().common.close"
             (click)="snackbar.dismiss()"
           >
             ✕
@@ -83,10 +83,7 @@ import { SnackbarService } from './snackbar.service';
 })
 export class Snackbar {
   protected readonly snackbar = inject(SnackbarService);
-  protected readonly labels = {
-    snackbarRegion: de.a11y.snackbarRegion,
-    close: de.common.close,
-  };
+  protected readonly t = inject(I18nStore).t;
 
   protected runAction(): void {
     const state = this.snackbar.state();

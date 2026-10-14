@@ -11,7 +11,7 @@ import { migrate } from './migrations';
 
 const NOW = '2026-01-01T00:00:00.000Z';
 
-const settings: AppSettings = { theme: 'system', schemaVersion: SCHEMA_VERSION };
+const settings: AppSettings = { theme: 'system', language: 'en', schemaVersion: SCHEMA_VERSION };
 
 function task(id: string): Task {
   return { id, title: `ToDo ${id}`, done: false };
@@ -123,8 +123,16 @@ describe('applyImport', () => {
 });
 
 describe('migrate', () => {
-  it('ist für Version 1 die Identität', () => {
-    const data = { schemaVersion: 1, lists: [], templates: [] };
+  it('bringt Alt-Daten (v1) auf die aktuelle Version und ergänzt die Sprache', () => {
+    const data = { schemaVersion: 1, settings: { theme: 'dark' }, lists: [], templates: [] };
+    const result = migrate(data);
+    expect(result.schemaVersion).toBe(SCHEMA_VERSION);
+    expect((result.settings as Record<string, unknown>)['language']).toBe('en');
+    expect((result.settings as Record<string, unknown>)['theme']).toBe('dark');
+  });
+
+  it('ist für die aktuelle Version die Identität', () => {
+    const data = { schemaVersion: SCHEMA_VERSION, lists: [], templates: [] };
     expect(migrate(data)).toEqual(data);
   });
 

@@ -1,4 +1,6 @@
 import {
+  DEFAULT_LOCALE,
+  isLocale,
   NOTES_MAX_LENGTH,
   SCHEMA_VERSION,
   TIMEBOX_MODES,
@@ -199,11 +201,12 @@ function parseTemplate(raw: unknown, index: number, errors: string[]): Template 
 
 function parseSettings(raw: unknown): AppSettings {
   if (!isRecord(raw)) {
-    return { theme: 'system', schemaVersion: SCHEMA_VERSION };
+    return { theme: 'system', language: DEFAULT_LOCALE, schemaVersion: SCHEMA_VERSION };
   }
   const theme = raw['theme'];
   return {
     theme: theme === 'light' || theme === 'dark' ? theme : 'system',
+    language: isLocale(raw['language']) ? raw['language'] : DEFAULT_LOCALE,
     schemaVersion: isNumber(raw['schemaVersion']) ? raw['schemaVersion'] : SCHEMA_VERSION,
     ...(isString(raw['lastBackupAt']) ? { lastBackupAt: raw['lastBackupAt'] } : {}),
   };

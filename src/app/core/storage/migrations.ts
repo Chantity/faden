@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION } from '../model';
+import { DEFAULT_LOCALE, isLocale, SCHEMA_VERSION } from '../model';
 
 /**
  * Datenformat der exportierbaren App-Daten (auch Basis für IndexedDB-Records
@@ -12,8 +12,8 @@ export interface PersistedData {
 }
 
 /**
- * Reine Migrationsfunktion. Aktuell ist nur Schema-Version 1 vorhanden, daher
- * die Identität. Zukünftige Schritte werden hier angehängt (SPEC 8.7).
+ * Reine Migrationsfunktion. Bringt Daten älterer Schema-Versionen auf den
+ * aktuellen Stand (SPEC 8.7). Weitere Schritte werden hier angehängt.
  *
  * @throws Error bei unbekannter/zukünftiger Version.
  */
@@ -25,14 +25,23 @@ export function migrate<T extends PersistedData>(data: T, fromVersion: number = 
   }
 
   let current = data;
-  let version = fromVersion;
 
-  // Beispiel für die Zukunft:
-  // if (version < 2) { current = { ...current, ... }; version = 2; }
+  // v1 -> v2: AppSettings erhält das Feld `language` (Standard Englisch).
+  if (fromVersion < 2) {
+    const settings = current.settings;
+    if (settings && typeof settings === 'object' && !Array.isArray(settings)) {
+      const record = settings as Record<string, unknown>;
+      if (!isLocale(record['language'])) {
+        current = {
+          ...current,
+          settings: { ...record, language: DEFAULT_LOCALE },
+        };
+      }
+    }
+  }
 
-  if (version < SCHEMA_VERSION) {
+  if (current.schemaVersion !== SCHEMA_VERSION) {
     current = { ...current, schemaVersion: SCHEMA_VERSION };
-    version = SCHEMA_VERSION;
   }
 
   return current;

@@ -5,6 +5,17 @@ export type TimeboxMode = 'none' | 'estimate' | 'dayPlan' | 'schedule';
 
 export const TIMEBOX_MODES: readonly TimeboxMode[] = ['none', 'estimate', 'dayPlan', 'schedule'];
 
+/** Unterstützte Oberflächensprachen (SPEC-Erweiterung, Standard: Englisch). */
+export type Locale = 'en' | 'de';
+
+export const SUPPORTED_LOCALES: readonly Locale[] = ['en', 'de'];
+
+export const DEFAULT_LOCALE: Locale = 'en';
+
+export function isLocale(value: unknown): value is Locale {
+  return typeof value === 'string' && (SUPPORTED_LOCALES as readonly string[]).includes(value);
+}
+
 export interface TodoList {
   id: string;
   title: string;
@@ -61,11 +72,13 @@ export interface Template {
 
 export interface AppSettings {
   theme: 'system' | 'light' | 'dark';
+  /** Oberflächensprache; fehlt bei Alt-Daten und wird dann auf DEFAULT_LOCALE gesetzt. */
+  language: Locale;
   lastBackupAt?: string;
   schemaVersion: number;
 }
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const TITLE_MAX_LENGTH = 200;
 export const NOTES_MAX_LENGTH = 2000;

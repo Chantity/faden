@@ -1,18 +1,20 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { APP_VERSION } from '../../app-meta';
-import { de } from '../../core/i18n/de';
+import { I18nStore } from '../../core/i18n/i18n.store';
+import { PageTitleService } from '../../core/i18n/page-title';
+import { SUPPORTED_LOCALES, type Locale } from '../../core/model';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 
 @Component({
   selector: 'app-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1>{{ t.nav.settings }}</h1>
+    <h1>{{ t().nav.settings }}</h1>
 
     <section class="card block">
-      <h2>{{ t.settings.themeHeading }}</h2>
+      <h2>{{ t().settings.themeHeading }}</h2>
       <div class="options">
-        @for (option of themeOptions; track option.value) {
+        @for (option of themeOptions(); track option.value) {
           <label class="option" [class.is-selected]="settings.theme() === option.value">
             <input
               type="radio"
@@ -28,13 +30,31 @@ import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store
     </section>
 
     <section class="card block">
-      <h2>{{ t.settings.storageHeading }}</h2>
+      <h2>{{ t().settings.languageHeading }}</h2>
+      <div class="options">
+        @for (option of languageOptions(); track option.value) {
+          <label class="option" [class.is-selected]="settings.language() === option.value">
+            <input
+              type="radio"
+              name="language"
+              [value]="option.value"
+              [checked]="settings.language() === option.value"
+              (change)="settings.setLanguage(option.value)"
+            />
+            <span>{{ option.label }}</span>
+          </label>
+        }
+      </div>
+    </section>
+
+    <section class="card block">
+      <h2>{{ t().settings.storageHeading }}</h2>
       <p class="muted">{{ storageStatus() }}</p>
     </section>
 
     <section class="card block">
-      <h2>{{ t.settings.versionHeading }}</h2>
-      <p class="muted">{{ t.settings.versionLabel }}: {{ appVersion }}</p>
+      <h2>{{ t().settings.versionHeading }}</h2>
+      <p class="muted">{{ t().settings.versionLabel }}: {{ appVersion }}</p>
     </section>
   `,
   styles: `
@@ -77,29 +97,44 @@ import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store
 })
 export class SettingsPage {
   protected readonly settings = inject(SettingsStore);
-  protected readonly t = de;
+  private readonly i18n = inject(I18nStore);
+  protected readonly t = this.i18n.t;
   protected readonly appVersion = APP_VERSION;
 
-  protected readonly themeOptions: { value: ThemeChoice; label: string }[] = [
-    { value: 'system', label: de.settings.themeSystem },
-    { value: 'light', label: de.settings.themeLight },
-    { value: 'dark', label: de.settings.themeDark },
-  ];
+  protected readonly themeOptions = computed<{ value: ThemeChoice; label: string }[]>(() => {
+    const s = this.t().settings;
+    return [
+      { value: 'system', label: s.themeSystem },
+      { value: 'light', label: s.themeLight },
+      { value: 'dark', label: s.themeDark },
+    ];
+  });
 
-  protected readonly storageStatus = signal<string>(de.settings.storagePending);
+  protected readonly languageOptions = computed<{ value: Locale; label: string }[]>(() => {
+    const s = this.t().settings;
+    const labels: Record<Locale, string> = {
+      en: s.languageEnglish,
+      de: s.languageGerman,
+    };
+    return SUPPORTED_LOCALES.map((value) => ({ value, label: labels[value] }));
+  });
+
+  protected readonly storageStatus = signal<string>('');
 
   constructor() {
+    inject(PageTitleService).set('settings');
+    this.storageStatus.set(this.t().settings.storagePending);
     void this.checkStorage();
   }
 
   private async checkStorage(): Promise<void> {
     if (typeof navigator === 'undefined' || !navigator.storage?.persisted) {
-      this.storageStatus.set(de.settings.storageUnprotected);
+      this.storageStatus.set(this.t().settings.storageUnprotected);
       return;
     }
     const persisted = await navigator.storage.persisted();
     this.storageStatus.set(
-      persisted ? de.settings.storagePersisted : de.settings.storageUnprotected,
+      persisted ? this.t().settings.storagePersisted : this.t().settings.storageUnprotected,
     );
   }
 }

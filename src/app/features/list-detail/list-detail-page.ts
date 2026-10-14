@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { de } from '../../core/i18n/de';
+import { I18nStore } from '../../core/i18n/i18n.store';
+import { PageTitleService } from '../../core/i18n/page-title';
 import { availableTasks, progress } from '../../core/graph';
 import { ListsStore } from '../../core/state/lists.store';
 
@@ -11,13 +12,13 @@ import { ListsStore } from '../../core/state/lists.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   template: `
-    <a class="back" routerLink="/">← {{ t.nav.lists }}</a>
+    <a class="back" routerLink="/">← {{ t().nav.lists }}</a>
 
     @if (list(); as current) {
       <h1>{{ current.title }}</h1>
       <p class="muted">{{ progressLabel() }}</p>
 
-      <h2>{{ t.lists.nowDoing('') }}</h2>
+      <h2>{{ t().lists.nowHeading }}</h2>
       @if (available().length > 0) {
         <ul class="stack plain">
           @for (task of available(); track task.id) {
@@ -25,16 +26,14 @@ import { ListsStore } from '../../core/state/lists.store';
           }
         </ul>
       } @else {
-        <p class="muted">{{ t.lists.allDone }}</p>
+        <p class="muted">{{ t().lists.allDone }}</p>
       }
 
-      <p class="muted hint">
-        Die Ansichten „Jetzt dran" und „Ablauf" entstehen in Phase 2.
-      </p>
+      <p class="muted hint">{{ t().listDetail.placeholder }}</p>
     } @else {
-      <h1>{{ t.lists.emptyTitle }}</h1>
-      <p class="muted">Dieser Zettel wurde nicht gefunden.</p>
-      <a class="btn btn--primary" routerLink="/">{{ t.nav.lists }}</a>
+      <h1>{{ t().lists.emptyTitle }}</h1>
+      <p class="muted">{{ t().listDetail.notFound }}</p>
+      <a class="btn btn--primary" routerLink="/">{{ t().nav.lists }}</a>
     }
   `,
   styles: `
@@ -70,13 +69,18 @@ import { ListsStore } from '../../core/state/lists.store';
 export class ListDetailPage {
   private readonly store = inject(ListsStore);
   private readonly route = inject(ActivatedRoute);
+  private readonly i18n = inject(I18nStore);
 
-  protected readonly t = de;
+  protected readonly t = this.i18n.t;
 
   private readonly id = toSignal(
     this.route.paramMap.pipe(map((p) => p.get('id'))),
     { initialValue: null },
   );
+
+  constructor() {
+    inject(PageTitleService).set('list');
+  }
 
   protected readonly list = computed(() => {
     const id = this.id();
@@ -93,6 +97,6 @@ export class ListDetailPage {
     const current = this.list();
     if (!current) return '';
     const { done, total } = progress(current);
-    return de.lists.progress(done, total);
+    return this.t().lists.progress(done, total);
   });
 }

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { de } from '../../core/i18n/de';
+import { I18nStore } from '../../core/i18n/i18n.store';
+import { PageTitleService } from '../../core/i18n/page-title';
 import { TITLE_MAX_LENGTH, type TimeboxMode, type TodoList } from '../../core/model';
 import { availableTasks, progress } from '../../core/graph';
 import { ListsStore } from '../../core/state/lists.store';
@@ -18,17 +19,22 @@ export class ListsPage {
   protected readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly dialog = viewChild.required(ListDialog);
+  private readonly i18n = inject(I18nStore);
 
-  protected readonly t = de;
+  protected readonly t = this.i18n.t;
   protected readonly maxTitle = TITLE_MAX_LENGTH;
+
+  constructor() {
+    inject(PageTitleService).set('lists');
+  }
 
   protected progressLabel(list: TodoList): string {
     const { done, total } = progress(list);
-    return total === 0 ? de.lists.emptyList : de.lists.progress(done, total);
+    return total === 0 ? this.t().lists.emptyList : this.t().lists.progress(done, total);
   }
 
   protected modeLabel(mode: TimeboxMode): string {
-    return de.timebox.modes[mode];
+    return this.t().timebox.modes[mode];
   }
 
   protected hasTasks(list: TodoList): boolean {
@@ -40,7 +46,7 @@ export class ListsPage {
   }
 
   protected archivedCount(): string {
-    return de.lists.archivedCount(this.store.archived().length);
+    return this.t().lists.archivedCount(this.store.archived().length);
   }
 
   protected openCreate(): void {
@@ -61,32 +67,32 @@ export class ListsPage {
 
   protected duplicate(list: TodoList): void {
     this.store.duplicate(list.id);
-    this.snackbar.show(de.snackbar.listDuplicated, {
-      label: de.common.undo,
+    this.snackbar.show(this.t().snackbar.listDuplicated, {
+      label: this.t().common.undo,
       run: () => this.store.undo(),
     });
   }
 
   protected archive(list: TodoList): void {
     this.store.archive(list.id);
-    this.snackbar.show(de.snackbar.listArchived, {
-      label: de.common.undo,
+    this.snackbar.show(this.t().snackbar.listArchived, {
+      label: this.t().common.undo,
       run: () => this.store.undo(),
     });
   }
 
   protected restore(list: TodoList): void {
     this.store.restore(list.id);
-    this.snackbar.show(de.snackbar.listRestored, {
-      label: de.common.undo,
+    this.snackbar.show(this.t().snackbar.listRestored, {
+      label: this.t().common.undo,
       run: () => this.store.undo(),
     });
   }
 
   protected remove(list: TodoList): void {
     this.store.remove(list.id);
-    this.snackbar.show(de.snackbar.listDeleted, {
-      label: de.common.undo,
+    this.snackbar.show(this.t().snackbar.listDeleted, {
+      label: this.t().common.undo,
       run: () => this.store.undo(),
     });
   }

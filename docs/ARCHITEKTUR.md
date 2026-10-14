@@ -25,7 +25,12 @@ src/app/
 ├─ app-meta.ts                      App-Name + Version (einzige Namensquelle)
 ├─ core/
 │  ├─ model.ts                      Datenmodell (SPEC 3.2) + Konstanten
-│  ├─ i18n/de.ts                    ALLE UI-Texte zentral
+│  ├─ i18n/                         Oberflächentexte + reaktiver Sprachzugriff
+│  │  ├─ de.ts / en.ts              Wörterbücher (en = Standard)
+│  │  ├─ types.ts                   Translations = typeof de (Vorlage)
+│  │  ├─ dictionaries.ts            Registry + Englisch-Fallback
+│  │  ├─ i18n.store.ts              Signals: locale, t(); pflegt <html lang>
+│  │  └─ page-title.ts              lokalisierter Dokumenttitel
 │  ├─ graph/                        REINE Graph-Logik (framewerkfrei)
 │  │  ├─ validation.ts              Invarianten, Zyklen, GraphError, validateGraph
 │  │  ├─ derive.ts                  Vorgänger/Nachfolger, isAvailable/isBlocked/…
@@ -39,12 +44,12 @@ src/app/
 │     ├─ history.ts                 generischer Undo/Redo-Verlauf (100 Schritte)
 │     ├─ lists.store.ts             Zettel: CRUD, Persistenz, Tabs-Sync
 │     ├─ templates.store.ts         Vorlagen
-│     └─ settings.store.ts          Einstellungen (Theme) + Theme-Anwendung
+│     └─ settings.store.ts          Einstellungen (Theme, Sprache) + Anwendung
 ├─ features/
 │  ├─ lists/                        Zettel-Übersicht (Phase 1, fertig)
 │  ├─ list-detail/                  Zettel-Detail (Phase 2, Platzhalter)
 │  ├─ templates/                    Vorlagen-Seite (Phase 3, Platzhalter)
-│  └─ settings/                     Einstellungen (Phase 1: Theme, Version, Speicher)
+│  └─ settings/                     Einstellungen (Phase 1: Theme, Sprache, Version, Speicher)
 └─ shared/
    └─ snackbar/                     nicht-modaler Hinweisband-Dienst + Komponente
 ```
@@ -125,7 +130,8 @@ Alle Funktionen sind rein und getestet (`graph.spec.ts`, 37 Tests).
 
 - **Hash-Routing** (`withHashLocation()`), `base href="./"`: läuft auf jedem
   statischen Host ohne Rewrite-Regeln und startet aus dem Cache.
-- **German-first**: alle Texte in `core/i18n/de.ts`.
+- **Englisch-first** (Standard), Deutsch umschaltbar: alle Texte in
+  `core/i18n/*.ts`, Zugriff reaktiv über `I18nStore.t()`.
 - **Reizarm**: gedämpfte CSS-Variablen-Tokens, Hell/Dunkel/System,
   `prefers-reduced-motion`, Zustände immer über **Icon + Text + Farbe**.
 - **Barrierefreiheit**: Tippflächen ≥ 48 px, sichtbare Fokusrahmen, native

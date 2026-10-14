@@ -1,5 +1,6 @@
 // Alle sichtbaren Texte der Oberfläche zentral an einer Stelle.
-// So bleibt eine spätere Übersetzung möglich, ohne die Templates zu durchsuchen.
+// Eine zweite Sprachdatei (en.ts) muss exakt diesen Aufbau erfüllen – der
+// Compiler erzwingt das über `satisfies Translations` (siehe types.ts).
 import type { TimeboxMode } from '../model';
 
 export const de = {
@@ -33,6 +34,13 @@ export const de = {
     settings: 'Einstellungen',
   },
 
+  titles: {
+    lists: 'Zettel',
+    list: 'Zettel',
+    templates: 'Vorlagen',
+    settings: 'Einstellungen',
+  },
+
   lists: {
     title: 'Deine Zettel',
     newList: 'Neuer Zettel',
@@ -45,9 +53,20 @@ export const de = {
     progress: (done: number, total: number): string => `${done} von ${total} erledigt`,
     emptyList: 'Noch keine ToDos',
     nowDoing: (title: string): string => `Jetzt dran: ${title}`,
+    nowHeading: 'Jetzt dran',
     allDone: 'Alles erledigt',
     xWithoutEstimate: (n: number): string =>
       n === 1 ? '1 ohne Schätzung' : `${n} ohne Schätzung`,
+  },
+
+  listDetail: {
+    notFound: 'Dieser Zettel wurde nicht gefunden.',
+    placeholder: 'Die Ansichten „Jetzt dran“ und „Ablauf“ entstehen in Phase 2.',
+  },
+
+  templates: {
+    placeholder:
+      'Vorlagen entstehen in Phase 3. Dort kannst du Zettel oder einzelne Stränge als Vorlage speichern und daraus neue Zettel anlegen.',
   },
 
   listDialog: {
@@ -93,6 +112,9 @@ export const de = {
     themeSystem: 'Systemeinstellung',
     themeLight: 'Hell',
     themeDark: 'Dunkel',
+    languageHeading: 'Sprache',
+    languageEnglish: 'Englisch',
+    languageGerman: 'Deutsch',
     versionHeading: 'Version',
     versionLabel: 'App-Version',
     storageHeading: 'Speicher',
@@ -103,7 +125,8 @@ export const de = {
 
   a11y: {
     listCard: 'Zettel',
+    mainNav: 'Hauptnavigation',
     actionsFor: (title: string): string => `Aktionen für ${title}`,
     snackbarRegion: 'Hinweise',
   },
-} as const;
+};

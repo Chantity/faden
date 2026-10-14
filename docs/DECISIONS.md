@@ -37,7 +37,7 @@ docs/
 | Architektur | Standalone, **zoneless**, Signals, neue Control-Flow-Syntax, `inject()`, `OnPush` | Angular-22-Default für neue Projekte, deckt Kap. 2 ab. |
 | Test-Runner | **Vitest** (Angular-22-Default) | In Kap. 2 als „Standard-Test-Runner der Angular-Version" gefordert. |
 | Routing | **Hash-Routing** (`withHashLocation()`), `base href="./"` | Kap. 2/14: beliebiger statischer Host, Offline-Start. |
-| UI-Sprache | Deutsch, Texte zentral in `core/i18n/de.ts` | Kap. 3.1 lässt zentralisierte Texte für spätere Übersetzung zu. |
+| UI-Sprache | **Englisch als Standard**, Deutsch umschaltbar; Texte zentral in `core/i18n/` | Nutzerwunsch (siehe Kap. 9); Kap. 3.1 lässt zentralisierte Texte zu. |
 | Arbeitstitel | **„Faden"** | Kap. 14.8; zentral in `app-meta.ts` + Manifest änderbar. |
 
 ---
@@ -152,6 +152,30 @@ anschließend Review, dann Phase 2 und 3.
 | Service Worker, Manifest, Icons | Noch nicht vorhanden (keine Referenzen in `index.html`). | Kap. 9 | Bewusst Phase 3; vermeidet 404-Referenzen im Zwischenstand. |
 | `@angular/cdk` | Noch nicht installiert. | Kap. 2 (optional) | Wird nur bei konkretem Bedarf ergänzt. |
 
+## 6a. Mehrsprachigkeit (Phase 1.5)
+
+Auf Wunsch: **Englisch ist Standardsprache**, Deutsch umschaltbar; weitere Sprachen
+sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
+
+- **Eigene, kleine i18n statt Bibliothek.** Angulars eingebautes
+  `@angular/localize` übersetzt **zur Buildzeit** (eine Sprache pro Build) und
+  scheidet für einen Laufzeit-Umschalter im Ein-Build-Offline-Betrieb aus.
+  Externe Libs (Transloco/ngx-translate) wären eine zusätzliche Abhängigkeit.
+- **Reaktiv über Signals.** `I18nStore` hält die Sprache und liefert `t()` als
+  `computed`; Templates lesen `t()`. Beim Umschalten zeichnet Angular sofort neu.
+- **Typsicherheit.** `de.ts` ist die Vorlage; `en.ts` erfüllt sie über
+  `satisfies Translations` (`typeof de`). Eine vergessene Übersetzung ist ein
+  **Compile-Fehler**.
+- **Fallback.** Unbekannte Sprache → Englisch (`dictionaryFor`).
+- **Persistenz & Default.** `AppSettings.language` (Default `en`); `SCHEMA_VERSION`
+  auf **2** erhöht, Migration v1→v2 ergänzt fehlendes `language`. Umschalten
+  speichert entprellt über den bestehenden Settings-Pfad.
+- **A11y.** `I18nStore` pflegt `document.documentElement.lang`; Seitentitel werden
+  lokalisiert über `PageTitleService` (früher hartkodierte Routen-Titel entfernt).
+- **Noch deutsch:** die Validierungsfehlertexte in `core/storage/backup.ts`. Sie
+  werden mit der Backup-UI in Phase 3 an i18n angebunden.
+
+
 ## 7. Fortschritt
 
 - **Phase 1 – Fundament: abgeschlossen.**
@@ -165,6 +189,12 @@ anschließend Review, dann Phase 2 und 3.
     Einstellungen (Theme), Platzhalter für Detail/Vorlagen.
   - `npm test` = 50 Tests grün; `ng build` (Produktion) ohne Warnungen.
 
+- **Phase 1.5 – Mehrsprachigkeit: abgeschlossen** (siehe Kap. 6a).
+  - `core/i18n`: `types.ts`, `de.ts`, `en.ts`, `dictionaries.ts`, `i18n.store.ts`,
+    `page-title.ts`; Settings-Feld `language` (+ Migration v2), Sprachwahl in den
+    Einstellungen, `<html lang>` und Dokumenttitel lokalisiert.
+  - `npm test` = **55 Tests** grün; `ng build` (Produktion) ohne Warnungen.
+
 ## 8. Laufendes Entscheidungsprotokoll
 
 | Datum | Entscheidung | Grund |
@@ -175,3 +205,5 @@ anschließend Review, dann Phase 2 und 3.
 | 2026-10-14 | `docs/ARCHITEKTUR.md` + `docs/BENUTZERHANDBUCH.md` ergänzt; README schlank | Nutzerwunsch (Kap. 1 hier). |
 | 2026-10-14 | Kanten-IDs deterministisch (`edgeId(from,to)`) | Hält Graph-Operationen rein, keine Zufallsquelle nötig. |
 | 2026-10-14 | Phase 1 abgeschlossen und committet | Kap. 7 hier. |
+| 2026-10-14 | Englisch als Standardsprache, eigene reaktive i18n (kein `@angular/localize`) | Nutzerwunsch; Runtime-Switch im Ein-Build-Offline-Betrieb (Kap. 6a). |
+| 2026-10-14 | `SCHEMA_VERSION` 1 → 2 (`AppSettings.language`) | Migration v1→v2 ergänzt Sprache/Default Englisch. |

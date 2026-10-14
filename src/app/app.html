@@ -3,12 +3,12 @@
     <span class="app-header__mark" aria-hidden="true">🧵</span>
     <span>{{ appName }}</span>
   </a>
-  <nav class="app-header__nav" aria-label="Hauptnavigation">
+  <nav class="app-header__nav" [attr.aria-label]="t().a11y.mainNav">
     <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
-      {{ nav.lists }}
+      {{ t().nav.lists }}
     </a>
-    <a routerLink="/vorlagen" routerLinkActive="is-active">{{ nav.templates }}</a>
-    <a routerLink="/einstellungen" routerLinkActive="is-active">{{ nav.settings }}</a>
+    <a routerLink="/vorlagen" routerLinkActive="is-active">{{ t().nav.templates }}</a>
+    <a routerLink="/einstellungen" routerLinkActive="is-active">{{ t().nav.settings }}</a>
   </nav>
 </header>
 

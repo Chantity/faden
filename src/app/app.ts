@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { APP_NAME } from './app-meta';
-import { de } from './core/i18n/de';
+import { I18nStore } from './core/i18n/i18n.store';
 import { ListsStore } from './core/state/lists.store';
 import { SettingsStore } from './core/state/settings.store';
 import { TemplatesStore } from './core/state/templates.store';
@@ -20,7 +20,7 @@ export class App {
   private readonly templates = inject(TemplatesStore);
 
   protected readonly appName = APP_NAME;
-  protected readonly nav = de.nav;
+  protected readonly t = inject(I18nStore).t;
 
   constructor() {
     void this.settings.load();
