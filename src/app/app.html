@@ -1,0 +1,19 @@
+<header class="app-header">
+  <a class="app-header__brand" routerLink="/">
+    <span class="app-header__mark" aria-hidden="true">🧵</span>
+    <span>{{ appName }}</span>
+  </a>
+  <nav class="app-header__nav" aria-label="Hauptnavigation">
+    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+      {{ nav.lists }}
+    </a>
+    <a routerLink="/vorlagen" routerLinkActive="is-active">{{ nav.templates }}</a>
+    <a routerLink="/einstellungen" routerLinkActive="is-active">{{ nav.settings }}</a>
+  </nav>
+</header>
+
+<main class="app-main">
+  <router-outlet />
+</main>
+
+<app-snackbar />

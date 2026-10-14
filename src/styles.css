@@ -1,0 +1,252 @@
+/* Faden – globale Design-Tokens und Grundstile.
+   Reizarm: gedämpfte Palette, wenig Bewegung, Zustände nie nur über Farbe.
+   Hell/Dunkel über light-dark(); die Wahl (System/Hell/Dunkel) steuert color-scheme. */
+
+:root {
+  color-scheme: light dark;
+
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --touch-min: 48px;
+  --touch-large: 56px;
+
+  /* Helles, warmes Papier ↔ dunkle, ruhige Fläche */
+  --color-bg: light-dark(#f4f1ea, #1c1a17);
+  --color-surface: light-dark(#fffdf9, #262320);
+  --color-surface-2: light-dark(#ece7dc, #322e29);
+  --color-text: light-dark(#2b2925, #ece7dd);
+  --color-text-muted: light-dark(#6b655c, #a9a294);
+  --color-border: light-dark(#d9d2c5, #443f38);
+  --color-primary: light-dark(#4a6b57, #8fb69b);
+  --color-primary-strong: light-dark(#3c5847, #a7c8b1);
+  --color-on-primary: light-dark(#ffffff, #16201a);
+  --color-accent-soft: light-dark(#e4ecdf, #2c3a30);
+  --color-warn: light-dark(#a9782f, #d8b071);
+  --color-warn-soft: light-dark(#f3e7cf, #3a3123);
+  --color-danger: light-dark(#9a4b3f, #d79389);
+  --color-focus: light-dark(#3c5847, #a7c8b1);
+
+  /* Umgekehrter Kontrast für das Snackbar-Hinweisband */
+  --color-inverse: light-dark(#2b2925, #ece7dd);
+  --color-on-inverse: light-dark(#f4f1ea, #1c1a17);
+  --color-accent-inverse: light-dark(#bcd8c4, #a7c8b1);
+
+  --shadow-sm: 0 1px 2px light-dark(rgba(40, 36, 30, 0.08), rgba(0, 0, 0, 0.4));
+  --shadow: 0 4px 16px light-dark(rgba(40, 36, 30, 0.1), rgba(0, 0, 0, 0.5));
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem; /* 17px, skaliert mit Browser-Einstellung über rem */
+  line-height: 1.55;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 var(--space-3);
+  font-weight: 650;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+h2 {
+  font-size: 1.25rem;
+}
+h3 {
+  font-size: 1.05rem;
+}
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Buttons ------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.btn:hover {
+  background: var(--color-surface-2);
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.btn--primary:hover {
+  background: var(--color-primary-strong);
+  border-color: var(--color-primary-strong);
+}
+
+.btn--large {
+  min-height: var(--touch-large);
+  font-size: 1.05rem;
+  width: 100%;
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.btn--ghost:hover {
+  background: var(--color-surface-2);
+}
+
+.btn--danger {
+  color: var(--color-danger);
+}
+
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--color-surface-2);
+}
+
+.icon-btn[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* --- Cards & badges ----------------------------------------------------- */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+/* --- Bewegung nur, wenn erwünscht -------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

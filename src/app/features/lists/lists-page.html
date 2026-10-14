@@ -1,0 +1,108 @@
+<section class="page">
+  <header class="page-head">
+    <h1>{{ t.lists.title }}</h1>
+    <div class="page-head__actions">
+      <button
+        type="button"
+        class="icon-btn"
+        [attr.aria-label]="t.common.undo"
+        [disabled]="!store.canUndo()"
+        (click)="store.undo()"
+      >
+        ↶
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        [attr.aria-label]="t.common.redo"
+        [disabled]="!store.canRedo()"
+        (click)="store.redo()"
+      >
+        ↷
+      </button>
+      <button type="button" class="btn btn--primary" (click)="openCreate()">
+        + {{ t.lists.newList }}
+      </button>
+    </div>
+  </header>
+
+  @if (store.saveError()) {
+    <p class="banner" role="alert">{{ t.snackbar.saveFailed }}</p>
+  }
+
+  @if (store.lists().length === 0 && store.archived().length === 0) {
+    <div class="empty card">
+      <h2>{{ t.lists.emptyTitle }}</h2>
+      <p class="muted">{{ t.lists.emptyHint }}</p>
+      <button type="button" class="btn btn--primary btn--large" (click)="openCreate()">
+        {{ t.lists.firstList }}
+      </button>
+    </div>
+  } @else if (store.lists().length > 0) {
+    <ul class="cards">
+      @for (list of store.lists(); track list.id) {
+        <li class="card list-card">
+          <a class="list-card__main" [routerLink]="['/zettel', list.id]">
+            <span class="list-card__title">{{ list.title }}</span>
+            @if (list.timeboxMode !== 'none') {
+              <span class="badge">{{ modeLabel(list.timeboxMode) }}</span>
+            }
+            <span class="list-card__progress muted">{{ progressLabel(list) }}</span>
+            @if (nextAvailable(list); as next) {
+              <span class="list-card__next">▸ {{ t.lists.nowDoing(next) }}</span>
+            } @else if (hasTasks(list)) {
+              <span class="list-card__next muted">{{ t.lists.allDone }}</span>
+            }
+          </a>
+
+          <details class="menu">
+            <summary class="icon-btn" [attr.aria-label]="t.a11y.actionsFor(list.title)">⋯</summary>
+            <div class="menu__panel" role="menu">
+              <button type="button" (click)="openEdit(list); closeMenu($event)">
+                {{ t.common.rename }}
+              </button>
+              <button type="button" (click)="duplicate(list); closeMenu($event)">
+                {{ t.common.duplicate }}
+              </button>
+              <button type="button" (click)="move(list, 'up'); closeMenu($event)">
+                {{ t.common.moveUp }}
+              </button>
+              <button type="button" (click)="move(list, 'down'); closeMenu($event)">
+                {{ t.common.moveDown }}
+              </button>
+              <button type="button" (click)="archive(list); closeMenu($event)">
+                {{ t.common.archive }}
+              </button>
+              <button type="button" class="danger" (click)="remove(list); closeMenu($event)">
+                {{ t.common.delete }}
+              </button>
+            </div>
+          </details>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (store.archived().length > 0) {
+    <details class="archived">
+      <summary>{{ archivedCount() }}</summary>
+      <ul class="archived__list">
+        @for (list of store.archived(); track list.id) {
+          <li class="archived__item">
+            <span>{{ list.title }}</span>
+            <span class="archived__actions">
+              <button type="button" class="btn" (click)="restore(list)">
+                {{ t.common.restore }}
+              </button>
+              <button type="button" class="btn btn--danger" (click)="remove(list)">
+                {{ t.common.delete }}
+              </button>
+            </span>
+          </li>
+        }
+      </ul>
+    </details>
+  }
+</section>
+
+<app-list-dialog (saved)="onSaved($event)" />
