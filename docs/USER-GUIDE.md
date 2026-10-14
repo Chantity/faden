@@ -270,6 +270,11 @@ unchanged (with “Undo”).
   iOS: Safari deletes data of websites that haven't been used for about 7 days
   – only the installed app is reliably protected from this.
 
+As long as Faden runs in a browser tab and can be installed, a notice
+**“Install Faden as an app”** appears at the top with **“Install”** and
+**“Ignore”**. After “Ignore” it doesn't come back; you can still install the
+app at any time under Settings → Install.
+
 ### 10. Data, backup and offline
 
 - All data stays **local on your device** (IndexedDB). There is no account and
@@ -565,6 +570,11 @@ bestehende ToDos bleiben unverändert (mit „Rückgängig").
   Home-Bildschirm**. Wichtig für iOS: Safari löscht Daten von Websites, die etwa
   7 Tage nicht benutzt wurden – nur die installierte App ist davor zuverlässig
   geschützt.
+
+Solange Faden in einem Browser-Tab läuft und installiert werden kann, erscheint
+oben der Hinweis **„Faden als App installieren"** mit **„Installieren"** und
+**„Ignorieren"**. Nach „Ignorieren" kommt er nicht wieder; installieren kannst
+du trotzdem jederzeit unter Einstellungen → Installieren.
 
 ### 10. Daten, Backup und Offline
 

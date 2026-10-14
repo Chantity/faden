@@ -140,6 +140,13 @@ export const de = {
     dismiss: 'Ausblenden',
   },
 
+  installBanner: {
+    heading: 'Faden als App installieren',
+    body: 'Einmal installiert, startet Faden wie eine normale App und läuft vollständig ohne Internet.',
+    install: 'Installieren',
+    dismiss: 'Ignorieren',
+  },
+
   focus: {
     tabFocus: 'Jetzt dran',
     tabFlow: 'Ablauf',

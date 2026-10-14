@@ -141,6 +141,13 @@ export const en = {
     dismiss: 'Dismiss',
   },
 
+  installBanner: {
+    heading: 'Install Faden as an app',
+    body: 'Once installed, Faden starts like a regular app and works completely offline.',
+    install: 'Install',
+    dismiss: 'Ignore',
+  },
+
   focus: {
     tabFocus: 'Now',
     tabFlow: 'Flow',

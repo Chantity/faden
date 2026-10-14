@@ -8,12 +8,13 @@ import { ListsStore } from './core/state/lists.store';
 import { SettingsStore } from './core/state/settings.store';
 import { TemplatesStore } from './core/state/templates.store';
 import { ViewStore } from './core/state/view.store';
+import { InstallBanner } from './shared/install-banner/install-banner';
 import { Snackbar } from './shared/snackbar/snackbar';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Snackbar],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, InstallBanner, Snackbar],
   styleUrl: './app.css',
   templateUrl: './app.html',
 })

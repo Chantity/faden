@@ -287,6 +287,14 @@ Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
 | Testwerkzeuge | Browser-Steuerung als `scripts/lib/browser.mjs` (gemeinsam für PWA- und Abnahmetest); Tippen als echte Tastendrücke statt `Input.insertText` (das ahmt eine IME-Eingabe nach). | 12 | Keine Fremdpakete. |
 | Lighthouse-Accessibility | **100**, manuell vom Nutzer in den Edge-DevTools geprüft. | 12.2/9 | Kein Lighthouse-Paket als Abhängigkeit (Wunsch: minimale Abhängigkeiten). |
 
+## 6j. Installations-Banner, Version 1.0.0
+
+| Thema | Ist-Stand | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Installations-Banner | `shared/install-banner`: oben auf jeder Seite „Faden als App installieren" mit „Installieren"/„Ignorieren". Sichtbar nur im Browser-Tab (nicht `display-mode: standalone`), solange nicht ignoriert und eine Installation möglich ist (`beforeinstallprompt` oder iOS). iOS: „Installieren" klappt die Anleitung „Teilen → Zum Home-Bildschirm" auf. | 9.5 | Nutzerwunsch, über SPEC hinaus (dort nur Installationshilfe in den Einstellungen). |
+| „Ignorieren" speichern | `localStorage` (`faden.installBannerDismissed`), nicht IndexedDB. | 8 | Synchron lesbar → kein kurzes Aufblitzen beim Start; reine Anzeige-Einstellung, gehört nicht ins Backup. Ohne Speicher gilt „Ignorieren" nur für die Sitzung. |
+| Version | `package.json` 0.1.0 → **1.0.0**. | 9.3 | Alle Phasen und Abnahmekriterien erfüllt (offen nur manuell: Safari/iOS). |
+
 ## 7. Fortschritt
 
 - **Phase 1 – Fundament: abgeschlossen.**
@@ -373,6 +381,10 @@ Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
   - `scripts/pwa-test.mjs`: **9/9 Pflichttests bestanden** (`docs/PWA-TESTS.md`).
   - `npm test` = **132 Tests** grün; `npm run build` ohne Warnungen.
 
+- **Version 1.0.0** mit Installations-Banner (siehe Kap. 6j).
+  - `npm test` = **168 Tests** grün; `npm run test:pwa` = **11/11**;
+    `npm run test:acceptance` = **7/7**; `npm run build` ohne Warnungen.
+
 - **Abnahme-Durchgang: abgeschlossen** (siehe Kap. 6i, `docs/ACCEPTANCE.md`).
   - `npm test` = **162 Tests** grün; `npm run test:pwa` = **11/11**;
     `npm run test:acceptance` = **7/7**; `npm run build` ohne Warnungen.
@@ -421,3 +433,4 @@ Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
 | 2026-10-14 | Phase 3.12: Update auf Knopfdruck, Vorlage in Zettel einfügen | Optionale Punkte aus Kap. 11. |
 | 2026-10-14 | Lückenschluss: Bezugstag-Bug, Vorlage im Anlegen-Dialog, Löschen ohne Verbinden, Moduswechsel-Angebot, Import-Fehler übersetzt | Kap. 6g. |
 | 2026-10-14 | Doku-Dateinamen englisch, README + Benutzerhandbuch zweisprachig, Deployment auf GitHub Pages | Nutzerwunsch (Kap. 1 hier). |
+| 2026-10-14 | Installations-Banner („Ignorieren" in `localStorage`), Version 1.0.0 | Nutzerwunsch (Kap. 6j). |

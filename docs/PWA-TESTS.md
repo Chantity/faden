@@ -71,6 +71,6 @@ Der eigene Service Worker hat keine zeitgesteuerte Logik.
 | 6 Daten nach Neustart | 2026-10-14 | bestanden | 2 Browser-Neustarts |
 | 7 Keine externen Requests | 2026-10-14 | bestanden | 293 Requests, alle an den eigenen Host |
 
-Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 0.1.0.
+Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 1.0.0.
 Nicht automatisiert: Safari/iOS (kein WebKit-Testbrowser verfügbar) und
 Lighthouse-Accessibility (Abnahmekriterium 12.2/9) – manuell prüfen.
