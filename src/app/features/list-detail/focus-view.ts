@@ -24,9 +24,20 @@ import {
   topologicalOrder,
 } from '../../core/graph';
 import { createTask, type Task, type TodoList } from '../../core/model';
+import {
+  formatDayLabel,
+  fromIsoDate,
+  plannedTimeParts,
+  referenceRelation,
+  sortPlannedFirst,
+  timeStatus,
+  todayIso,
+  type TimeStatus,
+} from '../../core/time';
 import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
+import { NowStore } from '../../core/state/now.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 
 type ChainMode = 'before' | 'after' | 'split' | 'standalone';
@@ -89,6 +100,20 @@ interface Chain {
         </button>
       </div>
 
+      @if (showDayPlanBanner()) {
+        <div class="plan-banner" role="status">
+          <p class="plan-banner__text">{{ t().time.dayPlanPast(dayPlanReferenceLabel()) }}</p>
+          <div class="plan-banner__actions">
+            <button type="button" class="btn btn--primary" (click)="transferDayPlanToToday()">
+              {{ t().time.dayPlanTransfer }}
+            </button>
+            <button type="button" class="btn" (click)="dismissDayPlanBanner()">
+              {{ t().time.dayPlanKeep }}
+            </button>
+          </div>
+        </div>
+      }
+
       @if (chainIsStandalone()) {
         <form class="chain" (ngSubmit)="submitDraft()" (keydown.escape)="endChain($event)">
           <label class="field">
@@ -129,6 +154,15 @@ interface Chain {
                 @if (joinLabel(task); as join) {
                   <p class="task-card__join muted">{{ join }}</p>
                 }
+                @if (statusLabel(task); as timeLabel) {
+                  <p
+                    class="task-card__time"
+                    [class.is-running]="statusOf(task) === 'running'"
+                    [class.is-late]="statusOf(task) === 'late'"
+                  >
+                    <span aria-hidden="true">◷</span> {{ timeLabel }}
+                  </p>
+                }
 
                 <button
                   type="button"
@@ -137,6 +171,11 @@ interface Chain {
                 >
                   ✓ {{ t().focus.markDone }}
                 </button>
+                @if (statusOf(task) === 'late') {
+                  <button type="button" class="btn task-card__late" (click)="markDone(task)">
+                    {{ t().time.markLateDone }}
+                  </button>
+                }
                 <button type="button" class="btn task-card__need" (click)="startBefore(task)">
                   {{ t().focus.needFirst }}
                 </button>
@@ -254,6 +293,48 @@ interface Chain {
       font-size: 0.9rem;
     }
 
+    .task-card__time {
+      margin: 0 0 var(--space-2);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .task-card__time.is-running {
+      color: var(--color-primary);
+    }
+
+    .task-card__time.is-late {
+      color: var(--color-warning, #8a6d1b);
+    }
+
+    .task-card__late {
+      width: 100%;
+      margin-bottom: var(--space-2);
+    }
+
+    .plan-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-warning, #8a6d1b);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+    }
+
+    .plan-banner__text {
+      margin: 0;
+    }
+
+    .plan-banner__actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
     .task-card__done {
       width: 100%;
       min-height: 56px;
@@ -336,6 +417,7 @@ export class FocusView {
   private readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
+  private readonly nowStore = inject(NowStore);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly chainInput = viewChild<ElementRef<HTMLInputElement>>('chainInput');
 
@@ -344,13 +426,72 @@ export class FocusView {
   readonly connectRequest = output<string>();
 
   protected readonly t = this.i18n.t;
+  protected readonly now = this.nowStore.now;
+  protected readonly planBannerDismissed = signal(false);
 
-  protected readonly available = computed(() => availableTasks(this.list()));
+  protected readonly available = computed(() =>
+    sortPlannedFirst(this.list(), availableTasks(this.list()), this.now()),
+  );
   protected readonly blocked = computed(() => {
     const list = this.list();
     const blockedIds = new Set(blockedTasks(list).map((task) => task.id));
     return topologicalOrder(list).filter((task) => blockedIds.has(task.id));
   });
+
+  // --- Zeitstatus (SPEC 7.3/7.4) -------------------------------------------
+
+  protected showDayPlanBanner(): boolean {
+    const list = this.list();
+    return (
+      list.timeboxMode === 'dayPlan' &&
+      !this.planBannerDismissed() &&
+      referenceRelation(list, this.now()) === 'past'
+    );
+  }
+
+  protected dayPlanReferenceLabel(): string {
+    const date = fromIsoDate(this.list().dayPlanReferenceDate ?? '');
+    return date ? formatDayLabel(date, this.i18n.locale()) : '';
+  }
+
+  protected transferDayPlanToToday(): void {
+    const list = this.list();
+    const today = todayIso(this.now());
+    this.store.editList(list.id, (l) => ({ ...l, dayPlanReferenceDate: today }));
+    this.planBannerDismissed.set(false);
+  }
+
+  protected dismissDayPlanBanner(): void {
+    this.planBannerDismissed.set(true);
+  }
+
+  protected statusOf(task: Task): TimeStatus | undefined {
+    return timeStatus(this.list(), task, this.now());
+  }
+
+  protected statusLabel(task: Task): string | null {
+    const status = this.statusOf(task);
+    if (!status) return null;
+    const parts = plannedTimeParts(this.list(), task);
+    switch (status) {
+      case 'running':
+        return parts.end ? this.t().time.running(parts.end) : this.t().time.running(parts.start ?? '');
+      case 'next':
+        return this.t().time.nextAt(parts.start ?? '');
+      case 'late': {
+        const range =
+          parts.start && parts.end ? `${parts.start}–${parts.end}` : (parts.start ?? parts.end ?? '');
+        return range ? this.t().time.lateWas(range) : this.t().time.late;
+      }
+      case 'planned': {
+        const range =
+          parts.start && parts.end ? `${parts.start}–${parts.end}` : (parts.start ?? parts.end ?? '');
+        return range ? this.t().time.planned(range) : null;
+      }
+      default:
+        return null;
+    }
+  }
 
   protected readonly chain = signal<Chain | null>(null);
   protected readonly draft = signal('');

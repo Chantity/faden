@@ -30,6 +30,23 @@
     <p class="banner" role="alert">{{ t().snackbar.saveFailed }}</p>
   }
 
+  @if (showReminder()) {
+    <div class="reminder card" role="status">
+      <div class="reminder__text">
+        <strong>{{ t().remind.heading }}</strong>
+        <p class="muted">{{ t().remind.body }}</p>
+      </div>
+      <div class="reminder__actions">
+        <button type="button" class="btn btn--primary" (click)="exportBackup()">
+          {{ t().remind.action }}
+        </button>
+        <button type="button" class="btn" (click)="dismissReminder()">
+          {{ t().remind.dismiss }}
+        </button>
+      </div>
+    </div>
+  }
+
   @if (store.lists().length === 0 && store.archived().length === 0) {
     <div class="empty card">
       <h2>{{ t().lists.emptyTitle }}</h2>

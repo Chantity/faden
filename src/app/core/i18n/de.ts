@@ -66,7 +66,42 @@ export const de = {
 
   templates: {
     placeholder:
-      'Vorlagen entstehen in Phase 3. Dort kannst du Zettel oder einzelne Stränge als Vorlage speichern und daraus neue Zettel anlegen.',
+      'Noch keine Vorlagen. Speichere einen Zettel oder einen Strang im Menü (⋯) als Vorlage.',
+    preview: 'Ablauf',
+    taskCount: (n: number): string => (n === 1 ? '1 ToDo' : `${n} ToDos`),
+    newList: 'Neuer Zettel aus Vorlage',
+    rename: 'Umbenennen',
+    delete: 'Löschen',
+    deletedSnack: (title: string): string => `Vorlage „${title}" gelöscht.`,
+    saveList: 'Zettel als Vorlage speichern',
+    saveStrand: 'Strang als Vorlage speichern',
+    savedSnack: (title: string): string => `Vorlage „${title}" gespeichert.`,
+    insert: 'Vorlage in Zettel einfügen',
+    incomplete: 'Dieser Strang hat noch keine ToDos.',
+  },
+
+  backup: {
+    heading: 'Sicherung und Daten',
+    lastBackupNever: 'Noch kein Backup erstellt.',
+    lastBackupDays: (n: number): string =>
+      n === 0 ? 'Letztes Backup: heute' : n === 1 ? 'Letztes Backup: vor 1 Tag' : `Letztes Backup: vor ${n} Tagen`,
+    export: 'Sicherung herunterladen',
+    share: 'Sicherung teilen',
+    importHeading: 'Sicherung einspielen',
+    importHint: 'Wähle eine zuvor heruntergeladene Sicherungsdatei (JSON).',
+    importTitle: 'Sicherung einspielen',
+    merge: 'Zusammenführen',
+    replace: 'Alles ersetzen',
+    replaceConfirm: 'Alles ersetzen? Deine aktuellen Daten werden vorher als Sicherung heruntergeladen.',
+    invalid: 'Keine gültige Faden-Sicherungsdatei.',
+    importSuccess: 'Sicherung eingespielt.',
+  },
+
+  remind: {
+    heading: 'Sicherung empfohlen',
+    body: 'Deine Zettel liegen nur in diesem Browser. Erstelle regelmäßig eine Sicherung.',
+    action: 'Sicherung erstellen',
+    dismiss: 'Ausblenden',
   },
 
   focus: {
@@ -110,6 +145,16 @@ export const de = {
     addLink: '+ hinzufügen',
     chooseTask: 'ToDo auswählen',
     removeLink: (title: string): string => `${title} entfernen`,
+    estimateLabel: 'Dauer',
+    estimateCustom: 'Eigene Minuten',
+    minutesSuffix: 'Min',
+    dayStartLabel: 'Von',
+    dayEndLabel: 'Bis',
+    startAtLabel: 'Start',
+    endAtLabel: 'Ende',
+    clear: 'Leeren',
+    errorTimeOrder: 'Das Ende muss nach dem Beginn liegen.',
+    errorTimeInvalid: 'Bitte gib eine gültige Uhrzeit ein.',
   },
 
   flow: {
@@ -170,6 +215,43 @@ export const de = {
     } satisfies Record<TimeboxMode, string>,
   },
 
+  time: {
+    running: (until: string): string => `Jetzt, bis ${until}`,
+    nextAt: (at: string): string => `Als Nächstes um ${at}`,
+    lateWas: (range: string): string => `Nicht abgehakt (war ${range})`,
+    late: 'Nicht abgehakt',
+    planned: (range: string): string => `Geplant: ${range}`,
+    markLateDone: 'Nachträglich abhaken',
+    openSum: (duration: string): string => `Offen: ${duration}`,
+    totalSum: (duration: string): string => `Gesamt: ${duration}`,
+    doneSum: (duration: string): string => `Erledigt: ${duration}`,
+    withoutEstimate: (n: number): string => (n === 1 ? '1 ohne Schätzung' : `${n} ohne Schätzung`),
+    dayPlanPast: (date: string): string => `Dieser Tagesplan ist von ${date}. Auf heute übertragen?`,
+    dayPlanTransfer: 'Auf heute setzen',
+    dayPlanKeep: 'So lassen',
+    editPlan: 'Zeitplan bearbeiten',
+    editPlanTitle: 'Zeitplan bearbeiten',
+    shiftHeading: 'Alles verschieben',
+    shiftAmount: 'Betrag',
+    unitMinutes: 'Minuten',
+    unitHours: 'Stunden',
+    unitDays: 'Tage',
+    shiftApply: 'Verschieben',
+    stretchHeading: 'Auf Zeitraum strecken',
+    stretchStart: 'Neuer Start',
+    stretchEnd: 'Neues Ende',
+    stretchApply: 'Strecken',
+    proposeHeading: 'Zeiten aus Schätzungen vorschlagen',
+    proposeStart: 'Startzeit',
+    proposeApply: 'Vorschlagen',
+    convertHeading: 'Tageszeiten auf ein Datum übertragen',
+    convertHint:
+      'Die Uhrzeiten (Von/Bis) bleiben erhalten und werden zusätzlich als Datum + Uhrzeit übernommen.',
+    convertDate: 'Datum',
+    convertApply: 'Übertragen',
+    noPlan: 'Noch keine Zeiten eingetragen.',
+  },
+
   snackbar: {
     listDeleted: 'Zettel gelöscht.',
     listArchived: 'Zettel archiviert.',
@@ -203,6 +285,9 @@ export const de = {
     storagePending: 'Speicherstatus wird geprüft …',
     storagePersisted: 'Speicher ist dauerhaft geschützt.',
     storageUnprotected: 'Der Browser kann den Speicher bei Platzmangel räumen – erstelle Backups.',
+    persistAction: 'Dauerhaft schützen',
+    persistGranted: 'Der Speicher ist jetzt dauerhaft geschützt.',
+    persistDenied: 'Der Browser hat den Schutz nicht gewährt – erstelle Backups.',
   },
 
   a11y: {

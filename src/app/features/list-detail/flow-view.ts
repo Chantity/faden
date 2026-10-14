@@ -30,7 +30,11 @@ import {
 import { createTask, type Task, type TodoList } from '../../core/model';
 import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
+import { strandToTemplate } from '../../core/templates';
+import { plannedTimeParts, timeStatus, type TimeStatus } from '../../core/time';
 import { ListsStore } from '../../core/state/lists.store';
+import { NowStore } from '../../core/state/now.store';
+import { TemplatesStore } from '../../core/state/templates.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 
 type InsertMode = 'before' | 'after' | 'between' | 'standalone';
@@ -170,6 +174,15 @@ const MAX_SCALE = 2;
                       <span aria-hidden="true">🔒</span> {{ t().flow.stateWaiting }}
                     }
                   </span>
+                  @if (timeLabel(task); as tl) {
+                    <span
+                      class="node__time"
+                      [class.is-running]="statusOf(task) === 'running'"
+                      [class.is-late]="statusOf(task) === 'late'"
+                    >
+                      ◷ {{ tl }}
+                    </span>
+                  }
                 </div>
                 <span class="node__title" [attr.data-lines]="node.lines">{{ task.title }}</span>
                 <button
@@ -258,6 +271,9 @@ const MAX_SCALE = 2;
               <button type="button" (click)="menuSplit(menu.id)">{{ t().focus.menu.splitAfter }}</button>
               <button type="button" (click)="menuJoin(menu.id)">{{ t().focus.menu.join }}</button>
               <button type="button" (click)="menuConnect(menu.id)">{{ t().focus.menu.connect }}</button>
+              <button type="button" (click)="menuSaveStrand(menu.id)">
+                {{ t().templates.saveStrand }}
+              </button>
               <button type="button" class="danger" (click)="menuDelete(menu.id)">
                 {{ t().focus.menu.delete }}
               </button>
@@ -377,6 +393,34 @@ const MAX_SCALE = 2;
       align-items: center;
       gap: var(--space-1);
       height: 20px;
+      padding-right: 34px;
+    }
+
+    .node__state,
+    .node__time {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+
+    .node__state {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .node__time {
+      flex: none;
+      font-size: 0.72rem;
+    }
+
+    .node__time.is-running {
+      color: var(--color-primary);
+    }
+
+    .node__time.is-late {
+      color: var(--color-warning, #8a6d1b);
     }
 
     .node__toggle {
@@ -400,12 +444,6 @@ const MAX_SCALE = 2;
       background: var(--color-primary);
       border-color: var(--color-primary);
       color: var(--color-on-primary);
-    }
-
-    .node__state {
-      font-size: 0.75rem;
-      line-height: 1.2;
-      color: var(--color-text-muted);
     }
 
     .node__title {
@@ -548,6 +586,8 @@ export class FlowView {
   private readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
+  private readonly nowStore = inject(NowStore);
+  private readonly templates = inject(TemplatesStore);
   private readonly wrap = viewChild<ElementRef<HTMLElement>>('wrap');
   private readonly insertInput = viewChild<ElementRef<HTMLInputElement>>('insertInput');
 
@@ -556,6 +596,7 @@ export class FlowView {
   readonly connectRequest = output<string>();
 
   protected readonly t = this.i18n.t;
+  protected readonly now = this.nowStore.now;
 
   // Sichtbarer Kreis klein (38/30 px), Trefferfläche 44 px über `::after` (CSS).
   protected readonly plusSize = 38;
@@ -602,6 +643,20 @@ export class FlowView {
 
   protected isWaiting(task: Task): boolean {
     return isBlocked(this.list(), task.id);
+  }
+
+  /** Zeitstatus für das Badge (SPEC 7.3). */
+  protected statusOf(task: Task): TimeStatus | undefined {
+    return timeStatus(this.list(), task, this.now());
+  }
+
+  /** Kurzes Zeit-Label („13:00–13:30") für den Kasten, sonst null. */
+  protected timeLabel(task: Task): string | null {
+    const status = this.statusOf(task);
+    if (!status) return null;
+    const parts = plannedTimeParts(this.list(), task);
+    if (parts.start && parts.end) return `${parts.start}–${parts.end}`;
+    return parts.start ?? parts.end ?? null;
   }
 
   protected hasPredecessor(id: string): boolean {
@@ -833,6 +888,17 @@ export class FlowView {
       label: this.t().common.undo,
       run: () => this.store.undo(),
     });
+  }
+
+  protected menuSaveStrand(id: string): void {
+    this.nodeMenu.set(null);
+    const template = strandToTemplate(this.list(), id);
+    if (!template) {
+      this.snackbar.show(this.t().templates.incomplete);
+      return;
+    }
+    void this.templates.add(template);
+    this.snackbar.show(this.t().templates.savedSnack(template.title));
   }
 
   protected menuInsertBetween(edgeId: string, x: number, y: number): void {

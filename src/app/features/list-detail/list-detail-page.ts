@@ -12,7 +12,10 @@ import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import type { TimeboxMode, TodoList } from '../../core/model';
 import { progress } from '../../core/graph';
+import { listToTemplate } from '../../core/templates';
+import { estimateSums, formatDuration } from '../../core/time';
 import { ListsStore } from '../../core/state/lists.store';
+import { TemplatesStore } from '../../core/state/templates.store';
 import { ViewStore, type ListView } from '../../core/state/view.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { ListDialog } from '../lists/list-dialog';
@@ -21,11 +24,12 @@ import { FlowView } from './flow-view';
 import { TaskEditor } from './task-editor';
 import { ConnectDialog } from './connect-dialog';
 import { ShortcutHelp } from './shortcut-help';
+import { PlanEditor } from './plan-editor';
 
 @Component({
   selector: 'app-list-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ConnectDialog, ShortcutHelp],
+  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ConnectDialog, ShortcutHelp, PlanEditor],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <a class="back" routerLink="/">← {{ t().nav.lists }}</a>
@@ -35,6 +39,9 @@ import { ShortcutHelp } from './shortcut-help';
         <div class="detail-head__title">
           <h1>{{ current.title }}</h1>
           <p class="muted">{{ progressLabel() }}</p>
+          @if (estimateLabel(); as sums) {
+            <p class="muted">{{ sums }}</p>
+          }
         </div>
         <div class="detail-head__actions">
           <button
@@ -68,6 +75,14 @@ import { ShortcutHelp } from './shortcut-help';
             <div class="menu__panel" role="menu">
               <button type="button" (click)="editList(current); closeMenu($event)">
                 {{ t().common.rename }}
+              </button>
+              @if (planEditable()) {
+                <button type="button" (click)="openPlanEditor(current); closeMenu($event)">
+                  {{ t().time.editPlan }}
+                </button>
+              }
+              <button type="button" (click)="saveAsTemplate(current); closeMenu($event)">
+                {{ t().templates.saveList }}
               </button>
               <button type="button" (click)="archive(current); closeMenu($event)">
                 {{ t().common.archive }}
@@ -123,6 +138,7 @@ import { ShortcutHelp } from './shortcut-help';
     <app-task-editor />
     <app-connect-dialog />
     <app-shortcut-help />
+    <app-plan-editor #planEditor />
     <app-list-dialog (saved)="onListSaved($event)" />
   `,
   styles: `
@@ -196,11 +212,13 @@ export class ListDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
+  private readonly templates = inject(TemplatesStore);
 
   private readonly editor = viewChild.required(TaskEditor);
   private readonly connectDialog = viewChild.required(ConnectDialog);
   private readonly help = viewChild.required(ShortcutHelp);
   private readonly listDialog = viewChild.required(ListDialog);
+  private readonly planEditor = viewChild.required(PlanEditor);
 
   protected readonly t = this.i18n.t;
 
@@ -233,6 +251,27 @@ export class ListDetailPage {
     return total === 0 ? this.t().lists.emptyList : this.t().lists.progress(done, total);
   });
 
+  protected readonly estimateLabel = computed(() => {
+    const current = this.list();
+    if (!current || current.timeboxMode !== 'estimate') return null;
+    const sums = estimateSums(current);
+    const parts = [
+      this.t().time.openSum(formatDuration(sums.openMinutes, this.i18n.locale())),
+      this.t().time.totalSum(formatDuration(sums.totalMinutes, this.i18n.locale())),
+      this.t().time.doneSum(formatDuration(sums.doneMinutes, this.i18n.locale())),
+    ];
+    if (sums.openWithoutEstimate > 0) {
+      parts.push(this.t().time.withoutEstimate(sums.openWithoutEstimate));
+    }
+    return parts.join(' · ');
+  });
+
+  /** Ob für diese Liste ein Zeitplan bearbeitet werden kann (dayPlan/schedule). */
+  protected readonly planEditable = computed(() => {
+    const mode = this.list()?.timeboxMode;
+    return mode === 'dayPlan' || mode === 'schedule';
+  });
+
   protected setView(view: ListView): void {
     const id = this.id();
     if (id) this.viewStore.set(id, view);
@@ -250,6 +289,16 @@ export class ListDetailPage {
 
   protected editList(current: TodoList): void {
     this.listDialog().showEdit(current);
+  }
+
+  protected openPlanEditor(current: TodoList): void {
+    this.planEditor().open(current);
+  }
+
+  protected saveAsTemplate(current: TodoList): void {
+    const template = listToTemplate(current);
+    void this.templates.add(template);
+    this.snackbar.show(this.t().templates.savedSnack(template.title));
   }
 
   protected onListSaved(event: { id: string | null; title: string; timeboxMode: TimeboxMode }): void {

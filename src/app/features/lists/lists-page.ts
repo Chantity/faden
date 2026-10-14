@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { TITLE_MAX_LENGTH, type TimeboxMode, type TodoList } from '../../core/model';
 import { availableTasks, progress } from '../../core/graph';
+import { BackupService } from '../../core/backup/backup.service';
 import { ListsStore } from '../../core/state/lists.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { ListDialog } from './list-dialog';
@@ -20,12 +21,31 @@ export class ListsPage {
   private readonly snackbar = inject(SnackbarService);
   private readonly dialog = viewChild.required(ListDialog);
   private readonly i18n = inject(I18nStore);
+  private readonly backup = inject(BackupService);
 
   protected readonly t = this.i18n.t;
   protected readonly maxTitle = TITLE_MAX_LENGTH;
+  protected readonly showReminder = signal(false);
 
   constructor() {
     inject(PageTitleService).set('lists');
+    void this.checkReminder();
+  }
+
+  private async checkReminder(): Promise<void> {
+    const hasData = this.store.lists().length > 0 || this.store.archived().length > 0;
+    this.showReminder.set(await this.backup.shouldShowReminder(new Date(), hasData));
+  }
+
+  protected async exportBackup(): Promise<void> {
+    await this.backup.exportAndDownload();
+    this.snackbar.show(this.t().backup.export);
+    this.showReminder.set(false);
+  }
+
+  protected async dismissReminder(): Promise<void> {
+    await this.backup.dismissReminder();
+    this.showReminder.set(false);
   }
 
   protected progressLabel(list: TodoList): string {

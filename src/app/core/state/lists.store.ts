@@ -233,6 +233,11 @@ export class ListsStore {
 
   // --- Import --------------------------------------------------------------
 
+  /** Alle Zettel inkl. archivierter (für Export/Backup). */
+  allItems(): TodoList[] {
+    return this.all();
+  }
+
   replaceAll(lists: readonly TodoList[]): void {
     this.history.push(this.all());
     this.all.set([...lists]);

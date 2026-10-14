@@ -199,8 +199,28 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | „+" für unabhängiges ToDo in „Jetzt dran" | Rechts oben in der Kopfzeile ein **„✚"-Button**, der ein **einzelnes ToDo ohne Vorgänger** anlegt (dieselbe Ketten-Eingabe, aber ohne Anker). | 5.3 („einen neuen, unabhängigen Faden starten") | Bisher gab es ein „+" ohne Verbindung nur im Ablauf. |
 
 
-| Zeit-Badges im Ablauf/„Jetzt dran" | Noch **nicht** vorhanden (Karten zeigen Zustand, keine Zeiten). | 5.3/5.4 („in Zeit-Modi zusätzlich") | Zeitlogik ist Phase 3. |
+| Zeit-Badges im Ablauf/„Jetzt dran" | **Vorhanden** (Phase 3.8): „Jetzt dran" zeigt ein Zeit-Badge + „Nachträglich abhaken"; der Ablauf zeigt ein kompaktes Zeit-Badge am Kasten. | 5.3/5.4 („in Zeit-Modi zusätzlich") | Zeitlogik in `core/time` (Phase 3). |
 | Tastenkürzel-Übersicht | Eigenes `<dialog>` mit `?`; Undo/Redo `Strg/Cmd+Z`, `Strg/Cmd+Shift+Z`, `Strg+Y`. | 5.7 | Vollständig umgesetzt. |
+
+## 6c. Abweichungen aus Phase 3 – Timeboxing (3.8)
+
+| Thema | Ist-Stand in Phase 3.8 | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Uhr ohne Sekunden | Ein `NowStore` liefert ein `now`-Signal, das **minütlich** und bei `visibilitychange` aktualisiert. | 7.3 | Zustände „läuft/als Nächstes/überfällig" genügen auf Minutenebene; kein Sekundentakt. |
+| Zeitfelder im Editor | Der ToDo-Editor zeigt **modusabhängig** nur die Felder des aktuellen Modus (Schätzung / Von-Bis / Start-Ende); Felder anderer Modi bleiben beim Speichern unberührt. | 5.1/7.2–7.4 | Modulwechsel löschen keine Daten (7.1). |
+| Schätz-Chips | Schnellwahl-Chips (5–90 Min) **und** freies Zahlenfeld (1–1440). | 7.2 | Schnelle Eingabe; freies Feld deckt Sonderfälle ab. |
+| „Zeitplan bearbeiten" | Ein Dialog (Menü `⋯` bei `dayPlan`/`schedule`) bündelt **Verschieben**, **Strecken** (nur `schedule`), **Vorschlagen** und **Übertragen** (nur `dayPlan`). | 7.4/7.5 | Ein Ort für alle Zeitplan-Werkzeuge; die reinen Funktionen liegen getestet in `core/time`. |
+| Datum/Uhrzeit-Format | Deutsche Ausgabe „Do. 12.03." / „1 Std 25 Min", englische „Thu 12 Mar" / „1 h 25 min" (`Intl` + Sprachparameter). | 3.1 | Englisch ist Standard → Datums-/Dauertexte sind lokalisiert. |
+
+## 6d. Abweichungen aus Phase 3 – Vorlagen (3.9)
+
+| Thema | Ist-Stand in Phase 3.9 | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Vorlagen-Logik | Reines Modul `core/templates` (Zettel/Strang → Vorlage, Vorlage → Zettel/Strang, Vorschau). | 5.6 | Wie `core/graph`/`core/time` framewerkfrei und getestet. |
+| Zeitfelder in Vorlagen | `startAt`/`endAt` werden verworfen; fehlt eine Schätzung, wird sie aus der Dauer abgeleitet. `dayStart`/`dayEnd` und `estimateMinutes` bleiben. | 5.6 | Wortlaut der SPEC. |
+| „Strang als Vorlage" | Im Ablauf-Werkzeugmenü je Karte (⋯). | 5.6 | Der Strang ist die verbundene Komponente des gewählten ToDos (`extractStrand`). |
+| Löschen mit Undo | Vorlagen-Löschen zeigt eine Snackbar mit **Rückgängig** (statt globalem Verlauf). | 5.6 | Der Undo-Verlauf der App gilt für Zettel; für Vorlagen genügt die Snackbar. |
+| Vorlage in Zettel einfügen | Logik vorhanden (`insertTemplate`), UI folgt in Phase 3.12 (optional). | 5.6 (optional) | Als optional eingestuft. |
 
 
 ## 7. Fortschritt
@@ -237,6 +257,40 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
     direkt auf der Karte sowie Menü-Schließen per Klick auf die Diagrammfläche.
   - `npm test` = **74 Tests** grün; `ng build` (Produktion) ohne Warnungen.
 
+- **Phase 3.8 – Timeboxing (UI): abgeschlossen** (siehe Kap. 6c).
+  - `core/time` (rein, getestet): `format.ts` (Uhrzeiten/Dauern/Datum, lokalisiert),
+    `status.ts` (Zeitstatus, nächster fälliger Schritt, Sortierung, Spannen),
+    `plan.ts` (Validierung, Verschieben, Strecken, Vorschläge, Übertragen).
+  - `core/state/now.store.ts` (minütliches `now`-Signal).
+  - `features/list-detail`: Zeitfelder im `task-editor`, Zeit-Badges + „Nachträglich
+    abhaken" + Tagesplan-Hinweis in `focus-view`, Zeit-Badge im `flow-view`,
+    Schätz-Summen in der Kopfzeile, neuer `plan-editor`-Dialog.
+  - Tests: `time.spec`, `now.store.spec`, `focus-view-time.spec`, `plan-editor.spec`,
+    `task-editor.spec`; Test-Setup `src/test-setup.ts` (Dialog-Polyfill für jsdom).
+  - `npm test` = **115 Tests** grün; `ng build` (Produktion) ohne Warnungen.
+
+- **Phase 3.9 – Vorlagen: abgeschlossen** (siehe Kap. 6d).
+  - `core/templates` (rein, getestet): Zettel/Strang → Vorlage, Vorlage → Zettel
+    bzw. als neuer Strang einfügen (`insertTemplate`), Vorschau (`templatePreview`).
+  - `TemplatesStore` um CRUD erweitert (`add`, `rename`, `remove`, `restore`).
+  - `features/templates/templates-page`: Liste, Vorschau (topologische Titel),
+    Umbenennen (Dialog), Löschen mit Undo-Snackbar, „Neuer Zettel aus Vorlage".
+  - „Als Vorlage speichern": ganzer Zettel im Kopfmenü, Strang im Ablauf-Menü.
+  - `npm test` = **121 Tests** grün; `ng build` (Produktion) ohne Warnungen.
+
+- **Phase 3.10 – Backup & Speicher: abgeschlossen.**
+  - `core/backup/backup.service.ts`: Export (`faden-backup-YYYY-MM-DD.json`,
+    schreibt `lastBackupAt`), Teilen (`navigator.share` mit Datei),
+    Import (validieren → Zusammenführen/Ersetzen mit automatischer Sicherung),
+    wöchentliche Backup-Erinnerung (> 30 Tage), `storage.persist()` nach der
+    ersten Nutzerinteraktion.
+  - `settings-page`: Bereich „Sicherung und Daten" (Herunterladen/Teilen/
+    Einspielen + „Letztes Backup"-Anzeige); „Dauerhaft schützen"-Button.
+  - `lists-page`: einmal pro Woche wegklickbares Hinweisband mit
+    „Sicherung erstellen".
+  - Tests: `backup.service.spec.ts` (8); `npm test` = **129 Tests** grün;
+    `ng build` (Produktion) ohne Warnungen.
+
 ## 8. Laufendes Entscheidungsprotokoll
 
 | Datum | Entscheidung | Grund |
@@ -251,3 +305,8 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | `SCHEMA_VERSION` 1 → 2 (`AppSettings.language`) | Migration v1→v2 ergänzt Sprache/Default Englisch. |
 | 2026-10-14 | Phase 1.5 abgeschlossen und committet | Kap. 7 hier. |
 | 2026-10-14 | Phase 2 abgeschlossen: „Jetzt dran"/„Ablauf", Editor, Verbinden, Tastatur | Kernfunktion laut Kap. 5.3–5.7; Abweichungen in Kap. 6b. |
+| 2026-10-14 | Phase 2 committet; Timeboxing gehört zu Phase 3 | Nutzerwunsch: erst Phase 2 sichern, dann Phase 3 vollständig. |
+| 2026-10-14 | Test-Setup `src/test-setup.ts` + `setupFiles` in `angular.json` | jsdom kennt `<dialog>.showModal()` nicht; Polyfill für Dialog-Komponententests. |
+| 2026-10-14 | Phase 3.8 (Timeboxing) umgesetzt | Kern der Phase 3; Abweichungen in Kap. 6c. |
+| 2026-10-14 | Phase 3.9 (Vorlagen) umgesetzt | Kap. 5.6; Abweichungen in Kap. 6d. |
+| 2026-10-14 | Phase 3.10 (Backup & Speicher) umgesetzt | Kap. 8; `navigator.storage.persist()` nach erster Interaktion. |

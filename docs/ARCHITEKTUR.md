@@ -37,15 +37,24 @@ src/app/
 │  │  ├─ ordering.ts                topologische Ordnung, Komponenten, Stränge
 │  │  ├─ layout.ts                  deterministisches top-down Layered-Layout (SVG)
 │  │  └─ operations.ts              insert*/addParallel*/connect/deleteTask
+│  ├─ time/                         REINE Zeit-Logik (framewerkfrei, Phase 3)
+│  │  ├─ format.ts                  Uhrzeiten/Dauern/Datum (lokalisiert)
+│  │  ├─ status.ts                  Zeitstatus, nächster Schritt, Sortierung, Spannen
+│  │  └─ plan.ts                    Validierung, Verschieben, Strecken, Vorschläge
+│  ├─ templates/                    REINE Vorlagen-Logik (framewerkfrei, Phase 3)
+│  │  └─ templates.ts               Zettel/Strang → Vorlage, Vorlage → Zettel/Strang
 │  ├─ storage/                      Persistenz (IndexedDB, Migration, Backup)
 │  │  ├─ db.ts                      dünner Promise-Wrapper um IndexedDB
 │  │  ├─ migrations.ts              reine migrate()-Funktion
 │  │  └─ backup.ts                  Export/Import + Validierung
+│  ├─ backup/                       Backup-/Speicher-Service (Phase 3)
+│  │  └─ backup.service.ts           Export/Import, Erinnerung, persist-Anfrage
 │  └─ state/                        Reactive State (Signals)
 │     ├─ history.ts                 generischer Undo/Redo-Verlauf (100 Schritte)
 │     ├─ lists.store.ts             Zettel: CRUD, Persistenz, Tabs-Sync
 │     ├─ templates.store.ts         Vorlagen
 │     ├─ view.store.ts              Ansicht „Jetzt dran"/„Ablauf" je Zettel
+│     ├─ now.store.ts               minütliches now-Signal (Timeboxing)
 │     └─ settings.store.ts          Einstellungen (Theme, Sprache) + Anwendung
 ├─ features/
 │  ├─ lists/                        Zettel-Übersicht (Phase 1, fertig)
@@ -55,8 +64,9 @@ src/app/
 │  │  ├─ flow-view.ts               „Ablauf" (Layout, SVG-Pfeile, Pan/Zoom, „+")
 │  │  ├─ task-editor.ts             Bearbeiten-Sheet (Titel/Notizen/Chips)
 │  │  ├─ connect-dialog.ts          Ziel-Auswahl „Mit anderem ToDo verbinden"
+│  │  ├─ plan-editor.ts             „Zeitplan bearbeiten" (verschieben/strecken/…)
 │  │  └─ shortcut-help.ts           Tastenkürzel-Übersicht
-│  ├─ templates/                    Vorlagen-Seite (Phase 3, Platzhalter)
+│  ├─ templates/                    Vorlagen-Seite (Phase 3, fertig)
 │  └─ settings/                     Einstellungen (Phase 1: Theme, Sprache, Version, Speicher)
 └─ shared/
    └─ snackbar/                     nicht-modaler Hinweisband-Dienst + Komponente
@@ -110,6 +120,41 @@ Alle Funktionen sind rein und getestet (`graph.spec.ts`, 37 Tests).
   blendet Umweg-Pfeile (A→C trotz A→B→C) **nur fürs Zeichnen** aus – die Daten
   behalten alle Pfeile, die Erreichbarkeit bleibt gleich.
 
+## 4a. Zeit-Logik (`core/time`)
+
+Frameworkfrei und vollständig unit-getestet. Drei Dateien:
+
+- **`format.ts`** – `parseHhMm`/`isValidHhMm`, `formatDuration` (de/en),
+  `minutesToHhMm`, `formatDayLabel` (de/en via `Intl`), `toIsoDate`/`fromIsoDate`,
+  `toDatetimeLocal`/`fromDatetimeLocal`, `roundToFiveMinutes`.
+- **`status.ts`** – `plannedBounds` (kombiniert `dayPlanReferenceDate` mit
+  `dayStart`/`dayEnd` bzw. nutzt `startAt`/`endAt`), `timeStatus`
+  (`running`/`next`/`late`/`planned`), `earliestNextTask`, `sortPlannedFirst`
+  (Reihenfolge Läuft → Überfällig → Als Nächstes → Geplant), `formatPlannedRange`,
+  `plannedTimeParts`, `referenceRelation`, `todayIso`.
+- **`plan.ts`** – `estimateSums`, `validateDayTimes`, `shiftPlan`,
+  `stretchPlan`, `planBounds`, `transferDayTimesToList`, `proposeTimes`,
+  `modeFields`.
+
+Alle Funktionen sind **rein** (Eingabe → neue Struktur). Das minütliche `now`
+liefert `core/state/now.store.ts` als Signal; die reinen Funktionen bekommen `now`
+übergeben und bleiben dadurch testbar.
+
+## 4b. Vorlagen-Logik (`core/templates`)
+
+Ebenfalls frameworkfrei und getestet. `templates.ts`:
+
+- `listToTemplate(list, title?)` – ganzer Zettel als Vorlage.
+- `strandToTemplate(list, taskId, title?)` – Strang (`extractStrand`) als Vorlage.
+- `templateToList(template)` – frischer Zettel mit **neuen IDs**, nichts erledigt.
+- `insertTemplate(list, template)` – Vorlage als neuen Strang anhängen.
+- `templatePreview(template)` – Titel in topologischer Reihenfolge.
+
+Beim Erstellen einer Vorlage entfallen `done`/`doneAt`; `startAt`/`endAt` werden
+verworfen (fehlt die Schätzung, wird sie aus der Dauer abgeleitet). `dayStart`/
+`dayEnd` bleiben erhalten. Die Vorlagen-Seite nutzt einen `TemplatesStore` mit
+CRUD und Undo-Snackbar beim Löschen.
+
 ## 5. Persistenz (`core/storage`)
 
 - `FadenDb` ist ein dünner Promise-Wrapper um IndexedDB (Stores `lists`,
@@ -124,6 +169,12 @@ Alle Funktionen sind rein und getestet (`graph.spec.ts`, 37 Tests).
   `validateBackup` prüft Schema, Version, Zyklen, Referenzen und lehnt
   ungültige Daten **komplett** ab (kein Teilimport); `applyImport` unterstützt
   **Zusammenführen** (neue IDs bei Kollision) und **Ersetzen**.
+- **Backup-Service (`core/backup/backup.service.ts`, Phase 3.10):** Export
+  (Download `faden-backup-YYYY-MM-DD.json`, schreibt `lastBackupAt`), Teilen
+  (`navigator.share` mit Datei, falls verfügbar), Import (validieren →
+  Zusammenführen/Ersetzen; bei Ersetzen vorher automatisches Sicherungs-Download),
+  Backup-Erinnerung (> 30 Tage, einmal pro Woche wegklickbar), erstes
+  `navigator.storage.persist()` nach Nutzerinteraktion.
 
 ## 6. State (`core/state`)
 
@@ -215,6 +266,10 @@ npm run build      # Produktionsbuild nach dist/faden
 „Einmal hosten": den Inhalt von `dist/faden` auf einen beliebigen HTTPS-Host
 legen, die Seite einmal laden und installieren. Danach darf der Host verschwinden
 (ab Phase 3 mit Service Worker vollständig garantiert).
+
+Die Komponententests laufen unter jsdom. Da jsdom `<dialog>.showModal()` nicht
+kennt, ergänzt `src/test-setup.ts` (verdrahtet über `setupFiles` in
+`angular.json`) minimale `show`/`showModal`/`close`-Polyfills.
 
 ## 10. Abhängigkeiten
 

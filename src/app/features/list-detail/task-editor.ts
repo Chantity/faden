@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { NOTES_MAX_LENGTH, TITLE_MAX_LENGTH, type Task, type TodoList } from '../../core/model';
 import { connect, disconnect, predecessors, successors } from '../../core/graph';
+import { formatDuration, fromDatetimeLocal, toDatetimeLocal, validateDayTimes } from '../../core/time';
 import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
@@ -49,6 +50,79 @@ import { ListsStore } from '../../core/state/lists.store';
 
         @if (error()) {
           <p class="field__error" role="alert">{{ error() }}</p>
+        }
+
+        @if (mode() === 'estimate') {
+          <div class="field">
+            <span class="field__label">{{ t().editor.estimateLabel }}</span>
+            <div class="chips">
+              @for (minutes of estimateChips; track minutes) {
+                <button
+                  type="button"
+                  class="chip chip--button"
+                  [class.is-active]="estimate() === minutes"
+                  (click)="estimate.set(minutes)"
+                >
+                  {{ minutes }} {{ t().editor.minutesSuffix }}
+                </button>
+              }
+            </div>
+            <label class="field field--inline">
+              <span class="field__label">{{ t().editor.estimateCustom }}</span>
+              <input
+                type="number"
+                min="1"
+                max="1440"
+                [value]="estimate() ?? ''"
+                (input)="onEstimateInput($event)"
+              />
+            </label>
+            @if (estimate() !== null) {
+              <p class="muted">{{ formattedEstimate() }}</p>
+            }
+          </div>
+        }
+
+        @if (mode() === 'dayPlan') {
+          <div class="field-row">
+            <label class="field">
+              <span class="field__label">{{ t().editor.dayStartLabel }}</span>
+              <input
+                type="time"
+                [value]="dayStart()"
+                (input)="dayStart.set($any($event.target).value)"
+              />
+            </label>
+            <label class="field">
+              <span class="field__label">{{ t().editor.dayEndLabel }}</span>
+              <input
+                type="time"
+                [value]="dayEnd()"
+                (input)="dayEnd.set($any($event.target).value)"
+              />
+            </label>
+          </div>
+        }
+
+        @if (mode() === 'schedule') {
+          <div class="field-row">
+            <label class="field">
+              <span class="field__label">{{ t().editor.startAtLabel }}</span>
+              <input
+                type="datetime-local"
+                [value]="startAt()"
+                (input)="startAt.set($any($event.target).value)"
+              />
+            </label>
+            <label class="field">
+              <span class="field__label">{{ t().editor.endAtLabel }}</span>
+              <input
+                type="datetime-local"
+                [value]="endAt()"
+                (input)="endAt.set($any($event.target).value)"
+              />
+            </label>
+          </div>
         }
 
         <div class="links">
@@ -168,6 +242,53 @@ import { ListsStore } from '../../core/state/lists.store';
       margin: 0;
     }
 
+    .field-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+
+    .field-row .field {
+      flex: 1 1 180px;
+    }
+
+    .field--inline {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .field--inline input[type='number'] {
+      width: 7rem;
+    }
+
+    .field input[type='time'],
+    .field input[type='datetime-local'],
+    .field input[type='number'] {
+      min-height: var(--touch-min);
+      padding: 0 var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-bg);
+      color: var(--color-text);
+      font: inherit;
+    }
+
+    .chip--button {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font: inherit;
+      cursor: pointer;
+      min-height: var(--touch-min);
+      padding: 0 var(--space-3);
+    }
+
+    .chip--button.is-active {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+
     .links {
       display: flex;
       flex-direction: column;
@@ -240,6 +361,21 @@ export class TaskEditor {
   protected readonly notes = signal('');
   protected readonly error = signal('');
 
+  protected readonly estimate = signal<number | null>(null);
+  protected readonly dayStart = signal('');
+  protected readonly dayEnd = signal('');
+  protected readonly startAt = signal('');
+  protected readonly endAt = signal('');
+
+  protected readonly estimateChips = [5, 10, 15, 30, 45, 60, 90];
+
+  protected readonly mode = computed(() => this.list()?.timeboxMode ?? 'none');
+
+  protected readonly formattedEstimate = computed(() => {
+    const minutes = this.estimate();
+    return minutes !== null ? formatDuration(minutes, this.i18n.locale()) : '';
+  });
+
   protected readonly list = computed<TodoList | undefined>(() => {
     const id = this.listId();
     return id ? this.store.getList(id) : undefined;
@@ -286,6 +422,11 @@ export class TaskEditor {
     this.taskId.set(taskId);
     this.title.set(task.title);
     this.notes.set(task.notes ?? '');
+    this.estimate.set(task.estimateMinutes ?? null);
+    this.dayStart.set(task.dayStart ?? '');
+    this.dayEnd.set(task.dayEnd ?? '');
+    this.startAt.set(toDatetimeLocal(task.startAt));
+    this.endAt.set(toDatetimeLocal(task.endAt));
     this.error.set('');
     this.dialogRef().nativeElement.showModal();
     queueMicrotask(() => this.titleInput()?.nativeElement.focus());
@@ -310,11 +451,57 @@ export class TaskEditor {
       return;
     }
     const notes = this.notes().trim();
+
+    let timeFields: Partial<Task> = {};
+    if (list.timeboxMode === 'estimate') {
+      const minutes = this.estimate();
+      if (minutes !== null && (minutes < 1 || minutes > 1440)) {
+        this.error.set(this.t().editor.errorTimeInvalid);
+        return;
+      }
+      timeFields = { estimateMinutes: minutes ?? undefined };
+    } else if (list.timeboxMode === 'dayPlan') {
+      const check = validateDayTimes(this.dayStart(), this.dayEnd());
+      if (!check.ok) {
+        this.error.set(
+          check.message === 'order' ? this.t().editor.errorTimeOrder : this.t().editor.errorTimeInvalid,
+        );
+        return;
+      }
+      timeFields = {
+        dayStart: this.dayStart() || undefined,
+        dayEnd: this.dayEnd() || undefined,
+      };
+    } else if (list.timeboxMode === 'schedule') {
+      const start = this.startAt();
+      const end = this.endAt();
+      if (start && end && new Date(end) <= new Date(start)) {
+        this.error.set(this.t().editor.errorTimeOrder);
+        return;
+      }
+      timeFields = {
+        startAt: start ? fromDatetimeLocal(start) : undefined,
+        endAt: end ? fromDatetimeLocal(end) : undefined,
+      };
+    }
+
     this.store.editList(list.id, (l) => ({
       ...l,
-      tasks: l.tasks.map((t) => (t.id === id ? { ...t, title, notes: notes || undefined } : t)),
+      tasks: l.tasks.map((t) =>
+        t.id === id ? { ...t, title, notes: notes || undefined, ...timeFields } : t,
+      ),
     }));
     this.close();
+  }
+
+  protected onEstimateInput(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+    if (raw === '') {
+      this.estimate.set(null);
+      return;
+    }
+    const value = Number(raw);
+    this.estimate.set(Number.isFinite(value) ? Math.round(value) : null);
   }
 
   protected addPrev(event: Event): void {

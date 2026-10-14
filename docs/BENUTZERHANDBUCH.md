@@ -158,37 +158,72 @@ Benachrichtigungen** – Faden rechnet nur mit.
 - **Tagesplan** – Von-/Bis-Uhrzeit ohne Datum. ToDos sind „Läuft gerade", „Als
   Nächstes" oder „Nicht abgehakt" (dann mit **„Nachträglich abhaken"**).
   Ist der Plan von gestern, bietet die App an, ihn „Auf heute zu setzen".
-- **Fester Zeitplan** – Datum + Uhrzeit, auch über mehrere Tage. Der Plan lässt
-  sich als Ganzes verschieben oder auf einen neuen Zeitraum strecken, mit
-  Vorschau und Undo.
-- **(Optional)** „Zeiten aus Schätzungen vorschlagen" legt offene ToDos
-  nacheinander ab einer Startzeit an.
+- **Fester Zeitplan** – Datum + Uhrzeit, auch über mehrere Tage.
+
+Im Modus **Tagesplan** oder **Fester Zeitplan** findest du im Zettel-Menü (⋯)
+den Eintrag **„Zeitplan bearbeiten"**:
+
+- **Alles verschieben** – alle Zeiten um Minuten, Stunden (im festen Zeitplan
+  auch Tage) verschieben.
+- **Auf Zeitraum strecken** (nur fester Zeitplan) – Start und Ende festlegen, die
+  übrigen Zeiten werden proportional mitgezogen.
+- **Zeiten aus Schätzungen vorschlagen** – offene ToDos werden ab einer Startzeit
+  nacheinander abgelegt (ToDos ohne Schätzung zählen 15 Min).
+- **Tageszeiten auf ein Datum übertragen** (nur Tagesplan) – kopiert Von/Bis als
+  Datum + Uhrzeit.
+
+In **„Jetzt dran"** zeigt jede Karte mit Zeit ein Badge und den passenden
+Zustand; im **Ablauf** steht die Zeitspanne klein am Kasten.
+
+Jede dieser Aktionen ist eine normale Änderung: **Rückgängig** in der Kopfzeile
+stellt den vorherigen Stand wieder her.
 
 ## 8. Vorlagen
 
-> Phase 3.
-
 Du kannst einen ganzen Zettel **oder** nur einen einzelnen Strang als
-**Vorlage** speichern. Vorlagen merken sich die Struktur, Titel, Notizen und
-Schätzungen – aber **nicht**, was schon erledigt war. So entsteht aus einer
-Vorlage jederzeit ein frischer Zettel.
+**Vorlage** speichern:
+
+- **Ganzer Zettel:** im Zettel-Menü (⋯) oben **„Zettel als Vorlage speichern"**.
+- **Ein Strang:** im Ablauf das **⋯** auf einer Karte des Strangs →
+  **„Strang als Vorlage speichern"**.
+
+Vorlagen merken sich Struktur, Titel, Notizen, Schätzungen, Tageszeiten und den
+Zeitmodus – aber **nicht**, was schon erledigt war. Feste Datum/Uhrzeit-Angaben
+werden zu einer Schätzung umgerechnet.
+
+Auf der Seite **Vorlagen** kannst du:
+
+- die Titel-Reihenfolge als **Vorschau** aufklappen,
+- eine Vorlage **umbenennen**,
+- eine Vorlage **löschen** (mit **Rückgängig** in der Hinweisleiste),
+- **„Neuer Zettel aus Vorlage"** – legt einen frischen Zettel an und öffnet ihn.
 
 ## 9. Einstellungen
 
 - **Design**: System, Hell oder Dunkel. Dunkel ist gleichwertig gestaltet.
 - **Sprache**: Englisch (Standard) oder Deutsch. Die Umschaltung wirkt sofort.
-- **Speicher**: zeigt, ob der Browser die Daten dauerhaft schützt.
+- **Speicher**: zeigt, ob der Browser die Daten dauerhaft schützt. Fehlt der
+  Schutz, kannst du auf **„Dauerhaft schützen"** tippen (der Browser fragt nach
+  der ersten Nutzerinteraktion danach).
 - **Version**: die installierte App-Version.
-- (Phase 3) **Backup**: Export/Import als Datei, letzte Sicherung, und die
-  Installationshilfe.
+- **Sicherung und Daten**: **„Sicherung herunterladen"** erstellt
+  `faden-backup-JJJJ-MM-TT.json` und merkt sich das Datum
+  („Letztes Backup: heute / vor X Tagen / noch kein Backup"). **„Teilen"** nutzt
+  die Freigabe des Geräts, falls vorhanden. **„Sicherung einspielen"** prüft die
+  gewählte Datei vollständig und bietet dann **„Zusammenführen"** oder
+  **„Alles ersetzen"** (ersetzt alles, lädt vorher automatisch eine Sicherung).
+- Die **Installationshilfe** folgt mit der Offline-PWA (Phase 3.11).
 
 ## 10. Daten, Backup und Offline
 
 - Alle Daten bleiben **lokal auf deinem Gerät** (IndexedDB). Es gibt kein Konto
   und keine Cloud.
 - **Offline**: Nach einmaligem Laden funktioniert Faden auch ohne Netz.
-- **Backup** (Phase 3): Export als Datei `faden-backup-JJJJ-MM-TT.json`.
+- **Backup**: Export als Datei `faden-backup-JJJJ-MM-TT.json`.
   Import entweder **„Zusammenführen"** oder **„Alles ersetzen"** (mit Sicherung).
+- **Erinnerung**: Liegt die letzte Sicherung mehr als 30 Tage zurück und sind
+  Daten vorhanden, erscheint auf der Zettel-Übersicht **einmal pro Woche** ein
+  wegklickbares Hinweisband mit **„Sicherung erstellen"**.
 - **Mehrere Tabs**: Änderungen werden automatisch erkannt und nachgeladen.
 
 ## 11. Tastatur (PC)

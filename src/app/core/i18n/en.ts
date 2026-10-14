@@ -66,7 +66,43 @@ export const en = {
 
   templates: {
     placeholder:
-      'Templates arrive in phase 3. There you can save lists or individual strands as a template and create new lists from them.',
+      'No templates yet. Save a list or a strand as a template via the menu (⋯).',
+    preview: 'Flow',
+    taskCount: (n: number): string => (n === 1 ? '1 todo' : `${n} todos`),
+    newList: 'New list from template',
+    rename: 'Rename',
+    delete: 'Delete',
+    deletedSnack: (title: string): string => `Template “${title}” deleted.`,
+    saveList: 'Save list as template',
+    saveStrand: 'Save strand as template',
+    savedSnack: (title: string): string => `Template “${title}” saved.`,
+    insert: 'Insert template into list',
+    incomplete: 'This strand has no todos yet.',
+  },
+
+  backup: {
+    heading: 'Backup and data',
+    lastBackupNever: 'No backup created yet.',
+    lastBackupDays: (n: number): string =>
+      n === 0 ? 'Last backup: today' : n === 1 ? 'Last backup: 1 day ago' : `Last backup: ${n} days ago`,
+    export: 'Download backup',
+    share: 'Share backup',
+    importHeading: 'Restore a backup',
+    importHint: 'Choose a previously downloaded backup file (JSON).',
+    importTitle: 'Restore a backup',
+    merge: 'Merge',
+    replace: 'Replace everything',
+    replaceConfirm:
+      'Replace everything? Your current data will be downloaded as a backup first.',
+    invalid: 'Not a valid Faden backup file.',
+    importSuccess: 'Backup restored.',
+  },
+
+  remind: {
+    heading: 'Backup recommended',
+    body: 'Your lists only live in this browser. Create a backup regularly.',
+    action: 'Create backup',
+    dismiss: 'Dismiss',
   },
 
   focus: {
@@ -110,6 +146,16 @@ export const en = {
     addLink: '+ add',
     chooseTask: 'Choose a todo',
     removeLink: (title: string): string => `Remove ${title}`,
+    estimateLabel: 'Duration',
+    estimateCustom: 'Custom minutes',
+    minutesSuffix: 'min',
+    dayStartLabel: 'From',
+    dayEndLabel: 'To',
+    startAtLabel: 'Start',
+    endAtLabel: 'End',
+    clear: 'Clear',
+    errorTimeOrder: 'The end must be after the start.',
+    errorTimeInvalid: 'Please enter a valid time.',
   },
 
   flow: {
@@ -170,6 +216,45 @@ export const en = {
     } satisfies Record<TimeboxMode, string>,
   },
 
+  time: {
+    running: (until: string): string => `Now, until ${until}`,
+    nextAt: (at: string): string => `Next at ${at}`,
+    lateWas: (range: string): string => `Not checked off (was ${range})`,
+    late: 'Not checked off',
+    planned: (range: string): string => `Planned: ${range}`,
+    markLateDone: 'Check off afterwards',
+    openSum: (duration: string): string => `Open: ${duration}`,
+    totalSum: (duration: string): string => `Total: ${duration}`,
+    doneSum: (duration: string): string => `Done: ${duration}`,
+    withoutEstimate: (n: number): string =>
+      n === 1 ? '1 without estimate' : `${n} without estimate`,
+    dayPlanPast: (date: string): string =>
+      `This day plan is from ${date}. Move it to today?`,
+    dayPlanTransfer: 'Set to today',
+    dayPlanKeep: 'Leave as is',
+    editPlan: 'Edit schedule',
+    editPlanTitle: 'Edit schedule',
+    shiftHeading: 'Shift everything',
+    shiftAmount: 'Amount',
+    unitMinutes: 'minutes',
+    unitHours: 'hours',
+    unitDays: 'days',
+    shiftApply: 'Shift',
+    stretchHeading: 'Stretch to a period',
+    stretchStart: 'New start',
+    stretchEnd: 'New end',
+    stretchApply: 'Stretch',
+    proposeHeading: 'Propose times from estimates',
+    proposeStart: 'Start time',
+    proposeApply: 'Propose',
+    convertHeading: 'Transfer times of day onto a date',
+    convertHint:
+      'The times of day (from/to) are kept and additionally copied as date + time.',
+    convertDate: 'Date',
+    convertApply: 'Transfer',
+    noPlan: 'No times entered yet.',
+  },
+
   snackbar: {
     listDeleted: 'List deleted.',
     listArchived: 'List archived.',
@@ -202,6 +287,9 @@ export const en = {
     storagePending: 'Checking storage status …',
     storagePersisted: 'Storage is protected permanently.',
     storageUnprotected: 'The browser may clear storage when space is low – create backups.',
+    persistAction: 'Protect permanently',
+    persistGranted: 'Storage is now protected permanently.',
+    persistDenied: 'The browser did not grant protection – create backups.',
   },
 
   a11y: {

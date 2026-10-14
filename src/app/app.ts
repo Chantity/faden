@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { APP_NAME } from './app-meta';
+import { BackupService } from './core/backup/backup.service';
 import { I18nStore } from './core/i18n/i18n.store';
 import { ListsStore } from './core/state/lists.store';
 import { SettingsStore } from './core/state/settings.store';
@@ -20,6 +21,7 @@ export class App {
   private readonly settings = inject(SettingsStore);
   private readonly templates = inject(TemplatesStore);
   private readonly view = inject(ViewStore);
+  private readonly backup = inject(BackupService);
 
   protected readonly appName = APP_NAME;
   protected readonly t = inject(I18nStore).t;
@@ -29,5 +31,6 @@ export class App {
     void this.lists.load();
     void this.templates.load();
     void this.view.load();
+    void this.backup.requestPersistOnFirstInteraction();
   }
 }
