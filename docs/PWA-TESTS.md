@@ -1,64 +1,72 @@
 # PWA-/Offline-Pflichttests
 
-> Status: **offen** – wird in Phase 3 bearbeitet. Die Tests sind hier als
-> wiederholbare Anleitung festgehalten (SPEC 9.4). Ein fehlgeschlagener Test ist
-> ein **Blocker**: Die App gilt erst als fertig, wenn **alle** Tests bestehen.
+> Status: **alle bestanden** (siehe Ergebnisprotokoll). Ein fehlgeschlagener
+> Test ist ein **Blocker** (SPEC 9.4): Die App gilt erst als fertig, wenn
+> **alle** Tests bestehen. Nach jeder Änderung an `public/sw.js`, am Build oder
+> an `index.html` erneut ausführen.
 
-## Voraussetzungen
+## Automatisiert ausführen
 
-- Produktionsbuild: `npm run build` → Ausgabe in `dist/faden`.
-- Ein einfacher statischer Server, der freiwillig auch **404**, **500** und
-  HTML-Antworten für unbekannte Dateien liefern kann (z. B. per Skript/Alias).
-- Browser mit DevTools (Application → Service Workers / Cache Storage).
+```bash
+npm run build      # Produktionsbuild + precache-manifest.json
+npm run test:pwa   # scripts/pwa-test.mjs
+```
+
+Das Skript braucht **keine** Zusatzpakete (Node ≥ 22). Es
+
+- startet einen lokalen Static-Server für `dist/faden/browser`, dessen Verhalten
+  umschaltbar ist: **normal**, **aus** (Verbindungsfehler), **404 für alles**,
+  **500 für alles**, **Captive-Portal-HTML (200) für alles**, **neuere Version**
+  (geänderte `precache-manifest.json`);
+- steuert einen echten Chromium-Browser (Edge oder Chrome, headless, frisches
+  Profil) über das DevTools-Protokoll; Pfad überschreibbar mit `BROWSER=…`;
+- beendet sich mit Exit-Code 1, sobald ein Test fehlschlägt.
 
 ## Testfälle
 
-1. **Installierbarkeit / Precache**
-   - App einmal online laden.
-   - Service Worker ist **aktiv**; `Cache Storage` enthält den Precache
-     (`faden-v1`).
-   - DevTools/Lighthouse: „Installability" ok.
+| # | Test | Wie geprüft |
+|---|---|---|
+| 1 | Installierbarkeit / Precache | Einmal online laden. SW übernimmt die Seite; aktiver Precache enthält **alle** Dateien aus `precache-manifest.json`; `Page.getAppManifest` ohne Fehler; `Page.getInstallabilityErrors` leer; Einstellungen zeigen „Offline ready". |
+| 2 | Server aus | Server beenden, neu laden. App startet; per Oberfläche Zettel anlegen, ToDo anlegen, abhaken; Backup exportieren (Download wird geprüft und enthält die Änderungen). |
+| 3 | Überall 404 | 3× neu laden, jedes Mal Update-Prüfung des Browsers erzwingen (`registration.update()`, entspricht der automatischen Prüfung nach 24 h). Erwartung: App + Daten da, Update-Prüfung schlägt fehl, SW registriert, Precache unverändert und vollständig. |
+| 4a | Überall 500 | wie 3. |
+| 4b | Captive-Portal-HTML | wie 3 (`sw.js`, Manifest, `precache-manifest.json` liefern HTML mit 200). |
+| 4c | Keine Auto-Updates | Host bietet eine neuere Version an (andere Precache-Liste). Nach Neuladen + Update-Prüfung bleibt der installierte Precache aktiv (SPEC 9.3). |
+| 5 | Hash-Route offline | Server aus, neuer Tab direkt auf `…/index.html#/zettel/<id>` → Zettel-Ansicht erscheint. |
+| 6 | Neustart | Browser vollständig beenden und mit demselben Profil neu starten – einmal bei Server-404, einmal bei Server aus. Daten (IndexedDB) und Precache unverändert. |
+| 7 | Keine externen Requests | Alle mitgeschnittenen Anfragen von Seite **und** Service Worker gehen an den eigenen Host. |
 
-2. **Server aus (Verbindungsfehler)**
-   - Server beenden, Seite neu laden.
-   - App startet vollständig, alle Funktionen laufen (Zettel anlegen, abhaken,
-     Export).
+### Zur „Wartezeit von mehreren Minuten"
 
-3. **Server liefert überall 404** *(kritischer Test)*
-   - Server so umstellen, dass alle Anfragen mit **404** beantwortet werden.
-   - Seite mehrfach neu laden, auch nach mehreren Minuten und nach
-     Browser-Neustart.
-   - Erwartung: App läuft weiter; Service Worker bleibt **registriert**; Caches
-     bleiben **erhalten**; kein Deregistrieren.
-   - *Hintergrund:* `@angular/service-worker` würde hier Caches löschen und sich
-     deregistrieren – deshalb wurde Variante B (eigener SW) gewählt
-     (`docs/DECISIONS.md`, Abschnitt 3).
+SPEC 9.4/3 verlangt auch Neuladen „nach mehreren Minuten". Zeitabhängig ist im
+Browser nur die automatische Update-Prüfung von `sw.js` (spätestens alle 24 h
+bei einer Navigation). Das Skript löst genau diese Prüfung mit
+`registration.update()` sofort aus und deckt den Fall damit deterministisch ab.
+Der eigene Service Worker hat keine zeitgesteuerte Logik.
 
-4. **Server liefert 500 und Captive-Portal-HTML**
-   - Für `sw.js`, Manifest und `ngsw.json`(falls vorhanden) eine **500**-Antwort
-     und eine HTML-Seite liefern.
-   - Erwartung: App läuft unverändert.
+## Manuelle Gegenprobe (optional, z. B. auf dem Handy)
 
-5. **Direkte Hash-Route offline**
-   - `…/index.html#/zettel/xyz` offline bzw. bei kaputtem Server direkt öffnen.
-   - Erwartung: funktioniert (Navigation wird mit gecachter `index.html`
-     beantwortet).
-
-6. **Daten überleben Neustart**
-   - Zettel anlegen, Browser komplett schließen, neu starten.
-   - Erwartung: Daten sind da (IndexedDB).
-
-7. **Keine externen Requests** (Abnahmekriterium 12.2/11)
-   - Im Netzwerk-Tab: keine Requests zu Fremddomains zur Laufzeit.
+1. `npm run build`, dann `dist/faden/browser` über HTTPS oder `localhost`
+   ausliefern (z. B. `npx http-server dist/faden/browser`).
+2. Einmal öffnen, in den Einstellungen auf „Offline bereit" warten, installieren.
+3. Server stoppen bzw. auf 404 umstellen, Flugmodus an; App mehrfach öffnen,
+   Gerät neu starten. DevTools → Application → Service Workers / Cache Storage:
+   Worker aktiv, `faden-v1-<build>` und `faden-meta` vorhanden.
 
 ## Ergebnisprotokoll
 
 | Test | Datum | Ergebnis | Notizen |
 |---|---|---|---|
-| 1 Installierbarkeit | – | offen | – |
-| 2 Server aus | – | offen | – |
-| 3 Server 404 | – | offen | – |
-| 4 500 / Captive-Portal | – | offen | – |
-| 5 Hash-Route offline | – | offen | – |
-| 6 Daten nach Neustart | – | offen | – |
-| 7 Keine externen Requests | – | offen | – |
+| 1 Installierbarkeit | 2026-10-14 | bestanden | 17 Dateien in `faden-v1-b200e83d45a60299`, installierbar, „Offline ready" |
+| 2 Server aus | 2026-10-14 | bestanden | Anlegen, Abhaken, Export offline |
+| 3 Server 404 | 2026-10-14 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
+| 4a Server 500 | 2026-10-14 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
+| 4b Captive-Portal | 2026-10-14 | bestanden | Update-Prüfung: `SecurityError` (MIME), SW + Cache intakt |
+| 4c Keine Auto-Updates | 2026-10-14 | bestanden | Installierte Version bleibt aktiv |
+| 5 Hash-Route offline | 2026-10-14 | bestanden | – |
+| 6 Daten nach Neustart | 2026-10-14 | bestanden | 2 Browser-Neustarts |
+| 7 Keine externen Requests | 2026-10-14 | bestanden | 209 Requests, alle an den eigenen Host |
+
+Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 0.1.0.
+Nicht automatisiert: Safari/iOS (kein WebKit-Testbrowser verfügbar) und
+Lighthouse-Accessibility (Abnahmekriterium 12.2/9) – manuell prüfen.

@@ -290,6 +290,18 @@ export const en = {
     persistAction: 'Protect permanently',
     persistGranted: 'Storage is now protected permanently.',
     persistDenied: 'The browser did not grant protection – create backups.',
+    installHeading: 'Install',
+    installAction: 'Install app',
+    installDone: 'Faden is installed as an app.',
+    installManual:
+      'If your browser shows no button: choose “Install app” or “Add to Home screen” in the browser menu.',
+    installIosSteps:
+      'On iPhone and iPad: tap “Share” at the bottom of Safari, then choose “Add to Home Screen”.',
+    installIosHint:
+      'Important: Safari deletes data of websites that have not been used for about 7 days. Only the installed app is reliably protected from this.',
+    offlineReady: 'Offline ready – Faden now works without internet.',
+    offlinePending: 'Preparing offline use …',
+    offlineUnsupported: 'Offline use is not active here (only in the published app).',
   },
 
   a11y: {

@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { APP_NAME } from './app-meta';
 import { BackupService } from './core/backup/backup.service';
 import { I18nStore } from './core/i18n/i18n.store';
+import { PwaService } from './core/pwa/pwa.service';
 import { ListsStore } from './core/state/lists.store';
 import { SettingsStore } from './core/state/settings.store';
 import { TemplatesStore } from './core/state/templates.store';
@@ -32,5 +33,6 @@ export class App {
     void this.templates.load();
     void this.view.load();
     void this.backup.requestPersistOnFirstInteraction();
+    inject(PwaService).init();
   }
 }

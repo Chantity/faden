@@ -238,21 +238,41 @@ Undo/Redo, Menü), der Umschalter **„Jetzt dran" | „Ablauf"** (Wahl je Zette
   laufen ausschließlich über `ListsStore.editList()` (ein Undo-Schritt, und bei
   `GraphError` bleibt der Zustand unverändert).
 
-## 8. PWA und Service Worker (Phase 3)
+## 8. PWA und Service Worker
 
 **Entscheidung: eigener, minimaler Service Worker** (Variante B) statt
 `@angular/service-worker`, weil ngsw bei HTTP 404 auf `ngsw.json` alle Caches
 löscht und sich deregistriert (Details in `docs/DECISIONS.md`).
 
-Geplanter Aufbau:
-- Ein kleines Node-Skript erzeugt nach `ng build` die Precache-Liste aller
-  Output-Dateien und setzt sie in `public/sw.js` ein.
-- `install`: alle Artefakte in `caches.open('faden-v1')`.
-- `fetch`: Cache-first; Navigationen immer mit der gecachten `index.html`.
-- `activate`: **niemals** Caches löschen, kein Selbst-Deregistrieren.
-- Registrierung nur in Produktionsbuilds.
+Bausteine:
 
-Die wiederholbaren Pflichttests stehen in `docs/PWA-TESTS.md`.
+| Datei | Aufgabe |
+|---|---|
+| `public/sw.js` | Service Worker. **Zwischen Builds byte-identisch**, damit der Browser nie von selbst ein Update installiert. |
+| `scripts/precache.mjs` | Läuft nach `ng build` (`npm run build`) und schreibt `precache-manifest.json`: `{ app, version, build, files: [{ url, rev }] }` (SHA-256 je Datei, `build` = Hash über alle). |
+| `public/manifest.webmanifest`, `public/icons/*`, `public/favicon.ico` | Web-App-Manifest und Icons (192, 512, maskable 512, apple-touch 180). |
+| `scripts/generate-icons.mjs` | Rastert die Icon-Geometrie (Quelle: `public/icons/icon.svg`) ohne Fremdpakete zu PNG/ICO (`npm run icons`). |
+| `core/pwa/pwa.service.ts` | Registriert `./sw.js` (nur Produktion, nach `load`), fängt `beforeinstallprompt` ab, erkennt iOS und installierten Modus, fragt den SW nach dem Precache-Status („Offline bereit"). |
+| `scripts/pwa-test.mjs` | Automatisierte Pflichttests (SPEC 9.4), siehe `docs/PWA-TESTS.md`. |
+
+Ablauf im Service Worker:
+
+- `install`: Gibt es schon einen vollständigen Precache, passiert nichts (kein
+  stilles Update). Sonst `precache-manifest.json` holen (`no-store`),
+  streng prüfen und jede Datei mit `cache: 'reload'` in den **neuen** Cache
+  `faden-v1-<build>` laden. Nur wenn **jede** Datei HTTP 200 (ohne
+  Weiterleitung) liefert, wird der Cache in `faden-meta` als aktiv vermerkt;
+  andernfalls wird nur der neue, unvollständige Cache verworfen.
+- `activate`: `clients.claim()`; **niemals** Caches löschen.
+- `fetch` (nur GET, gleiche Herkunft): Cache-first aus dem aktiven Precache;
+  Navigationen bekommen die gecachte `index.html`; Netzwerk nur bei Cache-Miss.
+- `message`: `status` (aktiver Precache), sowie `check-update` /
+  `apply-update` für die nutzergesteuerte Update-Prüfung (SPEC 9.3, UI in 3.12).
+  Ein alter Precache wird erst gelöscht, wenn der neue vollständig geladen ist.
+
+404, 500, Captive-Portal-HTML oder ein abgeschalteter Server lassen
+Registrierung und Caches unberührt: Die Update-Prüfung des Browsers auf
+`sw.js` schlägt dann einfach fehl, und der bestehende Worker bleibt aktiv.
 
 ## 9. Entwickeln, Testen, Bauen
 
@@ -260,12 +280,19 @@ Die wiederholbaren Pflichttests stehen in `docs/PWA-TESTS.md`.
 npm install        # Abhängigkeiten
 npm start          # Dev-Server (http://localhost:4200)
 npm test           # Unit-Tests (Vitest)
-npm run build      # Produktionsbuild nach dist/faden
+npm run build      # Produktionsbuild + Precache-Liste nach dist/faden/browser
+npm run test:pwa   # PWA-/Offline-Pflichttests gegen den Produktionsbuild
+npm run icons      # Icons neu erzeugen (nur nach Änderung am Icon)
 ```
 
-„Einmal hosten": den Inhalt von `dist/faden` auf einen beliebigen HTTPS-Host
-legen, die Seite einmal laden und installieren. Danach darf der Host verschwinden
-(ab Phase 3 mit Service Worker vollständig garantiert).
+Wichtig: `npm run build` statt nur `ng build` verwenden – ohne
+`precache-manifest.json` installiert sich der Service Worker nicht (die App läuft
+dann normal, aber nicht offline).
+
+„Einmal hosten": den Inhalt von `dist/faden/browser` auf einen beliebigen
+HTTPS-Host legen (Unterverzeichnis egal), die Seite einmal laden, warten bis die
+Einstellungen „Offline bereit" zeigen, und installieren. Danach darf der Host
+verschwinden.
 
 Die Komponententests laufen unter jsdom. Da jsdom `<dialog>.showModal()` nicht
 kennt, ergänzt `src/test-setup.ts` (verdrahtet über `setupFiles` in

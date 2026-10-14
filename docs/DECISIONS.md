@@ -149,8 +149,8 @@ anschließend Review, dann Phase 2 und 3.
 |---|---|---|---|
 | Undo/Redo-Verlauf | **Globaler Snapshot-Verlauf** für die Zettel-Übersicht (bis 100 Schritte). | 5.5: „Pro Zettel ein Verlauf" | Ein expliziter Verlauf pro Zettel ist erst mit der Detailansicht (Phase 2) sinnvoll; `History<T>` ist bereits generisch vorbereitet. |
 | Löschen von Zetteln | Sofort aus IndexedDB entfernt, **Undo im Speicher** (Hinweisband 8 s). | 5.5: verzögertes/Soft-Delete | Verhalten für den Nutzer identisch; verzögertes Schreiben kann später ergänzt werden. |
-| App-Version | `APP_VERSION` fällt auf `0.0.0` zurück; `define` aus `package.json` folgt. | 9.3: Version aus `package.json` | Wird in Phase 3 mit dem Build verdrahtet. |
-| Service Worker, Manifest, Icons | Noch nicht vorhanden (keine Referenzen in `index.html`). | Kap. 9 | Bewusst Phase 3; vermeidet 404-Referenzen im Zwischenstand. |
+| App-Version | `APP_VERSION` fällt auf `0.0.0` zurück; `define` aus `package.json` folgt. **Erledigt in 3.11.** | 9.3: Version aus `package.json` | Wird in Phase 3 mit dem Build verdrahtet. |
+| Service Worker, Manifest, Icons | Noch nicht vorhanden (keine Referenzen in `index.html`). **Erledigt in 3.11.** | Kap. 9 | Bewusst Phase 3; vermeidet 404-Referenzen im Zwischenstand. |
 | `@angular/cdk` | Noch nicht installiert. | Kap. 2 (optional) | Wird nur bei konkretem Bedarf ergänzt. |
 
 ## 6a. Mehrsprachigkeit (Phase 1.5)
@@ -233,6 +233,19 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | ⋯-Menü in der Übersicht schließen | Klick/Tipp irgendwo außerhalb (oder erneut auf das Menü) schließt es, wie in „Jetzt dran". Ein Klick im Menüinhalt lässt es offen. | 5.2 | Nutzerwunsch; gleiches Verhalten wie in der Zettel-Ansicht. |
 
 
+## 6f. Abweichungen/Präzisierungen aus Phase 3.11 – PWA
+
+| Thema | Ist-Stand | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Precache-Liste | **Nicht** in `sw.js` eingesetzt, sondern als `precache-manifest.json` daneben (erzeugt von `scripts/precache.mjs`). `sw.js` bleibt zwischen Builds byte-identisch. | 9.2 (Variante B: Liste „in `sw.js` einsetzen") | Ändert sich `sw.js`, installiert der Browser die neue Datei **von selbst** – das wäre ein Auto-Update (verboten laut 9.3). Mit unveränderter `sw.js` gibt es Updates nur über den ausdrücklichen Weg (`apply-update`). Durch Test 4c belegt. |
+| Cache-Name | `faden-v1-<build>` plus `faden-meta` (vermerkt den aktiven Precache) statt nur `faden-v1`. | 9.2 | Nötig, damit ein neuer Precache vollständig neben dem alten geladen werden kann, bevor der alte gelöscht wird (9.3). |
+| `install` bei vorhandenem Precache | Lädt nichts nach; die installierte Version bleibt. | 9.3 | Selbst ein absichtlich geändertes `sw.js` tauscht die App-Dateien nicht stillschweigend aus. |
+| Update-Protokoll | SW versteht schon `check-update`/`apply-update` (Versionsvergleich, vollständiges Laden vor dem Umschalten). **Button in den Einstellungen folgt in 3.12.** | 9.3 (optional) | Die riskante Logik liegt im SW und ist jetzt schon so gebaut, dass Fehler die alte Version nie antasten. |
+| App-Version | `APP_VERSION` per JSON-Import aus `package.json` (der Bundler übernimmt nur das Feld `version`). `package.json`-Version 0.0.0 → **0.1.0**. | 9.3 | Ein Ort für die Version; der Update-Vergleich braucht eine echte Versionsnummer. |
+| Icons | Eigenes, ruhiges Motiv (drei verbundene Punkte von oben nach unten), Quelle `public/icons/icon.svg`; `scripts/generate-icons.mjs` rastert ohne Fremdpakete (PNG + ICO). Ersetzt das Angular-Standard-Favicon. | 9.1 | Keine Bildbibliothek nötig; die PNGs liegen im Repo, das Skript läuft nur bei Änderungen. |
+| Manifest-Sprache | `lang: "en"` statt `"de"`. | 9.1 | Englisch ist Standardsprache (Kap. 6a). |
+| PWA-Tests | **Automatisiert** (`npm run test:pwa`): Edge/Chrome headless über das DevTools-Protokoll + umschaltbarer Server; „nach mehreren Minuten" wird durch erzwungene Update-Prüfung abgedeckt (Details in `docs/PWA-TESTS.md`). | 9.4 | Wiederholbar statt nur Anleitung; keine Abhängigkeit (Node-WebSocket). Safari/iOS und Lighthouse-Accessibility bleiben manuelle Prüfungen. |
+
 ## 7. Fortschritt
 
 - **Phase 1 – Fundament: abgeschlossen.**
@@ -309,6 +322,16 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
   - Tests: `lists-page.spec.ts` (3), `flow-view.spec.ts` angepasst;
     `npm test` = **132 Tests** grün; `ng build` (Produktion) ohne Warnungen.
 
+- **Phase 3.11 – PWA: abgeschlossen** (siehe Kap. 6f).
+  - `public/sw.js` (Variante B), `scripts/precache.mjs` (läuft in `npm run build`),
+    `public/manifest.webmanifest`, Icons + `scripts/generate-icons.mjs`,
+    `index.html` mit Manifest/Icons.
+  - `core/pwa/pwa.service.ts`: Registrierung nur in Produktion,
+    Installationsaufforderung, iOS-Hinweis (7-Tage-Löschung), „Offline bereit".
+  - Einstellungen: Abschnitt „Installieren".
+  - `scripts/pwa-test.mjs`: **9/9 Pflichttests bestanden** (`docs/PWA-TESTS.md`).
+  - `npm test` = **132 Tests** grün; `npm run build` ohne Warnungen.
+
 ## 8. Laufendes Entscheidungsprotokoll
 
 | Datum | Entscheidung | Grund |
@@ -329,3 +352,4 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | Phase 3.9 (Vorlagen) umgesetzt | Kap. 5.6; Abweichungen in Kap. 6d. |
 | 2026-10-14 | Phase 3.10 (Backup & Speicher) umgesetzt | Kap. 8; `navigator.storage.persist()` nach erster Interaktion. |
 | 2026-10-14 | Bugfix-Runde: längere Pfeile, neue Menünamen, Vorlage + Menü-Schließen in der Übersicht | Nutzerwünsche (Kap. 6e). |
+| 2026-10-14 | Phase 3.11: eigener SW mit stabiler `sw.js` + separater Precache-Liste; PWA-Tests automatisiert, alle grün | Kap. 6f; keine Auto-Updates. |

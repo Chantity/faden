@@ -218,13 +218,21 @@ Auf der Seite **Vorlagen** kannst du:
   die Freigabe des Geräts, falls vorhanden. **„Sicherung einspielen"** prüft die
   gewählte Datei vollständig und bietet dann **„Zusammenführen"** oder
   **„Alles ersetzen"** (ersetzt alles, lädt vorher automatisch eine Sicherung).
-- Die **Installationshilfe** folgt mit der Offline-PWA (Phase 3.11).
+- **Installieren**: zeigt **„Offline bereit"**, sobald Faden vollständig auf
+  deinem Gerät gespeichert ist. In Chrome/Edge/Android gibt es den Button
+  **„App installieren"**. Auf **iPhone/iPad**: in Safari **Teilen → Zum
+  Home-Bildschirm**. Wichtig für iOS: Safari löscht Daten von Websites, die etwa
+  7 Tage nicht benutzt wurden – nur die installierte App ist davor zuverlässig
+  geschützt.
 
 ## 10. Daten, Backup und Offline
 
 - Alle Daten bleiben **lokal auf deinem Gerät** (IndexedDB). Es gibt kein Konto
   und keine Cloud.
-- **Offline**: Nach einmaligem Laden funktioniert Faden auch ohne Netz.
+- **Offline**: Nach einmaligem Laden funktioniert Faden auch ohne Netz – auch
+  dann, wenn die Webseite, von der du Faden installiert hast, später nicht mehr
+  existiert. Faden aktualisiert sich **nie von selbst**; deine installierte
+  Version bleibt, wie sie ist.
 - **Backup**: Export als Datei `faden-backup-JJJJ-MM-TT.json`.
   Import entweder **„Zusammenführen"** oder **„Alles ersetzen"** (mit Sicherung).
 - **Erinnerung**: Liegt die letzte Sicherung mehr als 30 Tage zurück und sind
@@ -256,4 +264,5 @@ Die Umsetzung erfolgt in drei Phasen (siehe `docs/DECISIONS.md`):
    Englisch/Deutsch.
 2. **Kernfunktion** (fertig): Ansicht „Jetzt dran", Ketten-Eingabe,
    Ablaufdiagramm, Bearbeiten-Sheet, Verbinden, Tastatur.
-3. **Ausbau**: Timeboxing, Vorlagen, Backup, Offline-PWA, Installationshilfe.
+3. **Ausbau**: Timeboxing, Vorlagen, Backup, Offline-PWA und Installationshilfe
+   (fertig); als Nächstes optionale Extras wie „Nach neuer Version suchen".

@@ -29,13 +29,16 @@ Wie die App technisch aufgebaut ist, beschreibt die
 npm install
 npm start        # Dev-Server auf http://localhost:4200
 npm test         # Unit-Tests (Vitest)
-npm run build    # Produktionsbuild nach dist/faden
+npm run build    # Produktionsbuild nach dist/faden/browser
+npm run test:pwa # Offline-Pflichttests (Edge/Chrome headless)
 ```
 
-**Einmal hosten:** Den Inhalt von `dist/faden` auf einen beliebigen HTTPS-Host
-legen, die Seite einmal öffnen und installieren. Danach darf der Host
-verschwinden – Faden läuft dann aus dem lokalen Cache (vollständig ab Phase 3
-mit Service Worker).
+**Einmal hosten:** Den Inhalt von `dist/faden/browser` auf einen beliebigen
+HTTPS-Host legen, die Seite einmal öffnen, warten bis die Einstellungen
+„Offline bereit" zeigen, und installieren. Danach darf der Host verschwinden –
+Faden läuft dann vollständig aus dem lokalen Cache. **iOS:** nur die
+installierte App (Teilen → Zum Home-Bildschirm) ist vor Safaris automatischem
+Löschen geschützt. Regelmäßig ein Backup herunterladen (Einstellungen).
 
 ## Dokumentation
 

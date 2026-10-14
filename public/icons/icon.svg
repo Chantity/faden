@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Quelle des App-Icons; scripts/generate-icons.mjs rastert dieselbe Geometrie. -->
+  <rect width="100" height="100" rx="22" fill="#4a6b57"/>
+  <polyline points="50,25 50,50 50,75" fill="none" stroke="#f4f1ea" stroke-width="5"/>
+  <g fill="#f4f1ea">
+    <circle cx="50" cy="25" r="8.5"/>
+    <circle cx="50" cy="50" r="8.5"/>
+    <circle cx="50" cy="75" r="8.5"/>
+  </g>
+</svg>

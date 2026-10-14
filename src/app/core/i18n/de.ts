@@ -288,6 +288,18 @@ export const de = {
     persistAction: 'Dauerhaft schützen',
     persistGranted: 'Der Speicher ist jetzt dauerhaft geschützt.',
     persistDenied: 'Der Browser hat den Schutz nicht gewährt – erstelle Backups.',
+    installHeading: 'Installieren',
+    installAction: 'App installieren',
+    installDone: 'Faden ist als App installiert.',
+    installManual:
+      'Falls dein Browser keinen Button anbietet: Im Browsermenü „App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.',
+    installIosSteps:
+      'Auf iPhone und iPad: In Safari unten auf „Teilen“ tippen, dann „Zum Home-Bildschirm“ wählen.',
+    installIosHint:
+      'Wichtig: Safari löscht Daten von Websites, die etwa 7 Tage nicht benutzt wurden. Nur die installierte App ist davor zuverlässig geschützt.',
+    offlineReady: 'Offline bereit – Faden läuft jetzt auch ohne Internet.',
+    offlinePending: 'Offline-Betrieb wird vorbereitet …',
+    offlineUnsupported: 'Offline-Betrieb ist hier nicht aktiv (nur in der veröffentlichten App).',
   },
 
   a11y: {

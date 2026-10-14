@@ -12,6 +12,7 @@ import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { SUPPORTED_LOCALES, type Locale } from '../../core/model';
 import { BackupService } from '../../core/backup/backup.service';
+import { PwaService, type OfflineState } from '../../core/pwa/pwa.service';
 import { validateBackup } from '../../core/storage';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
@@ -65,6 +66,26 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
         <button type="button" class="btn" (click)="requestPersist()">
           {{ t().settings.persistAction }}
         </button>
+      }
+    </section>
+
+    <section class="card block">
+      <h2>{{ t().settings.installHeading }}</h2>
+      <p class="muted" role="status">{{ offlineLabel() }}</p>
+      @if (pwa.installed()) {
+        <p>{{ t().settings.installDone }}</p>
+      } @else {
+        @if (pwa.canPrompt()) {
+          <button type="button" class="btn btn--primary" (click)="install()">
+            {{ t().settings.installAction }}
+          </button>
+        }
+        @if (pwa.isIos()) {
+          <p>{{ t().settings.installIosSteps }}</p>
+          <p class="muted">{{ t().settings.installIosHint }}</p>
+        } @else if (!pwa.canPrompt()) {
+          <p class="muted">{{ t().settings.installManual }}</p>
+        }
       }
     </section>
 
@@ -236,6 +257,17 @@ export class SettingsPage {
     return SUPPORTED_LOCALES.map((value) => ({ value, label: labels[value] }));
   });
 
+  protected readonly pwa = inject(PwaService);
+  protected readonly offlineLabel = computed(() => {
+    const s = this.t().settings;
+    const labels: Record<OfflineState, string> = {
+      ready: s.offlineReady,
+      pending: s.offlinePending,
+      unsupported: s.offlineUnsupported,
+    };
+    return labels[this.pwa.offline()];
+  });
+
   protected readonly storageStatus = signal<string>('');
   protected readonly canPersist = signal(false);
   protected readonly canShare = signal(false);
@@ -272,6 +304,10 @@ export class SettingsPage {
     } catch {
       // Ignoriert: Status bleibt wie zuvor.
     }
+  }
+
+  protected async install(): Promise<void> {
+    await this.pwa.install();
   }
 
   protected async exportBackup(): Promise<void> {

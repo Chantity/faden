@@ -1,10 +1,12 @@
 {
   "name": "faden",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build && node scripts/precache.mjs",
+    "icons": "node scripts/generate-icons.mjs",
+    "test:pwa": "node scripts/pwa-test.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
