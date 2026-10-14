@@ -35,6 +35,7 @@ src/app/
 │  │  ├─ validation.ts              Invarianten, Zyklen, GraphError, validateGraph
 │  │  ├─ derive.ts                  Vorgänger/Nachfolger, isAvailable/isBlocked/…
 │  │  ├─ ordering.ts                topologische Ordnung, Komponenten, Stränge
+│  │  ├─ layout.ts                  deterministisches top-down Layered-Layout (SVG)
 │  │  └─ operations.ts              insert*/addParallel*/connect/deleteTask
 │  ├─ storage/                      Persistenz (IndexedDB, Migration, Backup)
 │  │  ├─ db.ts                      dünner Promise-Wrapper um IndexedDB
@@ -44,10 +45,17 @@ src/app/
 │     ├─ history.ts                 generischer Undo/Redo-Verlauf (100 Schritte)
 │     ├─ lists.store.ts             Zettel: CRUD, Persistenz, Tabs-Sync
 │     ├─ templates.store.ts         Vorlagen
+│     ├─ view.store.ts              Ansicht „Jetzt dran"/„Ablauf" je Zettel
 │     └─ settings.store.ts          Einstellungen (Theme, Sprache) + Anwendung
 ├─ features/
 │  ├─ lists/                        Zettel-Übersicht (Phase 1, fertig)
-│  ├─ list-detail/                  Zettel-Detail (Phase 2, Platzhalter)
+│  ├─ list-detail/                  Zettel-Detail (Phase 2, fertig)
+│  │  ├─ list-detail-page.ts        Container: Kopf, Umschalter, Tastatur, Dialoge
+│  │  ├─ focus-view.ts              „Jetzt dran" (Karten, Ketten-Eingabe)
+│  │  ├─ flow-view.ts               „Ablauf" (Layout, SVG-Pfeile, Pan/Zoom, „+")
+│  │  ├─ task-editor.ts             Bearbeiten-Sheet (Titel/Notizen/Chips)
+│  │  ├─ connect-dialog.ts          Ziel-Auswahl „Mit anderem ToDo verbinden"
+│  │  └─ shortcut-help.ts           Tastenkürzel-Übersicht
 │  ├─ templates/                    Vorlagen-Seite (Phase 3, Platzhalter)
 │  └─ settings/                     Einstellungen (Phase 1: Theme, Sprache, Version, Speicher)
 └─ shared/
@@ -88,14 +96,19 @@ Alle Funktionen sind rein und getestet (`graph.spec.ts`, 37 Tests).
   formuliert daraus den freundlichen Text.
 - **Ableitungen** (`derive.ts`): `predecessors`/`successors`, `isAvailable`
   („Jetzt dran"), `isBlocked` („Wartet auf …"), `isEarlyDone`, `isSplit`,
-  `isJoin` (UND-Semantik), `progress`, `availableTasks`.
+  `isJoin` (UND-Semantik), `progress`, `availableTasks`. „Jetzt dran"/„Wartet"
+  werden **transitiv** bestimmt (`openAncestors`): Ist weiter oben in der Kette
+  noch eine Vorarbeit offen, wartet alles darunter – auch wenn das direkte
+  Mittelglied schon abgehakt ist.
 - **Einfüge-Operationen** (`operations.ts`): `insertBefore`, `insertAfter`,
   `insertBetween`, `addParallelAfter/Before`, `addStandalone`, `connect`,
   `disconnect`, `deleteTask` (Standard „Überbrücken" oder „nur entfernen").
   `insertBefore`/`insertAfter` bauen alle betroffenen Pfeile um.
 - **Reihenfolge/Komponenten** (`ordering.ts`): stabile topologische Ordnung
   (Gleichstand = Erstellungsreihenfolge), verbundene Komponenten („Stränge") via
-  Union-Find, `extractStrand` für „Strang als Vorlage".
+  Union-Find, `extractStrand` für „Strang als Vorlage". `transitiveReduction`
+  blendet Umweg-Pfeile (A→C trotz A→B→C) **nur fürs Zeichnen** aus – die Daten
+  behalten alle Pfeile, die Erreichbarkeit bleibt gleich.
 
 ## 5. Persistenz (`core/storage`)
 
@@ -136,6 +149,43 @@ Alle Funktionen sind rein und getestet (`graph.spec.ts`, 37 Tests).
   `prefers-reduced-motion`, Zustände immer über **Icon + Text + Farbe**.
 - **Barrierefreiheit**: Tippflächen ≥ 48 px, sichtbare Fokusrahmen, native
   `<dialog>`-Elemente (Fokusfalle, Esc), Snackbar mit `aria-live="polite"`.
+
+### 7.1 Zettel-Detail: „Jetzt dran" und „Ablauf"
+
+`list-detail-page` ist der Container: Kopfzeile (Zurück, Titel, Fortschritt,
+Undo/Redo, Menü), der Umschalter **„Jetzt dran" | „Ablauf"** (Wahl je Zettel im
+`ViewStore` gemerkt) und die seitenweiten Tastenkürzel (`Strg/Cmd+Z`,
+`Strg/Cmd+Shift+Z`, `Strg+Y`, `?`). Die beiden Ansichten und alle Dialoge
+(`task-editor`, `connect-dialog`, `shortcut-help`) hängen als Kinder darunter.
+
+- **„Jetzt dran"** (`focus-view`) zeigt **nur** `isAvailable`-ToDos als große
+  Karten. Der wichtigste Pfad ist „Erst noch etwas anderes nötig …"
+  (`insertBefore`) mit sofortigem Eingabefeld und **Enter-Kette**; mehrzeilig
+  eingefügter Text wird zu einer Kette. Danach ist die neue Vorarbeit sofort das
+  einzige „Jetzt dran". Dazu: großer „Erledigt"-Button (Undo-Snackbar), dezente
+  „Danach: …"/„Außerdem …"-Hinweise, Mehr-Menü und die eingeklappte, gesperrte
+  Restliste („Danach kommt noch …") als **lineare, zugängliche Alternative** zum
+  Diagramm. Das ⋯-Menü (`<details class="menu">`) schließt ein Host-Listener auf
+  `(document:click)` beim Klick außerhalb **oder auf dem `<details>`-Element
+  selbst** (Fläche neben der als `inline-flex` schrumpfenden Zusammenfassung);
+  nur Klicks im Menüinhalt bleiben offen. Der Handler liefert bei der
+  Zusammenfassung `preventDefault`, damit die native Kippbewegung das Menü
+  nicht sofort wieder öffnet.
+- **„Ablauf"** (`flow-view`) rendert den ganzen Zettel als Diagramm: Positionen
+  aus `layout.ts` (rein/deterministisch), Karten als HTML, Pfeile als SVG,
+  beides zusammen in einem per CSS-Transform verschobenen/gezoomten Container
+  (Pan/Zoom 40–200 %, Buttons „+"/„−"/„Einpassen"/„Zum aktuellen ToDo"). „+" über
+  jeder Karte am Strang-Anfang, unter jeder Karte am Strang-Ende **und an
+  Verzweigungen** (dort ersetzt es die überlagernden Kanten-„+"; Einfügen =
+  Engpass-Einfügung, alle bisherigen Nachfolger hängen danach vom neuen Knoten
+  ab), **auf** jeder Kante, Karten- und Kanten-Menüs, Verbinden per Dialog.
+  Zustände immer als **Icon + Text + Farbe**.
+- **Bearbeiten** (`task-editor`): Titel, Notizen und Vorgänger-/Nachfolger-Chips
+  mit „+ hinzufügen"/„×" – alle Verbindungen auch ohne Drag bedienbar.
+- Beide Ansichten bekommen den Zettel über `input()` und melden Aktionen über
+  `output()` (`edit`, `connectRequest`) an den Container; die Datenänderungen
+  laufen ausschließlich über `ListsStore.editList()` (ein Undo-Schritt, und bei
+  `GraphError` bleibt der Zustand unverändert).
 
 ## 8. PWA und Service Worker (Phase 3)
 

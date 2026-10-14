@@ -74,13 +74,12 @@ Nach einem Löschen oder Abhaken erscheint unten ein ruhiges Hinweisband mit
 
 ## 6. Der Zettel selbst (Detailansicht)
 
-> Diese Ansichten entstehen in Phase 2. Sie sind hier beschrieben, damit die
-> Bedienung früh verständlich ist.
-
-Ein Zettel hat zwei Sichten, die du umschalten kannst:
+Ein Zettel hat zwei Sichten, die du oben umschalten kannst (die App merkt sich
+deine letzte Wahl je Zettel):
 
 - **Jetzt dran** (Standard): nur die ToDos, die gerade machbar sind – als große
-  Karten mit einem breiten **„Erledigt"**-Button.
+  Karten mit einem breiten **„Erledigt"**-Button. Mit dem **„✚"** rechts oben
+  legst du ein einzelnes, unabhängiges ToDo ohne Vorarbeit an.
 - **Ablauf**: der ganze Zettel als Ablaufdiagramm von oben nach unten, mit
   Pfeilen und Verzweigungen.
 
@@ -93,7 +92,10 @@ davor. Das ist der wichtigste Handgriff der App:
 1. ToDo „Geschirrspüler einräumen" ist dran.
 2. „Erst noch etwas anderes nötig …" → „Geschirr einsammeln" → Enter.
 3. Sofort wird wieder ein Eingabefeld angeboten → „Bioabfall in die Tonne" → Enter.
-4. So oft du willst. **Esc** oder **„Fertig"** beendet die Kette.
+4. So oft du willst. **Enter** hängt jeweils einen weiteren Schritt davor.
+   **„Fertig"** übernimmt die letzte Eingabe und beendet die Kette; **„Abbrechen"**
+   (oder **Esc** am Rechner) bricht ohne diese letzte Eingabe ab — praktisch auf
+   dem Handy, wo es keine Esc-Taste gibt.
 
 Ergebnis: Nur die *neueste* Vorarbeit ist „Jetzt dran". Nach dem Abhaken rückt
 automatisch die nächste nach.
@@ -113,14 +115,25 @@ findest du die vollständige Liste „Danach kommt noch …".
 ### 6.4 Struktur ändern (im Ablauf)
 
 - **„+" auf einem Pfeil**: etwas *dazwischen* einfügen.
-- **„+" über einer Karte**: *davor* einfügen.
-- **„+" unter einer Karte**: *danach* einfügen.
+- **„+" über einer Karte** (nur am Strang-Anfang): *davor* einfügen.
+- **„+" unter einer Karte** (am Strang-Ende **oder an einer Verzweigung**):
+  *danach* einfügen. Hängen mehrere Aufgaben von dieser ab (Verzweigung),
+  entsteht eine neue Aufgabe, von der anschließend **alle** bisherigen Nachfolger
+  abhängen – so schiebst du einen gemeinsamen Schritt vor die Verzweigung.
+- **Runder Haken links oben auf einer Karte**: das ToDo direkt im Ablauf abhaken
+  – und mit einem weiteren Tipp wieder auf „offen" setzen (mit „Rückgängig").
 - Menü **„Daneben aufteilen"**: eine parallele Aufgabe daneben beginnen
   (Verzweigung).
 - Menü **„Daneben zusammenführen"**: eine Aufgabe ergänzen, die zusätzlich
   nötig ist, bevor es weitergeht.
 - Menü **„Mit anderem ToDo verbinden"**: zwei Stränge zusammenführen.
 - **„Neuer eigener Strang"**: eine unabhängige neue Kette auf demselben Zettel.
+
+Ein geöffnetes Menü (die drei Punkte an der Karte) schließt sich mit einem
+Klick/Tipp auf die freie Diagrammfläche, ohne dass du etwas auswählen musst.
+In „Jetzt dran" schließt sich das ⋯-Menü durch einen Klick/Tipp außerhalb **oder
+wieder auf die drei Punkte**; die Fläche neben den drei Punkten gehört ebenfalls
+zum Menü und schließt es. Nur ein Klick im Menüinhalt lässt es offen.
 
 Verschieben mit einem Finger (Handy) oder Maus; Zoomen mit zwei Fingern
 (Handy), **Strg + Mausrad** oder den sichtbaren **+/-**-Buttons (PC). „Alles
@@ -163,6 +176,7 @@ Vorlage jederzeit ein frischer Zettel.
 ## 9. Einstellungen
 
 - **Design**: System, Hell oder Dunkel. Dunkel ist gleichwertig gestaltet.
+- **Sprache**: Englisch (Standard) oder Deutsch. Die Umschaltung wirkt sofort.
 - **Speicher**: zeigt, ob der Browser die Daten dauerhaft schützt.
 - **Version**: die installierte App-Version.
 - (Phase 3) **Backup**: Export/Import als Datei, letzte Sicherung, und die
@@ -197,7 +211,8 @@ Vorlage jederzeit ein frischer Zettel.
 
 Die Umsetzung erfolgt in drei Phasen (siehe `docs/DECISIONS.md`):
 
-1. **Fundament** (fertig): Zettel-Übersicht, Speicherung, Undo/Redo, Graph-Logik.
-2. **Kernfunktion**: Ansicht „Jetzt dran", Ketten-Eingabe, Ablaufdiagramm,
-   Bearbeiten-Sheet, Tastatur.
+1. **Fundament** (fertig): Zettel-Übersicht, Speicherung, Undo/Redo, Graph-Logik,
+   Englisch/Deutsch.
+2. **Kernfunktion** (fertig): Ansicht „Jetzt dran", Ketten-Eingabe,
+   Ablaufdiagramm, Bearbeiten-Sheet, Verbinden, Tastatur.
 3. **Ausbau**: Timeboxing, Vorlagen, Backup, Offline-PWA, Installationshilfe.

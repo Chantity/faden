@@ -1,4 +1,19 @@
 import type { Task, TodoList } from '../model';
+import { buildAdjacency } from './validation';
+
+/** Alle mittelbaren und unmittelbaren Vorgänger von `taskId` (transitiv). */
+function ancestorIds(list: TodoList, taskId: string): Set<string> {
+  const inc = buildAdjacency(list.edges).inc;
+  const seen = new Set<string>();
+  const stack = [...(inc.get(taskId) ?? [])];
+  while (stack.length > 0) {
+    const current = stack.pop() as string;
+    if (seen.has(current)) continue;
+    seen.add(current);
+    for (const next of inc.get(current) ?? []) stack.push(next);
+  }
+  return seen;
+}
 
 /** Vorgänger von `taskId` (ToDos, die vorher erledigt sein müssen). */
 export function predecessors(list: TodoList, taskId: string): Task[] {
@@ -23,25 +38,48 @@ export function openPredecessors(list: TodoList, taskId: string): Task[] {
   return predecessors(list, taskId).filter((t) => !t.done);
 }
 
-/** „Jetzt dran": offen und alle Vorgänger erledigt. */
+/**
+ * Noch offene, mittelbare und unmittelbare Vorgänger. „Wartet“ wird transitiv
+ * bestimmt: Auch wenn der direkte Vorgänger schon erledigt ist, kann weiter oben
+ * in der Kette noch eine offene Vorarbeit stecken (SPEC 4.2/4.4, Nutzerwunsch).
+ */
+export function openAncestors(list: TodoList, taskId: string): Task[] {
+  const byId = taskMap(list);
+  return [...ancestorIds(list, taskId)]
+    .map((id) => byId.get(id))
+    .filter((t): t is Task => t !== undefined && !t.done);
+}
+
+/** „Jetzt dran": offen und keine offene Vorarbeit (auch keine mittelbare). */
 export function isAvailable(list: TodoList, taskId: string): boolean {
   const task = taskMap(list).get(taskId);
   if (!task || task.done) return false;
-  return openPredecessors(list, taskId).length === 0;
+  return openAncestors(list, taskId).length === 0;
 }
 
-/** Wartet: offen, aber mindestens ein Vorgänger ist noch offen. */
+/** Wartet: offen, aber mindestens eine (auch mittelbare) Vorarbeit ist offen. */
 export function isBlocked(list: TodoList, taskId: string): boolean {
   const task = taskMap(list).get(taskId);
   if (!task || task.done) return false;
-  return openPredecessors(list, taskId).length > 0;
+  return openAncestors(list, taskId).length > 0;
 }
 
-/** Vorzeitig abgehakt: erledigt, obwohl ein Vorgänger noch offen ist. */
+/** Vorzeitig abgehakt: erledigt, obwohl eine Vorarbeit noch offen ist. */
 export function isEarlyDone(list: TodoList, taskId: string): boolean {
   const task = taskMap(list).get(taskId);
   if (!task || !task.done) return false;
-  return openPredecessors(list, taskId).length > 0;
+  return openAncestors(list, taskId).length > 0;
+}
+
+/**
+ * Die ToDos, die `taskId` tatsächlich aufhalten. Bevorzugt die direkten offenen
+ * Vorgänger (für eine kurze „wartet auf …“-Liste); gibt es keine, die nächsten
+ * offenen Vorfahren.
+ */
+export function blockingTasks(list: TodoList, taskId: string): Task[] {
+  const direct = openPredecessors(list, taskId);
+  if (direct.length > 0) return direct;
+  return openAncestors(list, taskId);
 }
 
 /** Aufteilen: mindestens zwei Nachfolger. */

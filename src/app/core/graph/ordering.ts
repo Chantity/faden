@@ -1,4 +1,5 @@
 import type { Edge, Task, TodoList } from '../model';
+import { buildAdjacency } from './validation';
 
 /**
  * Stabile topologische Reihenfolge (SPEC 4.5): bei Gleichstand entscheidet die
@@ -104,4 +105,34 @@ export function connectedComponents(list: TodoList): Strand[] {
 export function extractStrand(list: TodoList, taskId: string): Strand {
   const component = connectedComponents(list).find((c) => c.tasks.some((t) => t.id === taskId));
   return component ?? { tasks: [], edges: [] };
+}
+
+/**
+ * Transitive Reduktion (SPEC 4.1.4): blendet „Umweg“-Pfeile aus, die bereits
+ * durch eine längere Kette ausgedrückt werden (z. B. A→C, wenn A→B→C existiert).
+ * Nur fürs Zeichnen gedacht – der gespeicherte Graph behält alle Pfeile, und die
+ * Erreichbarkeit (und damit „jetzt dran“/„wartet“) bleibt unverändert.
+ */
+export function transitiveReduction(list: TodoList): Edge[] {
+  const out = buildAdjacency(list.edges).out;
+  const reaches = (start: string, target: string): boolean => {
+    const seen = new Set<string>();
+    const stack = [start];
+    while (stack.length > 0) {
+      const current = stack.pop() as string;
+      if (current === target) return true;
+      if (seen.has(current)) continue;
+      seen.add(current);
+      for (const next of out.get(current) ?? []) stack.push(next);
+    }
+    return false;
+  };
+
+  return list.edges.filter((edge) => {
+    for (const succ of out.get(edge.from) ?? []) {
+      if (succ === edge.to) continue;
+      if (reaches(succ, edge.to)) return false;
+    }
+    return true;
+  });
 }

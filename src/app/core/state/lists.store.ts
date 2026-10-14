@@ -103,6 +103,23 @@ export class ListsStore {
 
   // --- Mutationen ----------------------------------------------------------
 
+  getList(id: string): TodoList | undefined {
+    return this.all().find((l) => l.id === id);
+  }
+
+  /**
+   * Wendet eine reine Graph-/Task-Änderung auf genau einen Zettel an (ein
+   * Undo-Schritt). Wirft die Änderungsfunktion (z. B. GraphError), bleiben die
+   * Daten unverändert.
+   */
+  editList(id: string, change: (list: TodoList) => TodoList): void {
+    const current = this.getList(id);
+    if (!current) return;
+    const updated = change(current);
+    const now = new Date().toISOString();
+    this.commit((lists) => lists.map((l) => (l.id === id ? { ...updated, updatedAt: now } : l)));
+  }
+
   private commit(mutator: (lists: TodoList[]) => TodoList[]): void {
     this.history.push(this.all());
     this.all.set(mutator(this.all()));

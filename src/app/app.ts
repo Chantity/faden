@@ -5,6 +5,7 @@ import { I18nStore } from './core/i18n/i18n.store';
 import { ListsStore } from './core/state/lists.store';
 import { SettingsStore } from './core/state/settings.store';
 import { TemplatesStore } from './core/state/templates.store';
+import { ViewStore } from './core/state/view.store';
 import { Snackbar } from './shared/snackbar/snackbar';
 
 @Component({
@@ -18,6 +19,7 @@ export class App {
   private readonly lists = inject(ListsStore);
   private readonly settings = inject(SettingsStore);
   private readonly templates = inject(TemplatesStore);
+  private readonly view = inject(ViewStore);
 
   protected readonly appName = APP_NAME;
   protected readonly t = inject(I18nStore).t;
@@ -26,5 +28,6 @@ export class App {
     void this.settings.load();
     void this.lists.load();
     void this.templates.load();
+    void this.view.load();
   }
 }

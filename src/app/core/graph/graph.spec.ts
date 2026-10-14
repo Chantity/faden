@@ -21,6 +21,7 @@ import {
   progress,
   successors,
   topologicalOrder,
+  transitiveReduction,
   connectedComponents,
   validateGraph,
   wouldCreateCycle,
@@ -316,6 +317,18 @@ describe('Ableitungen', () => {
     expect(isEarlyDone(list, 'a')).toBe(false);
   });
 
+  it('hält bei erledigtem Mittelglied nur den vordersten offenen Schritt „Jetzt dran“', () => {
+    const list = makeList(
+      [makeTask('a'), makeTask('b', true), makeTask('c')],
+      [makeEdge('a', 'b'), makeEdge('b', 'c')],
+    );
+    expect(isAvailable(list, 'a')).toBe(true);
+    expect(isBlocked(list, 'a')).toBe(false);
+    expect(isEarlyDone(list, 'b')).toBe(true);
+    expect(isAvailable(list, 'c')).toBe(false);
+    expect(isBlocked(list, 'c')).toBe(true);
+  });
+
   it('liefert Vorgänger, Nachfolger und Fortschritt', () => {
     const list = makeList(
       [makeTask('a', true), makeTask('b'), makeTask('c')],
@@ -374,6 +387,25 @@ describe('connectedComponents / extractStrand', () => {
     const strand = extractStrand(list, 'c');
     expect(strand.tasks.map((t) => t.id)).toEqual(['c', 'd']);
     expect(strand.edges).toHaveLength(1);
+  });
+});
+
+describe('transitiveReduction', () => {
+  it('blendet Umweg-Pfeile aus (A→C trotz A→B→C)', () => {
+    const list = makeList(
+      [makeTask('a'), makeTask('b'), makeTask('c')],
+      [makeEdge('a', 'b'), makeEdge('b', 'c'), makeEdge('a', 'c')],
+    );
+    const reduced = transitiveReduction(list);
+    expect(reduced.map((e) => `${e.from}->${e.to}`).sort()).toEqual(['a->b', 'b->c']);
+  });
+
+  it('lässt echte Verzweigungen/Zusammenführungen unangetastet', () => {
+    const list = makeList(
+      [makeTask('a'), makeTask('b'), makeTask('c'), makeTask('d')],
+      [makeEdge('a', 'c'), makeEdge('b', 'c'), makeEdge('c', 'd')],
+    );
+    expect(transitiveReduction(list)).toHaveLength(3);
   });
 });
 

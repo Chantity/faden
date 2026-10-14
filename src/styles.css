@@ -29,6 +29,7 @@
   --color-text: light-dark(#2b2925, #ece7dd);
   --color-text-muted: light-dark(#6b655c, #a9a294);
   --color-border: light-dark(#d9d2c5, #443f38);
+  --color-border-strong: light-dark(#b3a996, #5c564c);
   --color-primary: light-dark(#4a6b57, #8fb69b);
   --color-primary-strong: light-dark(#3c5847, #a7c8b1);
   --color-on-primary: light-dark(#ffffff, #16201a);
@@ -236,6 +237,73 @@ button {
 
 .muted {
   color: var(--color-text-muted);
+}
+
+/* --- Formularfelder ---------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+}
+
+/* --- Aufklapp-Menü (details/summary) ----------------------------------- */
+
+.menu {
+  position: relative;
+}
+
+.menu > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu__panel {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  margin-top: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.menu__panel button {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.menu__panel button:hover {
+  background: var(--color-surface-2);
+}
+
+.menu__panel button.danger,
+.danger {
+  color: var(--color-danger);
 }
 
 /* --- Bewegung nur, wenn erwünscht -------------------------------------- */

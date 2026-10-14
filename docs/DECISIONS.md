@@ -81,7 +81,7 @@ Bedarf genutzt werden.
 
 | Bereich | Entscheidung | Begründung |
 |---|---|---|
-| Graph-Layout | **Eigener einfacher, top-down Layered-Layout-Algorithmus** (keine externe Lib) | Kap. 2 erlaubt eigenes Layout; weniger Abhängigkeiten, volle Kontrolle über Stabilität/Reizarmut. |
+| Graph-Layout | **Eigener einfacher, top-down Layered-Layout-Algorithmus** (keine externe Lib). Kartenhöhe **variabel** je nach geschätzter Titel-Zeizenzahl (1–3 Zeilen); die jeweils nächste Schicht beginnt unter der **höchsten** Karte. | Kap. 2 erlaubt eigenes Layout; weniger Abhängigkeiten, volle Kontrolle über Stabilität/Reizarmut. Feste Kartenhöhe ließ lange Titel abschneiden und Pfeile/Folgekarten überlappen. Die Schätzung (`nodeCharsPerLine`) ist konservativ und wird durch `line-clamp` im Diagramm exakt gespiegelt, damit Layout und Rendering übereinstimmen. |
 | IndexedDB | **Eigener dünner Wrapper** (kein `idb`) | Kap. 2 erlaubt eigenen Wrapper; minimale Abhängigkeiten. |
 | Dialoge/Sheets/A11y | **`@angular/cdk`** nur wenn konkret nötig | Vom Nutzer explizit erlaubt; Fokus-Falle, Overlay, Live-Announcements. |
 | Sonstiges | Keine weiteren Laufzeitabhängigkeiten | Kap. 2: wenige Pakete; keine externen Requests zur Laufzeit (Kap. 9/12). |
@@ -131,6 +131,7 @@ anschließend Review, dann Phase 2 und 3.
 - `features/flow-view` (eigenes Layered-Layout, SVG-Pfeile, „+", Verbinden,
   Pan/Zoom 40–200 %, Zustände Icon+Text+Farbe, linearisierte Listenalternative).
 - Tastaturbedienung (Kap. 5.7), A11y- und Responsive-Durchgang.
+- **Status: umgesetzt** (siehe Kap. 6b für Abweichungen).
 
 ### Phase 3 – Timeboxing, Vorlagen, Backup, PWA
 - `core/time` (rein/getestet) + Modi `estimate`/`dayPlan`/`schedule`.
@@ -175,6 +176,32 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 - **Noch deutsch:** die Validierungsfehlertexte in `core/storage/backup.ts`. Sie
   werden mit der Backup-UI in Phase 3 an i18n angebunden.
 
+## 6b. Abweichungen aus Phase 2 (bewusst, jederzeit nachrüstbar)
+
+| Thema | Ist-Stand in Phase 2 | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Undo/Redo-Verlauf | Weiterhin **ein globaler Snapshot-Verlauf** über alle Zettel. | 5.5: „Pro Zettel ein Verlauf" | Verhalten identisch (≥100 Schritte); ein Verlauf pro Zettel kann später ergänzt werden. |
+| „Mit anderem ToDo verbinden" | **Auswahl-Dialog** statt Banner-Modus „Ziel wählen" (Punkt 1) bzw. Drag (Punkt 2). | 5.4, Punkte 1–2 | Der Dialog ist per Tastatur/Screenreader bedienbar und funktional gleichwertig; Drag-to-connect bleibt optional. |
+| Pfeil-Aktionen / „+"-Anordnung | **Ein** „+" pro Verbindung (auf der Kante, `insertBetween`); das Karten-„+" **über** einer Karte wird am Strang-Anfang (kein Vorgänger) gezeigt, das Karten-„+" **unter** einer Karte am Strang-Ende (kein Nachfolger) und **an einer Verzweigung** (≥2 Nachfolger). Bei genau **einem** Nachfolger ersetzt das Kanten-„+" das Karten-„+". Zusätzlich öffnet ein Tap auf die Kante ein kleines Menü. | 5.4: „auf jedem Pfeil · über jeder Karte · unter jeder Karte" | In einer Kette wären die drei „+" deckungsgleich und täten dasselbe. Ein „+" pro Verbindung plus Rand-„+" ist überlappungsfrei; `insertBefore`/`insertAfter` an Mittelknoten entspricht `insertBetween` auf der jeweiligen Kante. |
+| Karten-„+" an Verzweigungen (Fan-out) | Hat ein ToDo **≥2 direkte Nachfolger**, erscheint unter ihm wieder ein „+" (`showsAfterPlus`: 0 oder ≥2 Nachfolger). Es fügt einen Knoten ein, **von dem alle bisherigen Nachfolger abhängen** (vorhandenes `insertAfter` = Engpass-Einfügung: alle `A→s` werden zu `D→s`, dazu `A→D`). Kanten-„+" dieses Knotens werden dort ausgeblendet, wo sie sich mit dem Karten-„+" überlagern würden. | Nutzerwunsch (Ablauf) | In einer Verzweigung A→{B,C,…} ließ sich bisher nicht *vor* der Verzweigung ein neuer gemeinsamer Schritt einfügen. Verdeckt man die überlagernden Kanten-„+", gibt es keine doppelten Trefferflächen; das Karten-„+" selbst liegt zwangsläufig auf dem senkrechten Pfeil zur darunterliegenden Karte (wie auch die Kanten-„+"). |
+| „+" bei kleinem Zoom | Unter ~60 % Zoom werden die „+" ausgeblendet, dazu der Hinweis *„Für ‚+' heranzoomen"*. | 5.4 | Entspricht der Vorgabe („Bei sehr kleinem Zoom werden die ‚+' ausgeblendet … Hinweis"). |
+| „+"-Trefferfläche | Sichtbarer Kreis bleibt klein-dezent (38 px auf der Karte, 30 px auf dem Pfeil), die **Klick-/Tippfläche ist 44×44 px** (transparente `::after`-Fläche, `inset:-3px` bzw. `-7px`). | 5.4: „Trefffläche mindestens 44×44 px (auch wenn das Icon kleiner ist)" | Erfüllt die A11y-Vorgabe, ohne das ruhige Bild zu vergrößern. Eine absolute `::before`-Fläche überdeckte zuvor das „+"-Zeichen (positionierte Ebene über Inline-Text). |
+| Kartenhöhe im Ablauf | **Variabel** je geschätzter Titelzeilenzahl (1–3, per `line-clamp` gespiegelt); die nächste Schicht beginnt unter der höchsten Karte. | 5.4 (Layout) | Lange Titel wurden abgeschnitten und Folgekarten/Pfeile überdeckten sich. |
+| Pfeilform | **Gerade Linie** von Unterkante zu Oberkante (statt rechtwinklig). | 5.4 („leicht gebogen oder rechtwinklig") | Bei Verzweigungen überlagerten sich die senkrechten Teilstücke der rechtwinkligen Führung an der Abzweigung; gerade Linien fächern sich überlappungsfrei auf. |
+| Umweg-Pfeile (A→C trotz A→B→C) | Im Ablauf **ausgeblendet** (transitive Reduktion fürs Zeichnen); Daten behalten alle Pfeile. | 4.1.4: erlaubt, „nicht extra behandelt" | Redundante Pfeile verdeckten Karten. Ausblenden statt Verbieten ist verlustfrei: nach Löschen eines Zwischenschritts taucht der Pfeil wieder auf. |
+| „Wartet"/„Jetzt dran" | **Transitiv** bestimmt: Offen = „jetzt dran" nur, wenn **keine** (auch mittelbare) Vorarbeit offen ist; sonst „wartet". | 4.2/4.4 | Wunsch: In einer Kette offen→erledigt→offen ist nur der vorderste offene Schritt „jetzt dran", die folgenden „warten", auch wenn das direkte Mittelglied schon abgehakt ist. |
+| Abhaken im Ablauf | Jede Karte hat einen **runden Haken-Button** (ab- und wieder aufhaken, mit Undo-Snackbar). | 5.4/6 („Abhaken als checkbox/switch-Semantik") | Abhaken war bisher nur in „Jetzt dran" möglich. |
+| Menü schließen im Ablauf | Klick/Tipp auf die Diagrammfläche schließt das offene Karten-/Pfeilmenü **ohne Auswahl**. | 5.4 (Menüs) | Menüs ließen sich nur durch eine Aktion schließen. |
+| Menü schließen in „Jetzt dran" | Klick/Tipp irgendwo außerhalb schließt das offene ⋯-Menü; **auch ein Klick auf das Menü-`<details>`-Element selbst** (Fläche neben der Zusammenfassung). Nur ein Klick im Menüinhalt lässt es offen. | 5.3 (Menüs) | Auf dem Handy gab es sonst keinen Weg, das Menü ohne Auswahl zu schließen. Weil `⋯` als `inline-flex` schrumpft, liegt um die Zusammenfassung Fläche des `<details>`-Elements, die nativ nicht kippt; der Handler schließt sie (mit `preventDefault`, damit die native Kippbewegung es nicht sofort wieder öffnet). |
+| Ketten-Eingabe abbrechen | Neben **Esc** beendet ein sichtbarer **„Abbrechen"-Button** die Kette (mobil ohne Tastatur). „Fertig" übernimmt eine noch offene Eingabe und beendet dann. | 5.3 | Esc gibt es auf Touch-Geräten nicht. |
+| „Danach kommt noch …" | Aufgaben und „wartet auf: …" stehen mit **Gedankenstrich** getrennt in einer flexiblen Zeile. | 5.3 | Titel und Begründung klebten ohne Trenner aneinander. |
+| Ketten-Eingabe | Ein Eingabefeld mit **Enter-Kette** (jedes Enter hängt vor das zuletzt eingefügte) und **mehrzeiliges Einfügen** (eine Zeile = ein ToDo). | 5.3 | Deckt „Schnelles Erfassen von Ketten" ab. |
+| „+" für unabhängiges ToDo in „Jetzt dran" | Rechts oben in der Kopfzeile ein **„✚"-Button**, der ein **einzelnes ToDo ohne Vorgänger** anlegt (dieselbe Ketten-Eingabe, aber ohne Anker). | 5.3 („einen neuen, unabhängigen Faden starten") | Bisher gab es ein „+" ohne Verbindung nur im Ablauf. |
+
+
+| Zeit-Badges im Ablauf/„Jetzt dran" | Noch **nicht** vorhanden (Karten zeigen Zustand, keine Zeiten). | 5.3/5.4 („in Zeit-Modi zusätzlich") | Zeitlogik ist Phase 3. |
+| Tastenkürzel-Übersicht | Eigenes `<dialog>` mit `?`; Undo/Redo `Strg/Cmd+Z`, `Strg/Cmd+Shift+Z`, `Strg+Y`. | 5.7 | Vollständig umgesetzt. |
+
 
 ## 7. Fortschritt
 
@@ -195,6 +222,21 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
     Einstellungen, `<html lang>` und Dokumenttitel lokalisiert.
   - `npm test` = **55 Tests** grün; `ng build` (Produktion) ohne Warnungen.
 
+- **Phase 2 – Kernfunktion: abgeschlossen** (siehe Kap. 6b).
+  - `core/graph/layout.ts` (deterministisches top-down Layered-Layout) + Tests.
+  - `core/state/view.store.ts` (Ansicht je Zettel, persistiert in `meta`).
+  - `features/list-detail`: `focus-view`, `flow-view`, `task-editor`,
+    `connect-dialog`, `shortcut-help`; `list-detail-page` als Container mit
+    Umschalter „Jetzt dran" / „Ablauf", Kopfzeile mit Undo/Redo/Menü und
+    seitenweiten Tastenkürzeln.
+  - i18n um `focus`/`editor`/`flow`/`shortcuts`/`errors`-Graph-Keys erweitert
+    (`graph-error.ts` übersetzt `GraphError`).
+  - Nachbesserungen (Nutzerwunsch): variable Kartenhöhen + gerade Pfeile im
+    Ablauf, entzerrte „+"-Buttons (Trefferfläche 44 px), **transitive**
+    „wartet"/„jetzt dran"-Logik, transitive Reduktion fürs Zeichnen, Abhaken
+    direkt auf der Karte sowie Menü-Schließen per Klick auf die Diagrammfläche.
+  - `npm test` = **74 Tests** grün; `ng build` (Produktion) ohne Warnungen.
+
 ## 8. Laufendes Entscheidungsprotokoll
 
 | Datum | Entscheidung | Grund |
@@ -207,3 +249,5 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | Phase 1 abgeschlossen und committet | Kap. 7 hier. |
 | 2026-10-14 | Englisch als Standardsprache, eigene reaktive i18n (kein `@angular/localize`) | Nutzerwunsch; Runtime-Switch im Ein-Build-Offline-Betrieb (Kap. 6a). |
 | 2026-10-14 | `SCHEMA_VERSION` 1 → 2 (`AppSettings.language`) | Migration v1→v2 ergänzt Sprache/Default Englisch. |
+| 2026-10-14 | Phase 1.5 abgeschlossen und committet | Kap. 7 hier. |
+| 2026-10-14 | Phase 2 abgeschlossen: „Jetzt dran"/„Ablauf", Editor, Verbinden, Tastatur | Kernfunktion laut Kap. 5.3–5.7; Abweichungen in Kap. 6b. |
