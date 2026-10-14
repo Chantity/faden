@@ -292,7 +292,7 @@ npm start          # Dev-Server (http://localhost:4200)
 npm test           # Unit-Tests (Vitest)
 npm run build      # Produktionsbuild + Precache-Liste nach dist/faden/browser
 npm run test:pwa   # PWA-/Offline-Pflichttests gegen den Produktionsbuild
-npm run test:acceptance  # Abnahme: Tastatur, Responsive, Reizarm (docs/ABNAHME.md)
+npm run test:acceptance  # Abnahme: Tastatur, Responsive, Reizarm (docs/ACCEPTANCE.md)
 npm run icons      # Icons neu erzeugen (nur nach Änderung am Icon)
 ```
 

@@ -13,10 +13,13 @@ Done) vorgesehene Dokumentationsmenge wird auf ausdrücklichen Wunsch erweitert:
 
 | Abweichung | Beschreibung |
 |---|---|
-| **Neue Datei `docs/ARCHITEKTUR.md`** | Ausführliche Architekturbeschreibung (Schichten, Module, Datenfluss, Graph-/Zeit-/Storage-Logik, PWA-Aufbau). Nicht in `SPEC.md` vorgesehen. |
-| **Neue Datei `docs/BENUTZERHANDBUCH.md`** | Ausführliches Anwenderhandbuch (Schritt-für-Schritt-Bedienung aller Funktionen, Ketten, Aufteilen/Zusammenführen, Timeboxing, Backup, Installation). Nicht in `SPEC.md` vorgesehen. |
-| **Neue Datei `docs/ABNAHME.md`** | Stand aller Abnahmekriterien (SPEC 12.2) mit Nachweis und offenen manuellen Prüfungen. |
-| **`README.md` bewusst schlank** | Die README enthält **nur** Zweck der Anwendung und die grundsätzliche Bedienung (kurz). Die ausführliche Bedienung lebt im Benutzerhandbuch, die Technik in der Architekturbeschreibung. Abweichung von Kapitel 15, das README mit Entwicklungs-, Test-, Build- und „Einmal hosten"-Anleitung beschreibt — diese Inhalte wandern in `ARCHITEKTUR.md` bzw. bleiben als kurzer Verweis-Block in der README erhalten. |
+| **Neue Datei `docs/ARCHITECTURE.md`** | Ausführliche Architekturbeschreibung (Schichten, Module, Datenfluss, Graph-/Zeit-/Storage-Logik, PWA-Aufbau). Nicht in `SPEC.md` vorgesehen. |
+| **Neue Datei `docs/USER-GUIDE.md`** | Ausführliches Anwenderhandbuch (Schritt-für-Schritt-Bedienung aller Funktionen, Ketten, Aufteilen/Zusammenführen, Timeboxing, Backup, Installation). Nicht in `SPEC.md` vorgesehen. |
+| **Neue Datei `docs/ACCEPTANCE.md`** | Stand aller Abnahmekriterien (SPEC 12.2) mit Nachweis und offenen manuellen Prüfungen. |
+| **Englische Dateinamen in `docs/`** | `ARCHITECTURE.md`, `USER-GUIDE.md`, `ACCEPTANCE.md` (früher `ARCHITEKTUR.md`, `BENUTZERHANDBUCH.md`, `ABNAHME.md`). Inhalt von Architektur, Entscheidungen und Tests bleibt Deutsch. |
+| **README und Benutzerhandbuch zweisprachig** | Wie die App: erst Englisch (Standard), dann Deutsch, mit Sprungmarken `#english`/`#deutsch`. |
+| **Deployment über GitHub Pages** | `.github/workflows/deploy.yml`: bei Push auf `main` Unit-Tests, `npm run build` (inkl. Precache-Liste), Veröffentlichung per `actions/deploy-pages`. Kein `--base-href` (`<base href="./">` läuft unter jedem Pfad), kein `404.html` (Hash-Routing). |
+| **`README.md` bewusst schlank** | Die README enthält **nur** Zweck der Anwendung und die grundsätzliche Bedienung (kurz). Die ausführliche Bedienung lebt im Benutzerhandbuch, die Technik in der Architekturbeschreibung. Abweichung von Kapitel 15, das README mit Entwicklungs-, Test-, Build- und „Einmal hosten"-Anleitung beschreibt — diese Inhalte wandern in `ARCHITECTURE.md` bzw. bleiben als kurzer Verweis-Block in der README erhalten. |
 
 Auswirkungen auf die Projektstruktur (Kap. 10):
 
@@ -24,9 +27,9 @@ Auswirkungen auf die Projektstruktur (Kap. 10):
 docs/
 ├─ DECISIONS.md          (bereits vorgesehen)
 ├─ PWA-TESTS.md          (bereits vorgesehen)
-├─ ARCHITEKTUR.md        (NEU, Abweichung)
-├─ BENUTZERHANDBUCH.md   (NEU, Abweichung)
-└─ ABNAHME.md            (NEU, Abweichung)
+├─ ARCHITECTURE.md       (NEU, Abweichung)
+├─ USER-GUIDE.md         (NEU, Abweichung)
+└─ ACCEPTANCE.md         (NEU, Abweichung)
 ```
 
 ---
@@ -105,7 +108,7 @@ anschließend Review, dann Phase 2 und 3.
 4. Design-Tokens in `styles.css` (gedämpfte Palette, Hell/Dunkel/System,
    Basis ≥17 px in `rem`, `prefers-reduced-motion`).
 5. `docs/DECISIONS.md` (diese Datei), `docs/PWA-TESTS.md` (Gerüst),
-   `docs/ARCHITEKTUR.md`, `docs/BENUTZERHANDBUCH.md`.
+   `docs/ARCHITECTURE.md`, `docs/USER-GUIDE.md`.
 
 ### Phase 1 – Fundament
 6. `core/graph` — rein, vollständig getestet (Kap. 4.1–4.5):
@@ -269,7 +272,7 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 
 ## 6i. Abnahme-Durchgang (Responsive, Tastatur, Reizarm)
 
-Automatisiert in `scripts/acceptance-test.mjs` (Ergebnis in `docs/ABNAHME.md`).
+Automatisiert in `scripts/acceptance-test.mjs` (Ergebnis in `docs/ACCEPTANCE.md`).
 Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
 
 | Thema | Ist-Stand | SPEC-Referenz | Einordnung |
@@ -280,7 +283,7 @@ Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
 | Fokus in neuen Eingabefeldern | Fokus per `afterNextRender` (`shared/focus.ts`) statt `queueMicrotask`. | 4.3, 5.3 | **Bug:** Ohne Zone.js existierte ein gerade erst erscheinendes Feld (z. B. „Was möchtest du erledigen?", Einfügen im Ablauf) im Microtask noch nicht – der Fokus kam nie an. |
 | Fokus nach „Erledigt"/Esc | Verschwindet das fokussierte Element, springt der Fokus auf das nächste „Erledigt" (bzw. „Zettel archivieren"). | 5.7 | **Bug:** Tastaturnutzer landeten hinter dem Seiteninhalt und mussten von vorn tabben. |
 | Laden vs. schnelle Eingabe | `ListsStore.load()`/`TemplatesStore.load()` behalten, was vor dem Ende des Ladens angelegt wurde. | 8 | **Bug (Datenverlust):** Beim ersten Start (langsames Öffnen der IndexedDB) überschrieb `load()` einen sofort angelegten Zettel. |
-| Messmethode Tippflächen | Rahmen des Elements inkl. unsichtbarer `::after`-Trefferfläche, Mitte nicht verdeckt. Ausgenommen: SVG-Pfeile, Diagramm-Karten bei Zoom < 100 %, Inhalte geschlossener Menüs. | 6 | Begründung in `docs/ABNAHME.md`. |
+| Messmethode Tippflächen | Rahmen des Elements inkl. unsichtbarer `::after`-Trefferfläche, Mitte nicht verdeckt. Ausgenommen: SVG-Pfeile, Diagramm-Karten bei Zoom < 100 %, Inhalte geschlossener Menüs. | 6 | Begründung in `docs/ACCEPTANCE.md`. |
 | Testwerkzeuge | Browser-Steuerung als `scripts/lib/browser.mjs` (gemeinsam für PWA- und Abnahmetest); Tippen als echte Tastendrücke statt `Input.insertText` (das ahmt eine IME-Eingabe nach). | 12 | Keine Fremdpakete. |
 | Lighthouse-Accessibility | **100**, manuell vom Nutzer in den Edge-DevTools geprüft. | 12.2/9 | Kein Lighthouse-Paket als Abhängigkeit (Wunsch: minimale Abhängigkeiten). |
 
@@ -370,7 +373,7 @@ Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
   - `scripts/pwa-test.mjs`: **9/9 Pflichttests bestanden** (`docs/PWA-TESTS.md`).
   - `npm test` = **132 Tests** grün; `npm run build` ohne Warnungen.
 
-- **Abnahme-Durchgang: abgeschlossen** (siehe Kap. 6i, `docs/ABNAHME.md`).
+- **Abnahme-Durchgang: abgeschlossen** (siehe Kap. 6i, `docs/ACCEPTANCE.md`).
   - `npm test` = **162 Tests** grün; `npm run test:pwa` = **11/11**;
     `npm run test:acceptance` = **7/7**; `npm run build` ohne Warnungen.
   - Offen (nur manuell): Safari/iOS auf einem echten Gerät.
@@ -399,7 +402,7 @@ Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
 | 2026-10-14 | Start mit Phase 1, Commit vor Phase 2 | Nutzerwunsch, Zwischen-Review. |
 | 2026-10-14 | Service Worker: Variante B | ngsw löscht bei 404 Caches (Kap. 3 hier). |
 | 2026-10-14 | Kein `@dagrejs/dagre`, kein `idb` | Nutzerwunsch: minimale Abhängigkeiten. |
-| 2026-10-14 | `docs/ARCHITEKTUR.md` + `docs/BENUTZERHANDBUCH.md` ergänzt; README schlank | Nutzerwunsch (Kap. 1 hier). |
+| 2026-10-14 | `docs/ARCHITECTURE.md` + `docs/USER-GUIDE.md` ergänzt; README schlank | Nutzerwunsch (Kap. 1 hier). |
 | 2026-10-14 | Kanten-IDs deterministisch (`edgeId(from,to)`) | Hält Graph-Operationen rein, keine Zufallsquelle nötig. |
 | 2026-10-14 | Phase 1 abgeschlossen und committet | Kap. 7 hier. |
 | 2026-10-14 | Englisch als Standardsprache, eigene reaktive i18n (kein `@angular/localize`) | Nutzerwunsch; Runtime-Switch im Ein-Build-Offline-Betrieb (Kap. 6a). |
@@ -417,3 +420,4 @@ Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
 | 2026-10-14 | Verlauf pro Zettel + Befehls-Verlauf der Übersicht; Soft-Delete mit 10-s-Frist; Teilsummen je Strang; Speicherbelegung | Kap. 6h. |
 | 2026-10-14 | Phase 3.12: Update auf Knopfdruck, Vorlage in Zettel einfügen | Optionale Punkte aus Kap. 11. |
 | 2026-10-14 | Lückenschluss: Bezugstag-Bug, Vorlage im Anlegen-Dialog, Löschen ohne Verbinden, Moduswechsel-Angebot, Import-Fehler übersetzt | Kap. 6g. |
+| 2026-10-14 | Doku-Dateinamen englisch, README + Benutzerhandbuch zweisprachig, Deployment auf GitHub Pages | Nutzerwunsch (Kap. 1 hier). |

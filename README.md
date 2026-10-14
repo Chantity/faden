@@ -1,5 +1,74 @@
 # Faden
 
+[English](#english) · [Deutsch](#deutsch)
+
+---
+
+## English
+
+**Faden arranges todos as a flow and only ever shows you what is up next.**
+
+Many tasks have prerequisites, which in turn have prerequisites. Faden makes
+this order visible and keeps track of the rest of the chain for you – made for
+people who find it hard to hold invisible sequences in their head.
+
+- **Calm and low-stimulus:** no alarms, no guilt, no animations.
+- **Nothing gets lost:** everything can be undone.
+- **Offline, no server:** all data stays local on your device.
+
+The app is available in **English** (default) and **German** (Settings →
+Language).
+
+### Basic usage
+
+1. **Create a list** – a list is a to-do list with a flow.
+2. **“Now”** shows only the todos you can actually do right now.
+3. If a prerequisite is missing, add it in seconds right in front of it with
+   **“Something else has to come first …”**.
+4. **“Done”** checks a todo off; the next one moves up automatically.
+5. The **“Flow”** view shows the whole list as a flowchart.
+
+Detailed instructions are in the [user guide](docs/USER-GUIDE.md#english).
+The technical structure is described in the
+[architecture](docs/ARCHITECTURE.md) (German).
+
+### Development
+
+```bash
+npm install
+npm start               # dev server at http://localhost:4200
+npm test                # unit tests (Vitest)
+npm run build           # production build into dist/faden/browser
+npm run test:pwa        # mandatory offline tests (Edge/Chrome headless)
+npm run test:acceptance # acceptance: keyboard, responsive, reduced motion
+```
+
+**Deployment:** Every push to `main` runs the unit tests, builds the app and
+publishes it to **GitHub Pages** (`.github/workflows/deploy.yml`). In the
+repository settings, set *Pages → Source* to **GitHub Actions** once.
+
+**Host once:** Put the contents of `dist/faden/browser` on any HTTPS host (or
+use GitHub Pages), open the page once, wait until Settings shows “Offline
+ready”, and install it. After that the host may disappear – Faden then runs
+entirely from the local cache and **never updates by itself** (Settings →
+“Check for a new version”). **iOS:** only the installed app (Share → Add to
+Home Screen) is protected from Safari's automatic data deletion. Download a
+backup regularly (Settings).
+
+### Documentation
+
+- [SPEC.md](SPEC.md) – functional requirements (German).
+- [docs/USER-GUIDE.md](docs/USER-GUIDE.md) – detailed usage (English/German).
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – technical structure (German).
+- [docs/DECISIONS.md](docs/DECISIONS.md) – decisions and deviations (German).
+- [docs/PWA-TESTS.md](docs/PWA-TESTS.md) – mandatory offline tests (German).
+- [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) – status of the acceptance criteria
+  (German).
+
+---
+
+## Deutsch
+
 **Faden ordnet ToDos als Ablauf und zeigt dir immer nur, was jetzt dran ist.**
 
 Viele Aufgaben haben Vorarbeiten, die wiederum Vorarbeiten haben. Faden macht
@@ -10,7 +79,10 @@ für Menschen, denen es schwerfällt, unsichtbare Abläufe im Kopf zu halten.
 - **Nichts geht verloren:** alles rückgängig zu machen.
 - **Offline, ohne Server:** alle Daten bleiben lokal auf deinem Gerät.
 
-## Grundsätzliche Bedienung
+Die App gibt es auf **Englisch** (Standard) und **Deutsch** (Einstellungen →
+Sprache).
+
+### Grundsätzliche Bedienung
 
 1. **Zettel anlegen** – ein Zettel ist eine ToDo-Liste mit Ablauf.
 2. In „**Jetzt dran**" siehst du nur die Aufgaben, die gerade machbar sind.
@@ -19,33 +91,41 @@ für Menschen, denen es schwerfällt, unsichtbare Abläufe im Kopf zu halten.
 4. **„Erledigt"** hakt ab; danach rückt automatisch die nächste Aufgabe nach.
 5. Die Ansicht **„Ablauf"** zeigt den ganzen Zettel als Ablaufdiagramm.
 
-Die ausführliche Anleitung steht im [Benutzerhandbuch](docs/BENUTZERHANDBUCH.md).
-Wie die App technisch aufgebaut ist, beschreibt die
-[Architektur](docs/ARCHITEKTUR.md).
+Die ausführliche Anleitung steht im
+[Benutzerhandbuch](docs/USER-GUIDE.md#deutsch). Wie die App technisch aufgebaut
+ist, beschreibt die [Architektur](docs/ARCHITECTURE.md).
 
-## Entwicklung
+### Entwicklung
 
 ```bash
 npm install
-npm start        # Dev-Server auf http://localhost:4200
-npm test         # Unit-Tests (Vitest)
-npm run build    # Produktionsbuild nach dist/faden/browser
-npm run test:pwa # Offline-Pflichttests (Edge/Chrome headless)
+npm start               # Dev-Server auf http://localhost:4200
+npm test                # Unit-Tests (Vitest)
+npm run build           # Produktionsbuild nach dist/faden/browser
+npm run test:pwa        # Offline-Pflichttests (Edge/Chrome headless)
 npm run test:acceptance # Abnahme: Tastatur, Responsive, Reizarm
 ```
 
-**Einmal hosten:** Den Inhalt von `dist/faden/browser` auf einen beliebigen
-HTTPS-Host legen, die Seite einmal öffnen, warten bis die Einstellungen
-„Offline bereit" zeigen, und installieren. Danach darf der Host verschwinden –
-Faden läuft dann vollständig aus dem lokalen Cache. **iOS:** nur die
-installierte App (Teilen → Zum Home-Bildschirm) ist vor Safaris automatischem
-Löschen geschützt. Regelmäßig ein Backup herunterladen (Einstellungen).
+**Deployment:** Jeder Push auf `main` führt die Unit-Tests aus, baut die App
+und veröffentlicht sie auf **GitHub Pages** (`.github/workflows/deploy.yml`).
+Dazu einmalig in den Repository-Einstellungen unter *Pages → Source*
+**GitHub Actions** auswählen.
 
-## Dokumentation
+**Einmal hosten:** Den Inhalt von `dist/faden/browser` auf einen beliebigen
+HTTPS-Host legen (oder GitHub Pages nutzen), die Seite einmal öffnen, warten bis
+die Einstellungen „Offline bereit" zeigen, und installieren. Danach darf der
+Host verschwinden – Faden läuft dann vollständig aus dem lokalen Cache und
+aktualisiert sich **nie von selbst** (Einstellungen → „Nach neuer Version
+suchen"). **iOS:** nur die installierte App (Teilen → Zum Home-Bildschirm) ist
+vor Safaris automatischem Löschen geschützt. Regelmäßig ein Backup
+herunterladen (Einstellungen).
+
+### Dokumentation
 
 - [SPEC.md](SPEC.md) – fachliche Anforderungen.
-- [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md) – technischer Aufbau.
-- [docs/BENUTZERHANDBUCH.md](docs/BENUTZERHANDBUCH.md) – ausführliche Bedienung.
+- [docs/USER-GUIDE.md](docs/USER-GUIDE.md) – ausführliche Bedienung
+  (Englisch/Deutsch).
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – technischer Aufbau.
 - [docs/DECISIONS.md](docs/DECISIONS.md) – Entscheidungen und Abweichungen.
 - [docs/PWA-TESTS.md](docs/PWA-TESTS.md) – Offline-Pflichttests.
-- [docs/ABNAHME.md](docs/ABNAHME.md) – Stand der Abnahmekriterien.
+- [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) – Stand der Abnahmekriterien.
