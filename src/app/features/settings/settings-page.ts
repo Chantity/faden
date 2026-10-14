@@ -93,6 +93,38 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
     <section class="card block">
       <h2>{{ t().settings.versionHeading }}</h2>
       <p class="muted">{{ t().settings.versionLabel }}: {{ appVersion }}</p>
+      @if (pwa.offline() === 'ready') {
+        <p class="muted">{{ t().settings.updateHint }}</p>
+        @switch (pwa.update()) {
+          @case ('available') {
+            <div class="update-banner" role="status">
+              <p>{{ t().settings.updateAvailable(pwa.updateVersion() ?? '') }}</p>
+              <div class="actions">
+                <button type="button" class="btn btn--primary" (click)="pwa.applyUpdate()">
+                  {{ t().settings.updateApply }}
+                </button>
+                <button type="button" class="btn" (click)="pwa.update.set('idle')">
+                  {{ t().settings.updateLater }}
+                </button>
+              </div>
+            </div>
+          }
+          @case ('checking') {
+            <p role="status">{{ t().settings.updateChecking }}</p>
+          }
+          @case ('applying') {
+            <p role="status">{{ t().settings.updateApplying }}</p>
+          }
+          @default {
+            @if (updateMessage(); as message) {
+              <p role="status">{{ message }}</p>
+            }
+            <button type="button" class="btn" (click)="pwa.checkForUpdate()">
+              {{ t().settings.updateCheck }}
+            </button>
+          }
+        }
+      }
     </section>
 
     <section class="card block">
@@ -202,6 +234,17 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
       clip: rect(0 0 0 0);
     }
 
+    .update-banner {
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius);
+      background: var(--color-accent-soft);
+    }
+
+    .update-banner p {
+      margin-top: 0;
+    }
+
     .errors {
       margin: var(--space-2) 0;
       padding-left: var(--space-5);
@@ -267,6 +310,20 @@ export class SettingsPage {
       unsupported: s.offlineUnsupported,
     };
     return labels[this.pwa.offline()];
+  });
+
+  protected readonly updateMessage = computed(() => {
+    const s = this.t().settings;
+    switch (this.pwa.update()) {
+      case 'current':
+        return s.updateCurrent;
+      case 'unreachable':
+        return s.updateUnreachable;
+      case 'failed':
+        return s.updateFailed;
+      default:
+        return null;
+    }
   });
 
   protected readonly storageStatus = signal<string>('');

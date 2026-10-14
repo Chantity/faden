@@ -17,6 +17,16 @@ export interface PrecacheInfo {
 
 export type OfflineState = 'unsupported' | 'pending' | 'ready';
 
+/** Nutzergesteuerte Update-Prüfung (SPEC 9.3). */
+export type UpdateState =
+  | 'idle'
+  | 'checking'
+  | 'current'
+  | 'available'
+  | 'unreachable'
+  | 'applying'
+  | 'failed';
+
 /**
  * Service-Worker-Registrierung und Installationshilfe (SPEC 9.2, 9.5).
  * Der Service Worker wird nur in Produktionsbuilds registriert.
@@ -32,6 +42,10 @@ export class PwaService {
   readonly installed = signal(false);
   /** iOS/iPadOS: Installation nur über „Teilen → Zum Home-Bildschirm". */
   readonly isIos = signal(false);
+
+  readonly update = signal<UpdateState>('idle');
+  /** Version, die der Server anbietet (nur bei `available`). */
+  readonly updateVersion = signal<string | null>(null);
 
   private deferredPrompt: BeforeInstallPromptEvent | null = null;
 
@@ -73,6 +87,48 @@ export class PwaService {
     return outcome === 'accepted';
   }
 
+  /**
+   * Fragt den Host nach einer neueren Version. Nur auf Knopfdruck; ohne Netz
+   * oder bei kaputtem Host passiert nichts (SPEC 9.3).
+   */
+  async checkForUpdate(): Promise<void> {
+    const registration = await this.registration();
+    if (!registration) return;
+    this.update.set('checking');
+    const answer = await askWorker<{ status: 'current' | 'available' | 'unreachable'; version?: string }>(
+      registration,
+      { type: 'check-update' },
+      15_000,
+    );
+    this.updateVersion.set(answer?.version ?? null);
+    this.update.set(answer?.status ?? 'unreachable');
+  }
+
+  /**
+   * Lädt die neue Version vollständig in einen neuen Cache; erst danach wird
+   * umgeschaltet und neu geladen. Schlägt etwas fehl, bleibt alles beim Alten.
+   */
+  async applyUpdate(): Promise<void> {
+    const registration = await this.registration();
+    if (!registration) return;
+    this.update.set('applying');
+    const answer = await askWorker<{ status: 'updated' | 'failed' }>(
+      registration,
+      { type: 'apply-update' },
+      120_000,
+    );
+    if (answer?.status === 'updated') {
+      window.location.reload();
+    } else {
+      this.update.set('failed');
+    }
+  }
+
+  private async registration(): Promise<ServiceWorkerRegistration | null> {
+    if (this.offline() === 'unsupported' || !('serviceWorker' in navigator)) return null;
+    return (await navigator.serviceWorker.getRegistration()) ?? null;
+  }
+
   private async register(): Promise<void> {
     try {
       await navigator.serviceWorker.register('./sw.js', { scope: './' });
@@ -95,13 +151,17 @@ function detectIos(nav: Navigator): boolean {
   return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && nav.maxTouchPoints > 1);
 }
 
-/** Schickt dem aktiven Service Worker eine Nachricht und wartet (max. 5 s) auf die Antwort. */
-function askWorker<T>(registration: ServiceWorkerRegistration, message: unknown): Promise<T | null> {
+/** Schickt dem aktiven Service Worker eine Nachricht und wartet (begrenzt) auf die Antwort. */
+function askWorker<T>(
+  registration: ServiceWorkerRegistration,
+  message: unknown,
+  timeoutMs = 5000,
+): Promise<T | null> {
   const worker = registration.active;
   if (!worker) return Promise.resolve(null);
   return new Promise((resolve) => {
     const channel = new MessageChannel();
-    const timer = setTimeout(() => resolve(null), 5000);
+    const timer = setTimeout(() => resolve(null), timeoutMs);
     channel.port1.onmessage = (event: MessageEvent<T>) => {
       clearTimeout(timer);
       resolve(event.data);

@@ -17,7 +17,7 @@ Das Skript braucht **keine** Zusatzpakete (Node ≥ 22). Es
 - startet einen lokalen Static-Server für `dist/faden/browser`, dessen Verhalten
   umschaltbar ist: **normal**, **aus** (Verbindungsfehler), **404 für alles**,
   **500 für alles**, **Captive-Portal-HTML (200) für alles**, **neuere Version**
-  (geänderte `precache-manifest.json`);
+  (geänderte `precache-manifest.json`), **unvollständige neuere Version**;
 - steuert einen echten Chromium-Browser (Edge oder Chrome, headless, frisches
   Profil) über das DevTools-Protokoll; Pfad überschreibbar mit `BROWSER=…`;
 - beendet sich mit Exit-Code 1, sobald ein Test fehlschlägt.
@@ -32,6 +32,8 @@ Das Skript braucht **keine** Zusatzpakete (Node ≥ 22). Es
 | 4a | Überall 500 | wie 3. |
 | 4b | Captive-Portal-HTML | wie 3 (`sw.js`, Manifest, `precache-manifest.json` liefern HTML mit 200). |
 | 4c | Keine Auto-Updates | Host bietet eine neuere Version an (andere Precache-Liste). Nach Neuladen + Update-Prüfung bleibt der installierte Precache aktiv (SPEC 9.3). |
+| 8a | Update: unvollständige neue Version | Host bietet Version 98.0.0 an, eine Datei fehlt (404). „Nach neuer Version suchen" → „Jetzt aktualisieren" → ruhige Fehlermeldung; alte Version + Cache unverändert, kein halber neuer Cache übrig (SPEC 9.3). |
+| 8b | Update: vollständige neue Version | Host bietet Version 99.0.0 an. Nach „Jetzt aktualisieren" ist die neue Version aktiv und vollständig, der alte Cache erst danach gelöscht; danach offline lauffähig. |
 | 5 | Hash-Route offline | Server aus, neuer Tab direkt auf `…/index.html#/zettel/<id>` → Zettel-Ansicht erscheint. |
 | 6 | Neustart | Browser vollständig beenden und mit demselben Profil neu starten – einmal bei Server-404, einmal bei Server aus. Daten (IndexedDB) und Precache unverändert. |
 | 7 | Keine externen Requests | Alle mitgeschnittenen Anfragen von Seite **und** Service Worker gehen an den eigenen Host. |
@@ -63,9 +65,11 @@ Der eigene Service Worker hat keine zeitgesteuerte Logik.
 | 4a Server 500 | 2026-10-14 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
 | 4b Captive-Portal | 2026-10-14 | bestanden | Update-Prüfung: `SecurityError` (MIME), SW + Cache intakt |
 | 4c Keine Auto-Updates | 2026-10-14 | bestanden | Installierte Version bleibt aktiv |
+| 8a Update unvollständig | 2026-10-14 | bestanden | Alte Version bleibt, kein Rest-Cache |
+| 8b Update vollständig | 2026-10-14 | bestanden | Umschalten erst nach vollständigem Laden |
 | 5 Hash-Route offline | 2026-10-14 | bestanden | – |
 | 6 Daten nach Neustart | 2026-10-14 | bestanden | 2 Browser-Neustarts |
-| 7 Keine externen Requests | 2026-10-14 | bestanden | 209 Requests, alle an den eigenen Host |
+| 7 Keine externen Requests | 2026-10-14 | bestanden | 293 Requests, alle an den eigenen Host |
 
 Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 0.1.0.
 Nicht automatisiert: Safari/iOS (kein WebKit-Testbrowser verfügbar) und

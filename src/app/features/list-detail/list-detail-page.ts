@@ -25,11 +25,12 @@ import { TaskEditor } from './task-editor';
 import { ConnectDialog } from './connect-dialog';
 import { ShortcutHelp } from './shortcut-help';
 import { PlanEditor } from './plan-editor';
+import { InsertTemplateDialog } from './insert-template-dialog';
 
 @Component({
   selector: 'app-list-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ConnectDialog, ShortcutHelp, PlanEditor],
+  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ConnectDialog, ShortcutHelp, PlanEditor, InsertTemplateDialog],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <a class="back" routerLink="/">← {{ t().nav.lists }}</a>
@@ -84,6 +85,11 @@ import { PlanEditor } from './plan-editor';
               <button type="button" (click)="saveAsTemplate(current); closeMenu($event)">
                 {{ t().templates.saveList }}
               </button>
+              @if (templates.templates().length > 0) {
+                <button type="button" (click)="insertDialog().open(current.id); closeMenu($event)">
+                  {{ t().templates.insert }}
+                </button>
+              }
               <button type="button" (click)="archive(current); closeMenu($event)">
                 {{ t().common.archive }}
               </button>
@@ -139,6 +145,7 @@ import { PlanEditor } from './plan-editor';
     <app-connect-dialog />
     <app-shortcut-help />
     <app-plan-editor #planEditor />
+    <app-insert-template-dialog />
     <app-list-dialog (saved)="onListSaved($event)" />
   `,
   styles: `
@@ -212,13 +219,14 @@ export class ListDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
-  private readonly templates = inject(TemplatesStore);
+  protected readonly templates = inject(TemplatesStore);
 
   private readonly editor = viewChild.required(TaskEditor);
   private readonly connectDialog = viewChild.required(ConnectDialog);
   private readonly help = viewChild.required(ShortcutHelp);
   private readonly listDialog = viewChild.required(ListDialog);
   private readonly planEditor = viewChild.required(PlanEditor);
+  protected readonly insertDialog = viewChild.required(InsertTemplateDialog);
 
   protected readonly t = this.i18n.t;
 

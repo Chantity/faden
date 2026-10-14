@@ -44,10 +44,17 @@ const server = createServer((req, res) => {
       .end('<!doctype html><title>Login</title><h1>Captive portal – please log in</h1>');
   }
   const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  if (mode === 'newer' && path === '/precache-manifest.json') {
+  if ((mode === 'newer' || mode === 'newer-broken') && path === '/precache-manifest.json') {
     // Simuliert eine neu hochgeladene Version auf dem Host.
-    const next = { ...manifest, version: '99.0.0', build: 'f'.repeat(16) };
+    const next =
+      mode === 'newer'
+        ? { ...manifest, version: '99.0.0', build: 'f'.repeat(16) }
+        : { ...manifest, version: '98.0.0', build: 'e'.repeat(16) };
     return void res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(next));
+  }
+  if (mode === 'newer-broken' && path.endsWith('.css')) {
+    // Neue Version unvollständig hochgeladen: eine Datei fehlt.
+    return void res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
   }
   const rel = path.endsWith('/') ? path + 'index.html' : path;
   const file = normalize(join(distDir, rel));
@@ -431,6 +438,49 @@ await test('4c Keine Auto-Updates (Host bietet neuere Version an)', async () => 
     await assertSwIntact(page);
   }
   return 'sw.js unverändert → kein neuer Worker, Precache bleibt auf der installierten Version';
+});
+
+const clickButton = (label) =>
+  page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === ${JSON.stringify(label)}).click()`);
+const hasButton = (label) =>
+  `[...document.querySelectorAll('button')].some((b) => b.textContent.trim() === ${JSON.stringify(label)})`;
+
+await test('8a Update auf Knopfdruck: unvollständige neue Version ändert nichts', async () => {
+  await setMode('newer-broken');
+  await page.goto(BASE + '#/einstellungen');
+  await page.waitFor(hasButton('Check for a new version'), 'Update-Button');
+  await clickButton('Check for a new version');
+  await page.waitFor(`document.body.innerText.includes('New version 98.0.0 available')`, 'Angebot');
+  await clickButton('Update now');
+  await page.waitFor(`document.body.innerText.includes('could not be downloaded completely')`, 'Fehlermeldung', 20000);
+  const s = await assertSwIntact(page);
+  assert(!s.keys.some((k) => k.endsWith('e'.repeat(16))), 'Unvollständiger neuer Cache blieb liegen');
+  await page.goto(BASE);
+  await assertAppWithData(page);
+  return 'Fehlermeldung angezeigt, alte Version + Cache unverändert, kein Rest-Cache';
+});
+
+await test('8b Update auf Knopfdruck: vollständige neue Version wird übernommen', async () => {
+  await setMode('newer');
+  await page.goto(BASE + '#/einstellungen');
+  await page.waitFor(hasButton('Check for a new version'), 'Update-Button');
+  await clickButton('Check for a new version');
+  await page.waitFor(`document.body.innerText.includes('New version 99.0.0 available')`, 'Angebot');
+  const reloaded = cdp.waitEvent('Page.loadEventFired', page.sessionId, 60000);
+  await clickButton('Update now');
+  await reloaded;
+  await page.waitFor(APP_READY, 'App nach Update');
+  const s = await page.eval(SW_STATE);
+  assert(s.active?.version === '99.0.0' && s.active.build === 'f'.repeat(16), 'Neue Version nicht aktiv');
+  assert(s.entries === manifest.files.length, `Neuer Cache unvollständig (${s.entries})`);
+  assert(!s.keys.includes(baseline.active.cache), 'Alter Cache wurde nicht entfernt');
+  baseline = s;
+  await setMode('down');
+  await page.goto(BASE);
+  await page.reload();
+  await assertAppWithData(page);
+  await assertSwIntact(page);
+  return 'neue Version vollständig geladen, umgeschaltet, alter Cache danach gelöscht, offline ok';
 });
 
 await test('5 Direkte Hash-Route offline (neuer Tab)', async () => {

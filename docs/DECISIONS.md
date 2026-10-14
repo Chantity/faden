@@ -220,7 +220,7 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | Zeitfelder in Vorlagen | `startAt`/`endAt` werden verworfen; fehlt eine Schätzung, wird sie aus der Dauer abgeleitet. `dayStart`/`dayEnd` und `estimateMinutes` bleiben. | 5.6 | Wortlaut der SPEC. |
 | „Strang als Vorlage" | Im Ablauf-Werkzeugmenü je Karte (⋯). | 5.6 | Der Strang ist die verbundene Komponente des gewählten ToDos (`extractStrand`). |
 | Löschen mit Undo | Vorlagen-Löschen zeigt eine Snackbar mit **Rückgängig** (statt globalem Verlauf). | 5.6 | Der Undo-Verlauf der App gilt für Zettel; für Vorlagen genügt die Snackbar. |
-| Vorlage in Zettel einfügen | Logik vorhanden (`insertTemplate`), UI folgt in Phase 3.12 (optional). | 5.6 (optional) | Als optional eingestuft. |
+| Vorlage in Zettel einfügen | Zettel-Menü (⋯) → **„Vorlage in Zettel einfügen"** (nur wenn Vorlagen existieren): Auswahl mit Vorschau, eingefügt als neuer Strang, ein Undo-Schritt. **Umgesetzt in 3.12.** | 5.6 (optional) | – |
 | Vorlage aus der Übersicht | „Zettel als Vorlage speichern" auch im ⋯-Menü der Zettel-Karte in der Übersicht. | 5.6 | Nutzerwunsch (Bugfix-Runde). |
 
 ## 6e. Bugfix-Runde nach Phase 3.10 (Nutzerwünsche)
@@ -240,7 +240,7 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | Precache-Liste | **Nicht** in `sw.js` eingesetzt, sondern als `precache-manifest.json` daneben (erzeugt von `scripts/precache.mjs`). `sw.js` bleibt zwischen Builds byte-identisch. | 9.2 (Variante B: Liste „in `sw.js` einsetzen") | Ändert sich `sw.js`, installiert der Browser die neue Datei **von selbst** – das wäre ein Auto-Update (verboten laut 9.3). Mit unveränderter `sw.js` gibt es Updates nur über den ausdrücklichen Weg (`apply-update`). Durch Test 4c belegt. |
 | Cache-Name | `faden-v1-<build>` plus `faden-meta` (vermerkt den aktiven Precache) statt nur `faden-v1`. | 9.2 | Nötig, damit ein neuer Precache vollständig neben dem alten geladen werden kann, bevor der alte gelöscht wird (9.3). |
 | `install` bei vorhandenem Precache | Lädt nichts nach; die installierte Version bleibt. | 9.3 | Selbst ein absichtlich geändertes `sw.js` tauscht die App-Dateien nicht stillschweigend aus. |
-| Update-Protokoll | SW versteht schon `check-update`/`apply-update` (Versionsvergleich, vollständiges Laden vor dem Umschalten). **Button in den Einstellungen folgt in 3.12.** | 9.3 (optional) | Die riskante Logik liegt im SW und ist jetzt schon so gebaut, dass Fehler die alte Version nie antasten. |
+| Update-Protokoll | SW versteht schon `check-update`/`apply-update` (Versionsvergleich, vollständiges Laden vor dem Umschalten). **UI in 3.12:** Einstellungen → Version → „Nach neuer Version suchen"; bei neuerer Version ein ruhiges Band „Neue Version … – jetzt aktualisieren?" mit „Jetzt aktualisieren"/„Später"; nach erfolgreichem Laden wird die Seite neu geladen. Durch PWA-Tests 8a/8b belegt. | 9.3 (optional) | Die riskante Logik liegt im SW und ist jetzt schon so gebaut, dass Fehler die alte Version nie antasten. |
 | App-Version | `APP_VERSION` per JSON-Import aus `package.json` (der Bundler übernimmt nur das Feld `version`). `package.json`-Version 0.0.0 → **0.1.0**. | 9.3 | Ein Ort für die Version; der Update-Vergleich braucht eine echte Versionsnummer. |
 | Icons | Eigenes, ruhiges Motiv (drei verbundene Punkte von oben nach unten), Quelle `public/icons/icon.svg`; `scripts/generate-icons.mjs` rastert ohne Fremdpakete (PNG + ICO). Ersetzt das Angular-Standard-Favicon. | 9.1 | Keine Bildbibliothek nötig; die PNGs liegen im Repo, das Skript läuft nur bei Änderungen. |
 | Manifest-Sprache | `lang: "en"` statt `"de"`. | 9.1 | Englisch ist Standardsprache (Kap. 6a). |
@@ -342,6 +342,12 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
   - `scripts/pwa-test.mjs`: **9/9 Pflichttests bestanden** (`docs/PWA-TESTS.md`).
   - `npm test` = **132 Tests** grün; `npm run build` ohne Warnungen.
 
+- **Phase 3.12 – Optionale Punkte: abgeschlossen.**
+  - „Nach neuer Version suchen" (SPEC 9.3) im `PwaService` + Einstellungen.
+  - „Vorlage in Zettel einfügen" (`insert-template-dialog.ts`).
+  - „Zeiten aus Schätzungen vorschlagen" (7.5) war bereits Teil von 3.8.
+  - `npm test` = **147 Tests** grün; `npm run test:pwa` = **11/11** grün.
+
 - **Lückenschluss nach 3.11: abgeschlossen** (siehe Kap. 6g).
   - `npm test` = **146 Tests** grün; `npm run build` ohne Warnungen.
 
@@ -366,4 +372,5 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | Phase 3.10 (Backup & Speicher) umgesetzt | Kap. 8; `navigator.storage.persist()` nach erster Interaktion. |
 | 2026-10-14 | Bugfix-Runde: längere Pfeile, neue Menünamen, Vorlage + Menü-Schließen in der Übersicht | Nutzerwünsche (Kap. 6e). |
 | 2026-10-14 | Phase 3.11: eigener SW mit stabiler `sw.js` + separater Precache-Liste; PWA-Tests automatisiert, alle grün | Kap. 6f; keine Auto-Updates. |
+| 2026-10-14 | Phase 3.12: Update auf Knopfdruck, Vorlage in Zettel einfügen | Optionale Punkte aus Kap. 11. |
 | 2026-10-14 | Lückenschluss: Bezugstag-Bug, Vorlage im Anlegen-Dialog, Löschen ohne Verbinden, Moduswechsel-Angebot, Import-Fehler übersetzt | Kap. 6g. |

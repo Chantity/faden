@@ -217,6 +217,10 @@ Auf der Seite **Vorlagen** kannst du:
 - eine Vorlage **löschen** (mit **Rückgängig** in der Hinweisleiste),
 - **„Neuer Zettel aus Vorlage"** – legt einen frischen Zettel an und öffnet ihn.
 
+In einem geöffneten Zettel findest du im Menü (⋯) außerdem **„Vorlage in Zettel
+einfügen"**: Die gewählte Vorlage kommt als **neuer, eigener Strang** dazu;
+bestehende ToDos bleiben unverändert (mit „Rückgängig").
+
 ## 9. Einstellungen
 
 - **Design**: System, Hell oder Dunkel. Dunkel ist gleichwertig gestaltet.
@@ -224,7 +228,10 @@ Auf der Seite **Vorlagen** kannst du:
 - **Speicher**: zeigt, ob der Browser die Daten dauerhaft schützt. Fehlt der
   Schutz, kannst du auf **„Dauerhaft schützen"** tippen (der Browser fragt nach
   der ersten Nutzerinteraktion danach).
-- **Version**: die installierte App-Version.
+- **Version**: die installierte App-Version. Faden aktualisiert sich **nie von
+  selbst**. Mit **„Nach neuer Version suchen"** fragst du nach; gibt es eine,
+  erscheint **„Neue Version … – jetzt aktualisieren?"**. Die neue Version wird
+  erst vollständig heruntergeladen; klappt das nicht, bleibt alles, wie es war.
 - **Sicherung und Daten**: **„Sicherung herunterladen"** erstellt
   `faden-backup-JJJJ-MM-TT.json` und merkt sich das Datum
   („Letztes Backup: heute / vor X Tagen / noch kein Backup"). **„Teilen"** nutzt
@@ -278,4 +285,4 @@ Die Umsetzung erfolgt in drei Phasen (siehe `docs/DECISIONS.md`):
 2. **Kernfunktion** (fertig): Ansicht „Jetzt dran", Ketten-Eingabe,
    Ablaufdiagramm, Bearbeiten-Sheet, Verbinden, Tastatur.
 3. **Ausbau**: Timeboxing, Vorlagen, Backup, Offline-PWA und Installationshilfe
-   (fertig); als Nächstes optionale Extras wie „Nach neuer Version suchen".
+   (fertig), dazu „Nach neuer Version suchen" und „Vorlage in Zettel einfügen".
