@@ -61,6 +61,8 @@ export const de = {
 
   listDetail: {
     notFound: 'Dieser Zettel wurde nicht gefunden.',
+    sidebarCollapse: 'Zettel-Liste einklappen',
+    sidebarExpand: 'Zettel-Liste ausklappen',
     placeholder: 'Die Ansichten „Jetzt dran“ und „Ablauf“ entstehen in Phase 2.',
   },
 

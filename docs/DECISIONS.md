@@ -15,6 +15,7 @@ Done) vorgesehene Dokumentationsmenge wird auf ausdrücklichen Wunsch erweitert:
 |---|---|
 | **Neue Datei `docs/ARCHITEKTUR.md`** | Ausführliche Architekturbeschreibung (Schichten, Module, Datenfluss, Graph-/Zeit-/Storage-Logik, PWA-Aufbau). Nicht in `SPEC.md` vorgesehen. |
 | **Neue Datei `docs/BENUTZERHANDBUCH.md`** | Ausführliches Anwenderhandbuch (Schritt-für-Schritt-Bedienung aller Funktionen, Ketten, Aufteilen/Zusammenführen, Timeboxing, Backup, Installation). Nicht in `SPEC.md` vorgesehen. |
+| **Neue Datei `docs/ABNAHME.md`** | Stand aller Abnahmekriterien (SPEC 12.2) mit Nachweis und offenen manuellen Prüfungen. |
 | **`README.md` bewusst schlank** | Die README enthält **nur** Zweck der Anwendung und die grundsätzliche Bedienung (kurz). Die ausführliche Bedienung lebt im Benutzerhandbuch, die Technik in der Architekturbeschreibung. Abweichung von Kapitel 15, das README mit Entwicklungs-, Test-, Build- und „Einmal hosten"-Anleitung beschreibt — diese Inhalte wandern in `ARCHITEKTUR.md` bzw. bleiben als kurzer Verweis-Block in der README erhalten. |
 
 Auswirkungen auf die Projektstruktur (Kap. 10):
@@ -24,7 +25,8 @@ docs/
 ├─ DECISIONS.md          (bereits vorgesehen)
 ├─ PWA-TESTS.md          (bereits vorgesehen)
 ├─ ARCHITEKTUR.md        (NEU, Abweichung)
-└─ BENUTZERHANDBUCH.md   (NEU, Abweichung)
+├─ BENUTZERHANDBUCH.md   (NEU, Abweichung)
+└─ ABNAHME.md            (NEU, Abweichung)
 ```
 
 ---
@@ -265,6 +267,23 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | Teilsummen je Strang | Im **Ablauf**, Modus „Zeitschätzung", **nur bei ≥ 2 Strängen**: kleine Beschriftung über jedem Strang „Σ 45 Min offen · 1 ohne Schätzung". Das Layout liefert dafür `strands` (x/Breite) und einen größeren oberen Rand (`paddingTop`). | 7.2 (optional) | Bei nur einem Strang steht dieselbe Summe schon in der Kopfzeile. Stil liegt global in `styles.css` (Komponenten-CSS-Budget 4 kB). |
 | Speicherbelegung | Einstellungen → Speicher: „Belegt: 1,2 MB von 2 GB verfügbar." aus `navigator.storage.estimate()`; fehlt die API, wird nichts angezeigt. | 8.3 (optional) | Reine Info. |
 
+## 6i. Abnahme-Durchgang (Responsive, Tastatur, Reizarm)
+
+Automatisiert in `scripts/acceptance-test.mjs` (Ergebnis in `docs/ABNAHME.md`).
+Der Durchgang hat folgende Lücken und Fehler aufgedeckt, alle behoben:
+
+| Thema | Ist-Stand | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Zwei Spalten > 1024 px | Neue Komponente `lists-sidebar`: links die Zettel-Liste (aktueller Zettel hervorgehoben, `aria-current`), per «/» einklappbar; Zustand im `meta`-Store (`sidebarCollapsed`). Unter 1025 px ausgeblendet. | 5.1 | Fehlte bisher und war nicht als Abweichung vermerkt. |
+| Handy < 600 px | Alle Dialoge (`dialog.sheet`) erscheinen als **Bottom-Sheet** (volle Breite, unten angedockt, Safe-Area). In der Übersicht ist „+ Neuer Zettel" ein **Floating-Action-Button** unten rechts. | 5.1 | Fehlte bisher. FAB nur in der Übersicht: In „Jetzt dran"/„Ablauf" ist „+" (✚ bzw. „Neuer eigener Strang") bereits oben gut erreichbar. |
+| Tippflächen | Kopfzeile (App-Name, Navigation), „← Zettel" und alle Aufklapper (`summary`) jetzt ≥ 48 px. | 6 | Waren 26–42 px hoch. |
+| Fokus in neuen Eingabefeldern | Fokus per `afterNextRender` (`shared/focus.ts`) statt `queueMicrotask`. | 4.3, 5.3 | **Bug:** Ohne Zone.js existierte ein gerade erst erscheinendes Feld (z. B. „Was möchtest du erledigen?", Einfügen im Ablauf) im Microtask noch nicht – der Fokus kam nie an. |
+| Fokus nach „Erledigt"/Esc | Verschwindet das fokussierte Element, springt der Fokus auf das nächste „Erledigt" (bzw. „Zettel archivieren"). | 5.7 | **Bug:** Tastaturnutzer landeten hinter dem Seiteninhalt und mussten von vorn tabben. |
+| Laden vs. schnelle Eingabe | `ListsStore.load()`/`TemplatesStore.load()` behalten, was vor dem Ende des Ladens angelegt wurde. | 8 | **Bug (Datenverlust):** Beim ersten Start (langsames Öffnen der IndexedDB) überschrieb `load()` einen sofort angelegten Zettel. |
+| Messmethode Tippflächen | Rahmen des Elements inkl. unsichtbarer `::after`-Trefferfläche, Mitte nicht verdeckt. Ausgenommen: SVG-Pfeile, Diagramm-Karten bei Zoom < 100 %, Inhalte geschlossener Menüs. | 6 | Begründung in `docs/ABNAHME.md`. |
+| Testwerkzeuge | Browser-Steuerung als `scripts/lib/browser.mjs` (gemeinsam für PWA- und Abnahmetest); Tippen als echte Tastendrücke statt `Input.insertText` (das ahmt eine IME-Eingabe nach). | 12 | Keine Fremdpakete. |
+| Lighthouse-Accessibility | **100**, manuell vom Nutzer in den Edge-DevTools geprüft. | 12.2/9 | Kein Lighthouse-Paket als Abhängigkeit (Wunsch: minimale Abhängigkeiten). |
+
 ## 7. Fortschritt
 
 - **Phase 1 – Fundament: abgeschlossen.**
@@ -351,6 +370,11 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
   - `scripts/pwa-test.mjs`: **9/9 Pflichttests bestanden** (`docs/PWA-TESTS.md`).
   - `npm test` = **132 Tests** grün; `npm run build` ohne Warnungen.
 
+- **Abnahme-Durchgang: abgeschlossen** (siehe Kap. 6i, `docs/ABNAHME.md`).
+  - `npm test` = **162 Tests** grün; `npm run test:pwa` = **11/11**;
+    `npm run test:acceptance` = **7/7**; `npm run build` ohne Warnungen.
+  - Offen (nur manuell): Safari/iOS auf einem echten Gerät.
+
 - **Nachrüstungen nach 3.12: abgeschlossen** (siehe Kap. 6h).
   - `core/state/lists.store.ts` umgebaut (Verlauf pro Zettel + Befehls-Verlauf
     der Übersicht, Soft-Delete mit Frist), `CommandHistory` in `history.ts`.
@@ -389,6 +413,7 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | Phase 3.10 (Backup & Speicher) umgesetzt | Kap. 8; `navigator.storage.persist()` nach erster Interaktion. |
 | 2026-10-14 | Bugfix-Runde: längere Pfeile, neue Menünamen, Vorlage + Menü-Schließen in der Übersicht | Nutzerwünsche (Kap. 6e). |
 | 2026-10-14 | Phase 3.11: eigener SW mit stabiler `sw.js` + separater Precache-Liste; PWA-Tests automatisiert, alle grün | Kap. 6f; keine Auto-Updates. |
+| 2026-10-14 | Abnahme-Durchgang: Zettel-Spalte > 1024 px, Bottom-Sheets + FAB < 600 px, Tippflächen, Fokus-Bugs, Lade-Race behoben; Abnahmetest automatisiert | Kap. 6i. |
 | 2026-10-14 | Verlauf pro Zettel + Befehls-Verlauf der Übersicht; Soft-Delete mit 10-s-Frist; Teilsummen je Strang; Speicherbelegung | Kap. 6h. |
 | 2026-10-14 | Phase 3.12: Update auf Knopfdruck, Vorlage in Zettel einfügen | Optionale Punkte aus Kap. 11. |
 | 2026-10-14 | Lückenschluss: Bezugstag-Bug, Vorlage im Anlegen-Dialog, Löschen ohne Verbinden, Moduswechsel-Angebot, Import-Fehler übersetzt | Kap. 6g. |

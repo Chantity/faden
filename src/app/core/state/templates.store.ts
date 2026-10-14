@@ -11,7 +11,10 @@ export class TemplatesStore {
 
   async load(): Promise<void> {
     try {
-      this.templates.set(await this.db.getTemplates());
+      const stored = await this.db.getTemplates();
+      // Vor dem Ende des Ladens gespeicherte Vorlagen nicht überschreiben.
+      const ids = new Set(stored.map((t) => t.id));
+      this.templates.update((early) => [...early.filter((t) => !ids.has(t.id)), ...stored]);
     } catch {
       // Ohne IndexedDB (z. B. Tests) bleibt die Liste leer.
     }

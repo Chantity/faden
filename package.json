@@ -7,6 +7,7 @@
     "build": "ng build && node scripts/precache.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "test:pwa": "node scripts/pwa-test.mjs",
+    "test:acceptance": "node scripts/acceptance-test.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

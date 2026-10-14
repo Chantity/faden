@@ -219,4 +219,23 @@ describe('FocusView', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).not.toContain('Delete without reconnecting');
   });
+
+  it('setzt nach „Erledigt“ den Fokus auf das nächste „Erledigt“ (Tastatur)', async () => {
+    const list = chainList();
+    TestBed.inject(ListsStore).addExisting(list);
+    const fixture = TestBed.createComponent(FocusView);
+    document.body.appendChild(fixture.nativeElement);
+    fixture.componentRef.setInput('list', list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const done = root.querySelector('.task-card__done') as HTMLButtonElement;
+    done.focus();
+    done.click();
+    fixture.componentRef.setInput('list', TestBed.inject(ListsStore).getList(list.id));
+    await fixture.whenStable();
+    const next = root.querySelector('.task-card__done');
+    expect(root.querySelector('.task-card__title')?.textContent).toContain('Ausführen');
+    expect(document.activeElement).toBe(next);
+    fixture.nativeElement.remove();
+  });
 });

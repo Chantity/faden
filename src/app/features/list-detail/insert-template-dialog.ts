@@ -4,6 +4,7 @@ import {
   computed,
   ElementRef,
   inject,
+  Injector,
   signal,
   viewChild,
 } from '@angular/core';
@@ -12,6 +13,7 @@ import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { insertTemplate, templatePreview } from '../../core/templates';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
+import { focusAfterRender } from '../../shared/focus';
 
 /**
  * „Vorlage in Zettel einfügen" (SPEC 5.6): fügt eine Vorlage als neuen,
@@ -110,6 +112,7 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
   `,
 })
 export class InsertTemplateDialog {
+  private readonly injector = inject(Injector);
   private readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
@@ -132,7 +135,7 @@ export class InsertTemplateDialog {
     this.selectedId.set(this.templates()[0]?.id ?? '');
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     this.dialogRef().nativeElement.showModal();
-    queueMicrotask(() => this.choose()?.nativeElement.focus());
+    focusAfterRender(this.injector, () => this.choose());
   }
 
   close(): void {

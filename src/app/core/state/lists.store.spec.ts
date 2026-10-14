@@ -79,6 +79,37 @@ describe('ListsStore – Verlauf pro Zettel (SPEC 5.5)', () => {
   });
 });
 
+describe('ListsStore – Laden', () => {
+  it('behält Zettel, die vor dem Ende des Ladens angelegt wurden', async () => {
+    const stored: TodoList = {
+      id: 'alt',
+      title: 'Gespeichert',
+      timeboxMode: 'none',
+      tasks: [],
+      edges: [],
+      archived: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      sortOrder: 0,
+    };
+    const { store, db } = setup([stored]);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const original = db.getLists.bind(db);
+    db.getLists = async () => {
+      await gate;
+      return original();
+    };
+    const loading = store.load();
+    const early = store.create('Schnell angelegt');
+    release();
+    await loading;
+    expect(store.lists().map((l) => l.title)).toEqual(['Gespeichert', 'Schnell angelegt']);
+    expect(store.getList(early)).toBeDefined();
+    expect(store.canUndo()).toBe(true);
+  });
+});
+
 describe('ListsStore – Verlauf der Übersicht', () => {
   it('macht Archivieren rückgängig, ohne spätere Änderungen im Zettel zu verwerfen', async () => {
     const { store } = setup();

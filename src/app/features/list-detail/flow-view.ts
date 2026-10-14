@@ -5,6 +5,7 @@ import {
   computed,
   ElementRef,
   inject,
+  Injector,
   input,
   output,
   signal,
@@ -45,6 +46,7 @@ import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
+import { focusAfterRender } from '../../shared/focus';
 
 type InsertMode = 'before' | 'after' | 'between' | 'standalone';
 
@@ -608,6 +610,7 @@ const MAX_SCALE = 2;
   `,
 })
 export class FlowView {
+  private readonly injector = inject(Injector);
   private readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
@@ -833,7 +836,7 @@ export class FlowView {
       y: opts.y ?? 24,
     });
     this.draft.set('');
-    queueMicrotask(() => this.insertInput()?.nativeElement.focus());
+    focusAfterRender(this.injector, () => this.insertInput());
   }
 
   protected submitInsert(): void {
@@ -961,7 +964,7 @@ export class FlowView {
     this.edgeMenu.set(null);
     this.pending.set({ mode: 'between', anchor: null, edgeId, x: x - 120, y: y + 12 });
     this.draft.set('');
-    queueMicrotask(() => this.insertInput()?.nativeElement.focus());
+    focusAfterRender(this.injector, () => this.insertInput());
   }
 
   protected menuRemoveEdge(edgeId: string): void {

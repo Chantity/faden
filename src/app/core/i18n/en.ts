@@ -61,6 +61,8 @@ export const en = {
 
   listDetail: {
     notFound: 'This list was not found.',
+    sidebarCollapse: 'Collapse list of lists',
+    sidebarExpand: 'Expand list of lists',
     placeholder: 'The “Now” and “Flow” views are coming in phase 2.',
   },
 

@@ -13,10 +13,15 @@ export class ViewStore {
   private readonly all = signal<Record<string, ListView>>({});
   private loaded = false;
 
+  /** Zettel-Spalte links (nur > 1024 px) eingeklappt? */
+  readonly sidebarCollapsed = signal(false);
+
   async load(): Promise<void> {
     try {
       const stored = await this.db.getMeta<Record<string, ListView>>('listView');
       if (stored) this.all.set(stored);
+      const collapsed = await this.db.getMeta<boolean>('sidebarCollapsed');
+      if (collapsed !== undefined) this.sidebarCollapsed.set(collapsed);
     } catch {
       // Ohne IndexedDB (z. B. Tests) bleibt die Auswahl sitzungsbezogen.
     }
@@ -25,6 +30,12 @@ export class ViewStore {
 
   view(listId: string): ListView {
     return this.all()[listId] ?? 'focus';
+  }
+
+  setSidebarCollapsed(collapsed: boolean): void {
+    this.sidebarCollapsed.set(collapsed);
+    if (!this.loaded) return;
+    void this.db.setMeta('sidebarCollapsed', collapsed).catch(() => undefined);
   }
 
   set(listId: string, view: ListView): void {

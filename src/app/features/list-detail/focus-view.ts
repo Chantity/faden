@@ -1,9 +1,11 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   ElementRef,
   inject,
+  Injector,
   input,
   output,
   signal,
@@ -41,6 +43,7 @@ import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
+import { focusAfterRender } from '../../shared/focus';
 
 type ChainMode = 'before' | 'after' | 'split' | 'standalone';
 
@@ -425,6 +428,7 @@ interface Chain {
   `,
 })
 export class FocusView {
+  private readonly injector = inject(Injector);
   private readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
@@ -564,6 +568,30 @@ export class FocusView {
       label: this.t().common.undo,
       run: () => this.store.undo(list.id),
     });
+    this.keepFocus();
+  }
+
+  /**
+   * Verschwindet das fokussierte Element (abgehakte Karte, beendete Eingabe),
+   * landet der Fokus beim nächsten „Erledigt" – bzw. bei „Zettel archivieren",
+   * wenn alles erledigt ist. Sonst müssten Tastaturnutzer von vorn tabben (SPEC 5.7).
+   */
+  private keepFocus(preferTaskId?: string | null): void {
+    afterNextRender(
+      () => {
+        const active = document.activeElement;
+        if (active && active !== document.body && active.isConnected) return;
+        const root = this.host.nativeElement;
+        const target =
+          (preferTaskId
+            ? root.querySelector<HTMLElement>(`[data-task-id="${preferTaskId}"] .task-card__done`)
+            : null) ??
+          root.querySelector<HTMLElement>('.task-card__done') ??
+          root.querySelector<HTMLElement>('.empty button');
+        target?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   protected emitEdit(task: Task): void {
@@ -641,14 +669,18 @@ export class FocusView {
   protected finishChain(): void {
     const text = this.draft().trim();
     if (text) this.commitOne(text);
+    const anchor = this.chain()?.anchor;
     this.chain.set(null);
     this.draft.set('');
+    this.keepFocus(anchor);
   }
 
   protected endChain(event: Event): void {
     event.preventDefault();
+    const anchor = this.chain()?.anchor;
     this.chain.set(null);
     this.draft.set('');
+    this.keepFocus(anchor);
   }
 
   /** Schließt ein offenes ⋯-Menü bei Klick außerhalb (z. B. auf dem Handy). */
@@ -694,7 +726,7 @@ export class FocusView {
   }
 
   private focusInput(): void {
-    queueMicrotask(() => this.chainInput()?.nativeElement.focus());
+    focusAfterRender(this.injector, () => this.chainInput());
   }
 
   protected closeMenu(event: Event): void {

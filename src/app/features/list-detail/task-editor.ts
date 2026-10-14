@@ -4,6 +4,7 @@ import {
   computed,
   ElementRef,
   inject,
+  Injector,
   signal,
   viewChild,
 } from '@angular/core';
@@ -14,6 +15,7 @@ import { formatDuration, fromDatetimeLocal, toDatetimeLocal, validateDayTimes } 
 import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
+import { focusAfterRender } from '../../shared/focus';
 
 @Component({
   selector: 'app-task-editor',
@@ -345,6 +347,7 @@ import { ListsStore } from '../../core/state/lists.store';
   `,
 })
 export class TaskEditor {
+  private readonly injector = inject(Injector);
   private readonly store = inject(ListsStore);
   private readonly i18n = inject(I18nStore);
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
@@ -429,7 +432,7 @@ export class TaskEditor {
     this.endAt.set(toDatetimeLocal(task.endAt));
     this.error.set('');
     this.dialogRef().nativeElement.showModal();
-    queueMicrotask(() => this.titleInput()?.nativeElement.focus());
+    focusAfterRender(this.injector, () => this.titleInput());
   }
 
   close(): void {

@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   inject,
+  Injector,
   output,
   signal,
   viewChild,
@@ -16,6 +17,7 @@ import {
   type TimeboxMode,
   type TodoList,
 } from '../../core/model';
+import { focusAfterRender } from '../../shared/focus';
 
 @Component({
   selector: 'app-list-dialog',
@@ -187,6 +189,7 @@ import {
   `,
 })
 export class ListDialog {
+  private readonly injector = inject(Injector);
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
   private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
   private readonly templateSelect = viewChild<ElementRef<HTMLSelectElement>>('templateSelect');
@@ -279,8 +282,8 @@ export class ListDialog {
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     const dialog = this.dialogRef().nativeElement;
     dialog.showModal();
-    queueMicrotask(() =>
-      (focus === 'template' ? this.templateSelect() : this.titleInput())?.nativeElement.focus(),
+    focusAfterRender(this.injector, () =>
+      focus === 'template' ? this.templateSelect() : this.titleInput(),
     );
   }
 }

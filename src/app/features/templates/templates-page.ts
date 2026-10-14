@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   inject,
+  Injector,
   signal,
   viewChild,
 } from '@angular/core';
@@ -15,6 +16,7 @@ import { TemplatesStore } from '../../core/state/templates.store';
 import { ListsStore } from '../../core/state/lists.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { TITLE_MAX_LENGTH, type Template } from '../../core/model';
+import { focusAfterRender } from '../../shared/focus';
 
 @Component({
   selector: 'app-templates-page',
@@ -177,6 +179,7 @@ import { TITLE_MAX_LENGTH, type Template } from '../../core/model';
   `,
 })
 export class TemplatesPage {
+  private readonly injector = inject(Injector);
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('renameDlg');
   private readonly renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
   private readonly router = inject(Router);
@@ -209,7 +212,7 @@ export class TemplatesPage {
     this.renameValue.set(template.title);
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     this.dialogRef().nativeElement.showModal();
-    queueMicrotask(() => this.renameInput()?.nativeElement.focus());
+    focusAfterRender(this.injector, () => this.renameInput());
   }
 
   protected closeRename(): void {

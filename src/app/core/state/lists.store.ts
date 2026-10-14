@@ -80,19 +80,22 @@ export class ListsStore {
       const lists = stored
         .filter((l) => !l.deletedAt)
         .map((l) => withTimeboxMode(l, l.timeboxMode, new Date()));
-      this.all.set(lists);
-      this.persistedIds = new Set(stored.map((l) => l.id));
-      if (lists.length !== stored.length || lists.some((l, i) => l !== stored[i])) {
+      // Was schon vor dem Ende des Ladens angelegt wurde (schnelle Nutzer, langsames
+      // erstes Öffnen der Datenbank), bleibt erhalten – samt Rückgängig-Verlauf.
+      const storedIds = new Set(stored.map((l) => l.id));
+      const early = this.all().filter((l) => !storedIds.has(l.id));
+      this.all.set([...lists, ...early]);
+      this.persistedIds = storedIds;
+      this.loaded = true;
+      if (early.length === 0) this.clearHistories();
+      if (early.length > 0 || lists.length !== stored.length || lists.some((l, i) => l !== stored[i])) {
         this.schedulePersist();
       }
     } catch {
       // Ohne IndexedDB (z. B. Tests) startet der Store leer und ohne Persistenz.
       this.loaded = false;
-      this.clearHistories();
-      return;
+      this.touchHistory();
     }
-    this.loaded = true;
-    this.clearHistories();
   }
 
   private schedulePersist(): void {

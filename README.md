@@ -31,6 +31,7 @@ npm start        # Dev-Server auf http://localhost:4200
 npm test         # Unit-Tests (Vitest)
 npm run build    # Produktionsbuild nach dist/faden/browser
 npm run test:pwa # Offline-Pflichttests (Edge/Chrome headless)
+npm run test:acceptance # Abnahme: Tastatur, Responsive, Reizarm
 ```
 
 **Einmal hosten:** Den Inhalt von `dist/faden/browser` auf einen beliebigen
@@ -47,3 +48,4 @@ Löschen geschützt. Regelmäßig ein Backup herunterladen (Einstellungen).
 - [docs/BENUTZERHANDBUCH.md](docs/BENUTZERHANDBUCH.md) – ausführliche Bedienung.
 - [docs/DECISIONS.md](docs/DECISIONS.md) – Entscheidungen und Abweichungen.
 - [docs/PWA-TESTS.md](docs/PWA-TESTS.md) – Offline-Pflichttests.
+- [docs/ABNAHME.md](docs/ABNAHME.md) – Stand der Abnahmekriterien.

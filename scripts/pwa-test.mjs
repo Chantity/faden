@@ -9,30 +9,18 @@
 //
 // Browser-Pfad überschreibbar mit der Umgebungsvariable BROWSER.
 
-import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
-import { dirname, extname, join, normalize, sep } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assert, createRunner, findBrowser, launchBrowser, serveFile, sleep } from './lib/browser.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const distDir = join(root, 'dist', 'faden', 'browser');
 const manifest = JSON.parse(readFileSync(join(distDir, 'precache-manifest.json'), 'utf8'));
 
 // ---------------------------------------------------------------- Server ---
-
-const TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json',
-  '.webmanifest': 'application/manifest+json',
-  '.png': 'image/png',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
-  '.txt': 'text/plain; charset=utf-8',
-};
 
 let mode = 'normal';
 const server = createServer((req, res) => {
@@ -56,14 +44,7 @@ const server = createServer((req, res) => {
     // Neue Version unvollständig hochgeladen: eine Datei fehlt.
     return void res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
   }
-  const rel = path.endsWith('/') ? path + 'index.html' : path;
-  const file = normalize(join(distDir, rel));
-  if (!file.startsWith(distDir + sep) || !existsSync(file)) {
-    return void res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
-  }
-  res
-    .writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' })
-    .end(readFileSync(file));
+  serveFile(path, res, distDir);
 });
 
 const listen = (port) => new Promise((r) => server.listen(port, '127.0.0.1', () => r(server.address().port)));
@@ -82,98 +63,17 @@ async function setMode(next) {
 
 // --------------------------------------------------------------- Browser ---
 
-const candidates = [
-  process.env.BROWSER,
-  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
-  'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  '/usr/bin/google-chrome',
-  '/usr/bin/chromium',
-  '/usr/bin/microsoft-edge',
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-].filter(Boolean);
-const browserPath = candidates.find((p) => existsSync(p));
-if (!browserPath) throw new Error('Kein Chromium-Browser gefunden (BROWSER=… setzen).');
-
+const browserPath = findBrowser();
 const profile = mkdtempSync(join(tmpdir(), 'faden-pwa-'));
 const downloads = mkdtempSync(join(tmpdir(), 'faden-dl-'));
-
-class Cdp {
-  constructor(url) {
-    this.ws = new WebSocket(url);
-    this.nextId = 1;
-    this.pending = new Map();
-    this.listeners = new Set();
-    this.ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-      if (msg.id && this.pending.has(msg.id)) {
-        const { resolve, reject, method } = this.pending.get(msg.id);
-        this.pending.delete(msg.id);
-        if (msg.error) reject(new Error(`${method}: ${msg.error.message}`));
-        else resolve(msg.result);
-      } else {
-        for (const l of this.listeners) l(msg);
-      }
-    };
-  }
-  open() {
-    return new Promise((resolve, reject) => {
-      this.ws.onopen = resolve;
-      this.ws.onerror = reject;
-    });
-  }
-  send(method, params = {}, sessionId) {
-    const id = this.nextId++;
-    this.ws.send(JSON.stringify({ id, method, params, sessionId }));
-    return new Promise((resolve, reject) => this.pending.set(id, { resolve, reject, method }));
-  }
-  waitEvent(method, sessionId, timeout = 15000) {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.listeners.delete(l);
-        reject(new Error(`Zeitüberschreitung: ${method}`));
-      }, timeout);
-      const l = (msg) => {
-        if (msg.method === method && (!sessionId || msg.sessionId === sessionId)) {
-          clearTimeout(timer);
-          this.listeners.delete(l);
-          resolve(msg.params);
-        }
-      };
-      this.listeners.add(l);
-    });
-  }
-}
 
 const requests = [];
 let browser;
 let cdp;
 
 async function launch() {
-  const portFile = join(profile, 'DevToolsActivePort');
-  rmSync(portFile, { force: true });
-  browser = spawn(
-    browserPath,
-    [
-      '--headless=new',
-      '--remote-debugging-port=0',
-      `--user-data-dir=${profile}`,
-      '--no-first-run',
-      '--no-default-browser-check',
-      '--disable-extensions',
-      '--disable-sync',
-      'about:blank',
-    ],
-    { stdio: 'ignore' },
-  );
-  const until = Date.now() + 20000;
-  while (!existsSync(portFile) || readFileSync(portFile, 'utf8').split('\n').length < 2) {
-    if (Date.now() > until) throw new Error('Browser startet nicht.');
-    await sleep(100);
-  }
-  const [devPort, path] = readFileSync(portFile, 'utf8').split('\n');
-  cdp = new Cdp(`ws://127.0.0.1:${devPort.trim()}${path.trim()}`);
-  await cdp.open();
+  browser = await launchBrowser(browserPath, profile);
+  cdp = browser.cdp;
   await cdp.send('Browser.setDownloadBehavior', {
     behavior: 'allow',
     downloadPath: downloads,
@@ -197,68 +97,8 @@ async function launch() {
   await cdp.send('Target.setDiscoverTargets', { discover: true });
 }
 
-async function closeBrowser() {
-  const exited = new Promise((r) => browser.once('exit', r));
-  try {
-    await cdp.send('Browser.close');
-  } catch {
-    // Verbindung kann beim Schließen abreißen.
-  }
-  await Promise.race([exited, sleep(10000)]);
-  if (browser.exitCode === null) browser.kill();
-  await sleep(500);
-}
-
-async function newPage() {
-  const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' });
-  const { sessionId } = await cdp.send('Target.attachToTarget', { targetId, flatten: true });
-  await cdp.send('Page.enable', {}, sessionId);
-  await cdp.send('Runtime.enable', {}, sessionId);
-  await cdp.send('Network.enable', {}, sessionId);
-  const page = {
-    sessionId,
-    async goto(url) {
-      const loaded = cdp.waitEvent('Page.loadEventFired', sessionId);
-      const nav = await cdp.send('Page.navigate', { url }, sessionId);
-      if (nav.errorText) throw new Error(`Navigation fehlgeschlagen: ${nav.errorText}`);
-      // Reine Hash-Wechsel lösen kein load aus.
-      if (nav.loaderId) await loaded;
-      else await Promise.race([loaded, sleep(300)]);
-    },
-    async reload() {
-      const loaded = cdp.waitEvent('Page.loadEventFired', sessionId);
-      await cdp.send('Page.reload', { ignoreCache: false }, sessionId);
-      await loaded;
-    },
-    async eval(expression) {
-      const r = await cdp.send(
-        'Runtime.evaluate',
-        { expression, awaitPromise: true, returnByValue: true },
-        sessionId,
-      );
-      if (r.exceptionDetails) {
-        throw new Error(r.exceptionDetails.exception?.description ?? r.exceptionDetails.text);
-      }
-      return r.result.value;
-    },
-    /** Wartet, bis `predicate` (JS-Ausdruck) im Browser wahr ist. */
-    async waitFor(predicate, label = predicate, timeout = 10000) {
-      return page.eval(`(async () => {
-        const until = Date.now() + ${timeout};
-        while (Date.now() < until) {
-          try { const v = await (async () => (${predicate}))(); if (v) return v; } catch {}
-          await new Promise((r) => setTimeout(r, 100));
-        }
-        throw new Error(${JSON.stringify('Zeitüberschreitung: ' + label)});
-      })()`);
-    },
-    text: () => page.eval('document.body.innerText'),
-    close: () => cdp.send('Target.closeTarget', { targetId }),
-  };
-  return page;
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const closeBrowser = () => browser.close();
+const newPage = () => browser.newPage();
 
 // ------------------------------------------------------------ Hilfsmittel ---
 
@@ -290,22 +130,7 @@ const FORCE_UPDATE = `(async () => {
   try { await reg.update(); return 'ok'; } catch (e) { return 'rejected: ' + e.name; }
 })()`;
 
-const results = [];
-async function test(name, fn) {
-  const started = Date.now();
-  try {
-    const note = await fn();
-    results.push({ name, ok: true, note: note ?? '' });
-    console.log(`✔ ${name}${note ? ` – ${note}` : ''} (${Date.now() - started} ms)`);
-  } catch (err) {
-    results.push({ name, ok: false, note: err.message });
-    console.log(`✘ ${name} – ${err.message}`);
-  }
-}
-
-function assert(cond, message) {
-  if (!cond) throw new Error(message);
-}
+const { test, finish } = createRunner();
 
 let baseline;
 async function assertSwIntact(page) {
@@ -535,6 +360,4 @@ for (const dir of [profile, downloads]) {
   }
 }
 
-const failed = results.filter((r) => !r.ok);
-console.log(`\n${results.length - failed.length}/${results.length} Tests bestanden.`);
-process.exit(failed.length === 0 ? 0 : 1);
+process.exit(finish());

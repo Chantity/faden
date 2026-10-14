@@ -200,6 +200,22 @@
 }
 
 @media (max-width: 600px) {
+  /* Platz unter der letzten Karte, damit der FAB nichts verdeckt. */
+  :host {
+    display: block;
+    padding-bottom: calc(var(--touch-large) + var(--space-6));
+  }
+
+  .page-head__actions .btn--primary {
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + var(--space-4));
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
+    z-index: 20;
+    min-height: var(--touch-large);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+
   .page-head {
     align-items: stretch;
   }

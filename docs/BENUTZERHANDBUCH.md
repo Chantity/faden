@@ -67,6 +67,11 @@ und **Wiederholen** (↷) für die letzten Änderungen. Hast du Vorlagen gespeic
 steht daneben **„Aus Vorlage …"**: Im Anlegen-Dialog wählst du die Vorlage; Titel
 und Zeitplanung werden übernommen und lassen sich vor dem Anlegen noch ändern.
 
+**Am PC** (breites Fenster) steht beim geöffneten Zettel links die Liste aller
+Zettel – zum schnellen Wechseln. Mit **«** klappst du sie ein, mit **»** wieder
+aus. **Auf dem Handy** liegt „+ Neuer Zettel" als runder Button unten rechts,
+und Dialoge kommen von unten herein.
+
 ## 5. Rückgängig und Wiederholen
 
 Fast jede Aktion lässt sich rückgängig machen – Anlegen, Umbenennen,

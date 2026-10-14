@@ -292,6 +292,7 @@ npm start          # Dev-Server (http://localhost:4200)
 npm test           # Unit-Tests (Vitest)
 npm run build      # Produktionsbuild + Precache-Liste nach dist/faden/browser
 npm run test:pwa   # PWA-/Offline-Pflichttests gegen den Produktionsbuild
+npm run test:acceptance  # Abnahme: Tastatur, Responsive, Reizarm (docs/ABNAHME.md)
 npm run icons      # Icons neu erzeugen (nur nach Änderung am Icon)
 ```
 
@@ -303,6 +304,15 @@ dann normal, aber nicht offline).
 HTTPS-Host legen (Unterverzeichnis egal), die Seite einmal laden, warten bis die
 Einstellungen „Offline bereit" zeigen, und installieren. Danach darf der Host
 verschwinden.
+
+Die Browser-Tests (`scripts/pwa-test.mjs`, `scripts/acceptance-test.mjs`)
+teilen sich `scripts/lib/browser.mjs`: statischer Server, Chromium headless über
+das DevTools-Protokoll (Node-WebSocket, keine Fremdpakete), echte Tastendrücke,
+kleiner Test-Runner.
+
+**Fokus:** Ohne Zone.js wird ein Element, das durch eine Änderung erst
+erscheint, nicht im selben Microtask gerendert. Fokus daher immer über
+`focusAfterRender` (`shared/focus.ts`, `afterNextRender`).
 
 Die Komponententests laufen unter jsdom. Da jsdom `<dialog>.showModal()` nicht
 kennt, ergänzt `src/test-setup.ts` (verdrahtet über `setupFiles` in

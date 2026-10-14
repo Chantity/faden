@@ -25,128 +25,132 @@ import { TaskEditor } from './task-editor';
 import { ConnectDialog } from './connect-dialog';
 import { ShortcutHelp } from './shortcut-help';
 import { PlanEditor } from './plan-editor';
+import { ListsSidebar } from './lists-sidebar';
 import { InsertTemplateDialog } from './insert-template-dialog';
 
 @Component({
   selector: 'app-list-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ConnectDialog, ShortcutHelp, PlanEditor, InsertTemplateDialog],
+  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ConnectDialog, ShortcutHelp, PlanEditor, InsertTemplateDialog, ListsSidebar],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
-    <a class="back" routerLink="/">← {{ t().nav.lists }}</a>
+    <app-lists-sidebar class="lists-side" [currentId]="id()" />
+    <div class="detail-main">
+      <a class="back" routerLink="/">← {{ t().nav.lists }}</a>
 
-    @if (list(); as current) {
-      <header class="detail-head">
-        <div class="detail-head__title">
-          <h1>{{ current.title }}</h1>
-          <p class="muted">{{ progressLabel() }}</p>
-          @if (estimateLabel(); as sums) {
-            <p class="muted">{{ sums }}</p>
-          }
-        </div>
-        <div class="detail-head__actions">
-          <button
-            type="button"
-            class="icon-btn"
-            [disabled]="!store.canUndo(current.id)"
-            [attr.aria-label]="t().common.undo"
-            (click)="undo()"
-          >
-            ↶
-          </button>
-          <button
-            type="button"
-            class="icon-btn"
-            [disabled]="!store.canRedo(current.id)"
-            [attr.aria-label]="t().common.redo"
-            (click)="redo()"
-          >
-            ↷
-          </button>
-          <button
-            type="button"
-            class="icon-btn"
-            [attr.aria-label]="t().shortcuts.title"
-            (click)="help().open()"
-          >
-            ?
-          </button>
-          <details class="menu">
-            <summary class="icon-btn" [attr.aria-label]="t().a11y.actionsFor(current.title)">⋯</summary>
-            <div class="menu__panel" role="menu">
-              <button type="button" (click)="editList(current); closeMenu($event)">
-                {{ t().common.rename }}
-              </button>
-              @if (planEditable()) {
-                <button type="button" (click)="openPlanEditor(current); closeMenu($event)">
-                  {{ t().time.editPlan }}
+      @if (list(); as current) {
+        <header class="detail-head">
+          <div class="detail-head__title">
+            <h1>{{ current.title }}</h1>
+            <p class="muted">{{ progressLabel() }}</p>
+            @if (estimateLabel(); as sums) {
+              <p class="muted">{{ sums }}</p>
+            }
+          </div>
+          <div class="detail-head__actions">
+            <button
+              type="button"
+              class="icon-btn"
+              [disabled]="!store.canUndo(current.id)"
+              [attr.aria-label]="t().common.undo"
+              (click)="undo()"
+            >
+              ↶
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              [disabled]="!store.canRedo(current.id)"
+              [attr.aria-label]="t().common.redo"
+              (click)="redo()"
+            >
+              ↷
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              [attr.aria-label]="t().shortcuts.title"
+              (click)="help().open()"
+            >
+              ?
+            </button>
+            <details class="menu">
+              <summary class="icon-btn" [attr.aria-label]="t().a11y.actionsFor(current.title)">⋯</summary>
+              <div class="menu__panel" role="menu">
+                <button type="button" (click)="editList(current); closeMenu($event)">
+                  {{ t().common.rename }}
                 </button>
-              }
-              <button type="button" (click)="saveAsTemplate(current); closeMenu($event)">
-                {{ t().templates.saveList }}
-              </button>
-              @if (templates.templates().length > 0) {
-                <button type="button" (click)="insertDialog().open(current.id); closeMenu($event)">
-                  {{ t().templates.insert }}
+                @if (planEditable()) {
+                  <button type="button" (click)="openPlanEditor(current); closeMenu($event)">
+                    {{ t().time.editPlan }}
+                  </button>
+                }
+                <button type="button" (click)="saveAsTemplate(current); closeMenu($event)">
+                  {{ t().templates.saveList }}
                 </button>
-              }
-              <button type="button" (click)="archive(current); closeMenu($event)">
-                {{ t().common.archive }}
-              </button>
-              <button type="button" class="danger" (click)="remove(current); closeMenu($event)">
-                {{ t().common.delete }}
-              </button>
-            </div>
-          </details>
+                @if (templates.templates().length > 0) {
+                  <button type="button" (click)="insertDialog().open(current.id); closeMenu($event)">
+                    {{ t().templates.insert }}
+                  </button>
+                }
+                <button type="button" (click)="archive(current); closeMenu($event)">
+                  {{ t().common.archive }}
+                </button>
+                <button type="button" class="danger" (click)="remove(current); closeMenu($event)">
+                  {{ t().common.delete }}
+                </button>
+              </div>
+            </details>
+          </div>
+        </header>
+
+        <div class="view-toggle" role="group" [attr.aria-label]="t().titles.list">
+          <button
+            type="button"
+            class="view-toggle__btn"
+            [class.is-active]="view() === 'focus'"
+            [attr.aria-pressed]="view() === 'focus'"
+            (click)="setView('focus')"
+          >
+            {{ t().focus.tabFocus }}
+          </button>
+          <button
+            type="button"
+            class="view-toggle__btn"
+            [class.is-active]="view() === 'flow'"
+            [attr.aria-pressed]="view() === 'flow'"
+            (click)="setView('flow')"
+          >
+            {{ t().focus.tabFlow }}
+          </button>
         </div>
-      </header>
 
-      <div class="view-toggle" role="group" [attr.aria-label]="t().titles.list">
-        <button
-          type="button"
-          class="view-toggle__btn"
-          [class.is-active]="view() === 'focus'"
-          [attr.aria-pressed]="view() === 'focus'"
-          (click)="setView('focus')"
-        >
-          {{ t().focus.tabFocus }}
-        </button>
-        <button
-          type="button"
-          class="view-toggle__btn"
-          [class.is-active]="view() === 'flow'"
-          [attr.aria-pressed]="view() === 'flow'"
-          (click)="setView('flow')"
-        >
-          {{ t().focus.tabFlow }}
-        </button>
-      </div>
-
-      @if (view() === 'focus') {
-        <app-focus-view
-          [list]="current"
-          (edit)="openEditor($event)"
-          (connectRequest)="openConnect($event)"
-        />
+        @if (view() === 'focus') {
+          <app-focus-view
+            [list]="current"
+            (edit)="openEditor($event)"
+            (connectRequest)="openConnect($event)"
+          />
+        } @else {
+          <app-flow-view
+            [list]="current"
+            (edit)="openEditor($event)"
+            (connectRequest)="openConnect($event)"
+          />
+        }
       } @else {
-        <app-flow-view
-          [list]="current"
-          (edit)="openEditor($event)"
-          (connectRequest)="openConnect($event)"
-        />
+        <h1>{{ t().lists.emptyTitle }}</h1>
+        <p class="muted">{{ t().listDetail.notFound }}</p>
+        <a class="btn btn--primary" routerLink="/">{{ t().nav.lists }}</a>
       }
-    } @else {
-      <h1>{{ t().lists.emptyTitle }}</h1>
-      <p class="muted">{{ t().listDetail.notFound }}</p>
-      <a class="btn btn--primary" routerLink="/">{{ t().nav.lists }}</a>
-    }
 
-    <app-task-editor />
-    <app-connect-dialog />
-    <app-shortcut-help />
-    <app-plan-editor #planEditor />
-    <app-insert-template-dialog />
-    <app-list-dialog (saved)="onListSaved($event)" />
+      <app-task-editor />
+      <app-connect-dialog />
+      <app-shortcut-help />
+      <app-plan-editor #planEditor />
+      <app-insert-template-dialog />
+      <app-list-dialog (saved)="onListSaved($event)" />
+    </div>
   `,
   styles: `
     :host {
@@ -154,8 +158,20 @@ import { InsertTemplateDialog } from './insert-template-dialog';
       max-width: 960px;
     }
 
+    /* > 1024 px: links die Zettel-Liste, rechts der Zettel (SPEC 5.1). */
+    @media (min-width: 1025px) {
+      :host {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: var(--space-5);
+        max-width: none;
+      }
+    }
+
     .back {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--touch-min);
       margin-bottom: var(--space-3);
       text-decoration: none;
       color: var(--color-text-muted);
@@ -230,7 +246,7 @@ export class ListDetailPage {
 
   protected readonly t = this.i18n.t;
 
-  private readonly id = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))), {
+  protected readonly id = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))), {
     initialValue: null,
   });
 
