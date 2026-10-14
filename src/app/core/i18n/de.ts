@@ -129,8 +129,8 @@ export const de = {
     menu: {
       edit: 'Bearbeiten',
       addAfter: 'Danach einfügen',
-      splitAfter: 'Daneben aufteilen',
-      join: 'Daneben zusammenführen',
+      splitAfter: 'Nachfolgeaufgabe erstellen',
+      join: 'Voraufgabe erstellen',
       connect: 'Mit anderem ToDo verbinden',
       delete: 'Löschen',
     },

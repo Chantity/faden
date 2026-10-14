@@ -51,11 +51,16 @@ Ein Tipp auf die Karte öffnet den Zettel.
 Über das **Menü (⋯)** auf der Karte:
 - **Umbenennen** – Titel und Zeitplanung ändern.
 - **Duplizieren** – Kopie des Zettels anlegen (z. B. als Ausgangspunkt).
+- **Zettel als Vorlage speichern** – die Struktur für später aufheben (siehe
+  Kap. 8).
 - **Nach oben / Nach unten** – Reihenfolge ändern.
 - **Archivieren** – Zettel wandert ins Archiv (unten aufklappbar). Nichts wird
   gelöscht.
 - **Löschen** – Zettel entfernen. Unten erscheint „Rückgängig" – du hast ca.
   8 Sekunden Zeit.
+
+Das Menü schließt sich mit einem Klick/Tipp irgendwo außerhalb, ohne dass du
+etwas auswählen musst.
 
 Oben rechts findest du außerdem **„+ Neuer Zettel"** sowie **Rückgängig** (↶)
 und **Wiederholen** (↷) für die letzten Änderungen.
@@ -122,10 +127,10 @@ findest du die vollständige Liste „Danach kommt noch …".
   abhängen – so schiebst du einen gemeinsamen Schritt vor die Verzweigung.
 - **Runder Haken links oben auf einer Karte**: das ToDo direkt im Ablauf abhaken
   – und mit einem weiteren Tipp wieder auf „offen" setzen (mit „Rückgängig").
-- Menü **„Daneben aufteilen"**: eine parallele Aufgabe daneben beginnen
-  (Verzweigung).
-- Menü **„Daneben zusammenführen"**: eine Aufgabe ergänzen, die zusätzlich
-  nötig ist, bevor es weitergeht.
+- Menü **„Nachfolgeaufgabe erstellen"**: eine weitere Aufgabe anlegen, die
+  danach kommt – parallel zu den bisherigen Nachfolgern (Verzweigung).
+- Menü **„Voraufgabe erstellen"**: eine Aufgabe ergänzen, die zusätzlich
+  vorher erledigt sein muss, bevor es weitergeht (Zusammenführung).
 - Menü **„Mit anderem ToDo verbinden"**: zwei Stränge zusammenführen.
 - **„Neuer eigener Strang"**: eine unabhängige neue Kette auf demselben Zettel.
 
@@ -183,7 +188,8 @@ stellt den vorherigen Stand wieder her.
 Du kannst einen ganzen Zettel **oder** nur einen einzelnen Strang als
 **Vorlage** speichern:
 
-- **Ganzer Zettel:** im Zettel-Menü (⋯) oben **„Zettel als Vorlage speichern"**.
+- **Ganzer Zettel:** im Zettel-Menü (⋯) oben **„Zettel als Vorlage speichern"**
+  – oder direkt in der Zettel-Übersicht im ⋯-Menü der Zettel-Karte.
 - **Ein Strang:** im Ablauf das **⋯** auf einer Karte des Strangs →
   **„Strang als Vorlage speichern"**.
 

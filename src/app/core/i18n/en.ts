@@ -130,8 +130,8 @@ export const en = {
     menu: {
       edit: 'Edit',
       addAfter: 'Insert after',
-      splitAfter: 'Split alongside',
-      join: 'Merge alongside',
+      splitAfter: 'Create successor task',
+      join: 'Create predecessor task',
       connect: 'Connect to another todo',
       delete: 'Delete',
     },

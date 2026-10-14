@@ -81,6 +81,9 @@
               <button type="button" (click)="duplicate(list); closeMenu($event)">
                 {{ t().common.duplicate }}
               </button>
+              <button type="button" (click)="saveAsTemplate(list); closeMenu($event)">
+                {{ t().templates.saveList }}
+              </button>
               <button type="button" (click)="move(list, 'up'); closeMenu($event)">
                 {{ t().common.moveUp }}
               </button>

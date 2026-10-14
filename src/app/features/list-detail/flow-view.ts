@@ -608,7 +608,7 @@ export class FlowView {
   });
 
   protected readonly layout = computed<Layout>(() =>
-    layoutList(this.displayList(), { vGap: 72, padding: 56 }),
+    layoutList(this.displayList(), { vGap: 128, padding: 56 }),
   );
 
   protected readonly scale = signal(1);

@@ -183,7 +183,7 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | Undo/Redo-Verlauf | Weiterhin **ein globaler Snapshot-Verlauf** über alle Zettel. | 5.5: „Pro Zettel ein Verlauf" | Verhalten identisch (≥100 Schritte); ein Verlauf pro Zettel kann später ergänzt werden. |
 | „Mit anderem ToDo verbinden" | **Auswahl-Dialog** statt Banner-Modus „Ziel wählen" (Punkt 1) bzw. Drag (Punkt 2). | 5.4, Punkte 1–2 | Der Dialog ist per Tastatur/Screenreader bedienbar und funktional gleichwertig; Drag-to-connect bleibt optional. |
 | Pfeil-Aktionen / „+"-Anordnung | **Ein** „+" pro Verbindung (auf der Kante, `insertBetween`); das Karten-„+" **über** einer Karte wird am Strang-Anfang (kein Vorgänger) gezeigt, das Karten-„+" **unter** einer Karte am Strang-Ende (kein Nachfolger) und **an einer Verzweigung** (≥2 Nachfolger). Bei genau **einem** Nachfolger ersetzt das Kanten-„+" das Karten-„+". Zusätzlich öffnet ein Tap auf die Kante ein kleines Menü. | 5.4: „auf jedem Pfeil · über jeder Karte · unter jeder Karte" | In einer Kette wären die drei „+" deckungsgleich und täten dasselbe. Ein „+" pro Verbindung plus Rand-„+" ist überlappungsfrei; `insertBefore`/`insertAfter` an Mittelknoten entspricht `insertBetween` auf der jeweiligen Kante. |
-| Karten-„+" an Verzweigungen (Fan-out) | Hat ein ToDo **≥2 direkte Nachfolger**, erscheint unter ihm wieder ein „+" (`showsAfterPlus`: 0 oder ≥2 Nachfolger). Es fügt einen Knoten ein, **von dem alle bisherigen Nachfolger abhängen** (vorhandenes `insertAfter` = Engpass-Einfügung: alle `A→s` werden zu `D→s`, dazu `A→D`). Kanten-„+" dieses Knotens werden dort ausgeblendet, wo sie sich mit dem Karten-„+" überlagern würden. | Nutzerwunsch (Ablauf) | In einer Verzweigung A→{B,C,…} ließ sich bisher nicht *vor* der Verzweigung ein neuer gemeinsamer Schritt einfügen. Verdeckt man die überlagernden Kanten-„+", gibt es keine doppelten Trefferflächen; das Karten-„+" selbst liegt zwangsläufig auf dem senkrechten Pfeil zur darunterliegenden Karte (wie auch die Kanten-„+"). |
+| Karten-„+" an Verzweigungen (Fan-out) | Hat ein ToDo **≥2 direkte Nachfolger**, erscheint unter ihm wieder ein „+" (`showsAfterPlus`: 0 oder ≥2 Nachfolger). Es fügt einen Knoten ein, **von dem alle bisherigen Nachfolger abhängen** (vorhandenes `insertAfter` = Engpass-Einfügung: alle `A→s` werden zu `D→s`, dazu `A→D`). Der Schichtabstand im Ablauf ist **128 px** (vorher 72 px), damit Karten-„+" und die Kanten-„+" der abgehenden Pfeile nebeneinander Platz haben; auf **jedem** Pfeil bleibt ein „+" sichtbar. Die Überlagerungsprüfung (`edgePlusHidden`) bleibt als Absicherung bestehen. | Nutzerwunsch (Ablauf, Bugfix-Runde) | In einer Verzweigung A→{B,C,…} ließ sich bisher nicht *vor* der Verzweigung ein neuer gemeinsamer Schritt einfügen. Beim ersten Wurf wurde das senkrechte Kanten-„+" A→B ausgeblendet; der Nutzer wollte stattdessen längere Pfeile mit sichtbarem „+". |
 | „+" bei kleinem Zoom | Unter ~60 % Zoom werden die „+" ausgeblendet, dazu der Hinweis *„Für ‚+' heranzoomen"*. | 5.4 | Entspricht der Vorgabe („Bei sehr kleinem Zoom werden die ‚+' ausgeblendet … Hinweis"). |
 | „+"-Trefferfläche | Sichtbarer Kreis bleibt klein-dezent (38 px auf der Karte, 30 px auf dem Pfeil), die **Klick-/Tippfläche ist 44×44 px** (transparente `::after`-Fläche, `inset:-3px` bzw. `-7px`). | 5.4: „Trefffläche mindestens 44×44 px (auch wenn das Icon kleiner ist)" | Erfüllt die A11y-Vorgabe, ohne das ruhige Bild zu vergrößern. Eine absolute `::before`-Fläche überdeckte zuvor das „+"-Zeichen (positionierte Ebene über Inline-Text). |
 | Kartenhöhe im Ablauf | **Variabel** je geschätzter Titelzeilenzahl (1–3, per `line-clamp` gespiegelt); die nächste Schicht beginnt unter der höchsten Karte. | 5.4 (Layout) | Lange Titel wurden abgeschnitten und Folgekarten/Pfeile überdeckten sich. |
@@ -221,6 +221,16 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | „Strang als Vorlage" | Im Ablauf-Werkzeugmenü je Karte (⋯). | 5.6 | Der Strang ist die verbundene Komponente des gewählten ToDos (`extractStrand`). |
 | Löschen mit Undo | Vorlagen-Löschen zeigt eine Snackbar mit **Rückgängig** (statt globalem Verlauf). | 5.6 | Der Undo-Verlauf der App gilt für Zettel; für Vorlagen genügt die Snackbar. |
 | Vorlage in Zettel einfügen | Logik vorhanden (`insertTemplate`), UI folgt in Phase 3.12 (optional). | 5.6 (optional) | Als optional eingestuft. |
+| Vorlage aus der Übersicht | „Zettel als Vorlage speichern" auch im ⋯-Menü der Zettel-Karte in der Übersicht. | 5.6 | Nutzerwunsch (Bugfix-Runde). |
+
+## 6e. Bugfix-Runde nach Phase 3.10 (Nutzerwünsche)
+
+| Thema | Ist-Stand | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Menünamen im Karten-⋯ | „Daneben aufteilen" → **„Nachfolgeaufgabe erstellen"** (en: *Create successor task*), „Daneben zusammenführen" → **„Voraufgabe erstellen"** (en: *Create predecessor task*). Die Operationen `addParallelAfter`/`addParallelBefore` bleiben unverändert. | 3.1/5.3/5.4 | Nutzerwunsch: verständlichere Bezeichnungen. Weicht vom SPEC-Wortlaut ab. |
+| Kanten-„+" an Verzweigungen | Schichtabstand 72 → 128 px; alle Kanten-„+" sichtbar (siehe Kap. 6b). | 5.4 | Nutzerwunsch. |
+| Vorlage aus der Übersicht | Neuer Menüpunkt in der Zettel-Übersicht (siehe Kap. 6d). | 5.6 | Nutzerwunsch. |
+| ⋯-Menü in der Übersicht schließen | Klick/Tipp irgendwo außerhalb (oder erneut auf das Menü) schließt es, wie in „Jetzt dran". Ein Klick im Menüinhalt lässt es offen. | 5.2 | Nutzerwunsch; gleiches Verhalten wie in der Zettel-Ansicht. |
 
 
 ## 7. Fortschritt
@@ -291,6 +301,14 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
   - Tests: `backup.service.spec.ts` (8); `npm test` = **129 Tests** grün;
     `ng build` (Produktion) ohne Warnungen.
 
+- **Bugfix-Runde nach 3.10: abgeschlossen** (siehe Kap. 6e).
+  - Längere Pfeile im Ablauf, Kanten-„+" an Verzweigungen wieder sichtbar.
+  - Menüpunkte umbenannt (de + en).
+  - Zettel-Übersicht: „Zettel als Vorlage speichern" + Menü schließt bei Klick
+    außerhalb.
+  - Tests: `lists-page.spec.ts` (3), `flow-view.spec.ts` angepasst;
+    `npm test` = **132 Tests** grün; `ng build` (Produktion) ohne Warnungen.
+
 ## 8. Laufendes Entscheidungsprotokoll
 
 | Datum | Entscheidung | Grund |
@@ -310,3 +328,4 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | Phase 3.8 (Timeboxing) umgesetzt | Kern der Phase 3; Abweichungen in Kap. 6c. |
 | 2026-10-14 | Phase 3.9 (Vorlagen) umgesetzt | Kap. 5.6; Abweichungen in Kap. 6d. |
 | 2026-10-14 | Phase 3.10 (Backup & Speicher) umgesetzt | Kap. 8; `navigator.storage.persist()` nach erster Interaktion. |
+| 2026-10-14 | Bugfix-Runde: längere Pfeile, neue Menünamen, Vorlage + Menü-Schließen in der Übersicht | Nutzerwünsche (Kap. 6e). |

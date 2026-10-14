@@ -62,9 +62,10 @@ describe('FlowView', () => {
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
 
-    // A hat zwei Nachfolger: Karten-„+" erscheint, das überlagernde Kanten-„+" nicht.
+    // A hat zwei Nachfolger: Das Karten-„+" erscheint, und dank des größeren
+    // Zeilenabstands bleibt auf jeder Kante das Kanten-„+" sichtbar.
     expect(root.querySelectorAll('.plus--after').length).toBe(3);
-    expect(root.querySelectorAll('.plus--edge').length).toBe(1);
+    expect(root.querySelectorAll('.plus--edge').length).toBe(2);
 
     (root.querySelector('.plus--after') as HTMLButtonElement).click();
     await fixture.whenStable();

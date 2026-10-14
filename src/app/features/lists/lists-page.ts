@@ -1,11 +1,20 @@
-import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { TITLE_MAX_LENGTH, type TimeboxMode, type TodoList } from '../../core/model';
 import { availableTasks, progress } from '../../core/graph';
+import { listToTemplate } from '../../core/templates';
 import { BackupService } from '../../core/backup/backup.service';
 import { ListsStore } from '../../core/state/lists.store';
+import { TemplatesStore } from '../../core/state/templates.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { ListDialog } from './list-dialog';
 
@@ -15,6 +24,7 @@ import { ListDialog } from './list-dialog';
   imports: [RouterLink, ListDialog],
   templateUrl: './lists-page.html',
   styleUrl: './lists-page.css',
+  host: { '(document:click)': 'onDocumentClick($event)' },
 })
 export class ListsPage {
   protected readonly store = inject(ListsStore);
@@ -22,6 +32,8 @@ export class ListsPage {
   private readonly dialog = viewChild.required(ListDialog);
   private readonly i18n = inject(I18nStore);
   private readonly backup = inject(BackupService);
+  private readonly templates = inject(TemplatesStore);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly t = this.i18n.t;
   protected readonly maxTitle = TITLE_MAX_LENGTH;
@@ -121,7 +133,34 @@ export class ListsPage {
     this.store.move(list.id, direction);
   }
 
+  protected saveAsTemplate(list: TodoList): void {
+    const template = listToTemplate(list);
+    void this.templates.add(template);
+    this.snackbar.show(this.t().templates.savedSnack(template.title));
+  }
+
   protected closeMenu(event: Event): void {
     (event.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
+  }
+
+  /**
+   * Klick irgendwo schließt offene Kartenmenüs – außer einem Klick im
+   * geöffneten Menü selbst (dort bleibt es offen, damit Auswahl möglich ist).
+   */
+  protected onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement | null;
+    const inMenu = target?.closest('details.menu') as HTMLDetailsElement | null;
+    const inPanel = target !== null && target.closest('.menu__panel') !== null;
+    const onMenuSelf = inMenu !== null && inMenu.hasAttribute('open') && !inPanel;
+
+    // Ohne preventDefault würde die native Kippbewegung das Menü sofort wieder öffnen.
+    if (onMenuSelf) event.preventDefault();
+
+    for (const menu of this.host.nativeElement.querySelectorAll<HTMLDetailsElement>(
+      'details.menu[open]',
+    )) {
+      if (menu === inMenu && inPanel) continue;
+      menu.removeAttribute('open');
+    }
   }
 }
