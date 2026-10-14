@@ -12,7 +12,7 @@ import {
   type TimeboxMode,
   type TodoList,
 } from '../model';
-import { validateGraph } from '../graph';
+import { validateGraph, type GraphErrorCode } from '../graph';
 import { migrate } from './migrations';
 
 export const BACKUP_APP_ID = 'faden';
@@ -26,9 +26,45 @@ export interface BackupFile {
   templates: Template[];
 }
 
+/** Was an einer Sicherungsdatei nicht stimmt. Die Oberfläche übersetzt das (i18n). */
+export type BackupIssueCode =
+  | 'json'
+  | 'not-object'
+  | 'not-faden'
+  | 'no-version'
+  | 'newer-version'
+  | 'migration'
+  | 'no-lists'
+  | 'no-templates'
+  | 'entry-invalid'
+  | 'entry-missing-fields'
+  | 'mode-invalid'
+  | 'parts-missing'
+  | 'task-invalid'
+  | 'task-no-id'
+  | 'task-no-title'
+  | 'title-too-long'
+  | 'notes-invalid'
+  | 'edge-invalid'
+  | 'graph';
+
+/** Fundstelle: Zettel/Vorlage Nr. (1-basiert), optional ToDo/Pfeil darin. */
+export interface BackupLocation {
+  kind: 'list' | 'template';
+  index: number;
+  part?: { kind: 'task' | 'edge'; index: number };
+}
+
+export interface BackupIssue {
+  code: BackupIssueCode;
+  at?: BackupLocation;
+  /** Nur bei `graph`: welche Graph-Invariante verletzt ist. */
+  graph?: GraphErrorCode;
+}
+
 export type ValidationResult =
   | { ok: true; value: BackupFile }
-  | { ok: false; errors: string[] };
+  | { ok: false; errors: BackupIssue[] };
 
 // --- Type Guards -----------------------------------------------------------
 
@@ -54,25 +90,25 @@ function isTimeboxMode(value: unknown): value is TimeboxMode {
 
 // --- Parsing ---------------------------------------------------------------
 
-function parseTask(raw: unknown, where: string, errors: string[]): Task | undefined {
+function parseTask(raw: unknown, at: BackupLocation, errors: BackupIssue[]): Task | undefined {
   if (!isRecord(raw)) {
-    errors.push(`${where}: ToDo ist kein Objekt.`);
+    errors.push({ code: 'task-invalid', at });
     return undefined;
   }
   if (!isString(raw['id']) || raw['id'].length === 0) {
-    errors.push(`${where}: ToDo ohne gültige id.`);
+    errors.push({ code: 'task-no-id', at });
     return undefined;
   }
   if (!isString(raw['title'])) {
-    errors.push(`${where}: ToDo ohne Titel.`);
+    errors.push({ code: 'task-no-title', at });
     return undefined;
   }
   if (raw['title'].length > TITLE_MAX_LENGTH) {
-    errors.push(`${where}: Titel länger als ${TITLE_MAX_LENGTH} Zeichen.`);
+    errors.push({ code: 'title-too-long', at });
     return undefined;
   }
   if (raw['notes'] !== undefined && (!isString(raw['notes']) || raw['notes'].length > NOTES_MAX_LENGTH)) {
-    errors.push(`${where}: Notizen ungültig oder zu lang.`);
+    errors.push({ code: 'notes-invalid', at });
     return undefined;
   }
 
@@ -87,42 +123,46 @@ function parseTask(raw: unknown, where: string, errors: string[]): Task | undefi
   return task;
 }
 
-function parseEdge(raw: unknown, where: string, errors: string[]): Edge | undefined {
+function parseEdge(raw: unknown, at: BackupLocation, errors: BackupIssue[]): Edge | undefined {
   if (!isRecord(raw) || !isString(raw['id']) || !isString(raw['from']) || !isString(raw['to'])) {
-    errors.push(`${where}: Pfeil ist ungültig.`);
+    errors.push({ code: 'edge-invalid', at });
     return undefined;
   }
   return { id: raw['id'], from: raw['from'], to: raw['to'] };
 }
 
-function parseList(raw: unknown, index: number, errors: string[]): TodoList | undefined {
-  const where = `Zettel #${index + 1}`;
+function parseList(raw: unknown, index: number, errors: BackupIssue[]): TodoList | undefined {
+  const where: BackupLocation = { kind: 'list', index: index + 1 };
+  const part = (k: 'task' | 'edge', i: number): BackupLocation => ({
+    ...where,
+    part: { kind: k, index: i + 1 },
+  });
   const startErrors = errors.length;
   if (!isRecord(raw)) {
-    errors.push(`${where}: kein Objekt.`);
+    errors.push({ code: 'entry-invalid', at: where });
     return undefined;
   }
   if (!isString(raw['id']) || !isString(raw['title'])) {
-    errors.push(`${where}: id oder Titel fehlt.`);
+    errors.push({ code: 'entry-missing-fields', at: where });
     return undefined;
   }
   if (!isTimeboxMode(raw['timeboxMode'])) {
-    errors.push(`${where}: ungültiger Zeitmodus.`);
+    errors.push({ code: 'mode-invalid', at: where });
     return undefined;
   }
   if (!Array.isArray(raw['tasks']) || !Array.isArray(raw['edges'])) {
-    errors.push(`${where}: tasks/edges fehlen.`);
+    errors.push({ code: 'parts-missing', at: where });
     return undefined;
   }
 
   const tasks: Task[] = [];
   for (let i = 0; i < raw['tasks'].length; i++) {
-    const task = parseTask(raw['tasks'][i], `${where}/ToDo #${i + 1}`, errors);
+    const task = parseTask(raw['tasks'][i], part('task', i), errors);
     if (task) tasks.push(task);
   }
   const edges: Edge[] = [];
   for (let i = 0; i < raw['edges'].length; i++) {
-    const edge = parseEdge(raw['edges'][i], `${where}/Pfeil #${i + 1}`, errors);
+    const edge = parseEdge(raw['edges'][i], part('edge', i), errors);
     if (edge) edges.push(edge);
   }
   if (errors.length > startErrors) return undefined;
@@ -143,29 +183,33 @@ function parseList(raw: unknown, index: number, errors: string[]): TodoList | un
 
   // Invarianten: keine Zyklen, keine toten Referenzen, keine Doppelpfeile.
   for (const issue of validateGraph(list)) {
-    errors.push(`${where}: ${issue.message}`);
+    errors.push({ code: 'graph', at: where, graph: issue.code });
   }
   return errors.length > startErrors ? undefined : list;
 }
 
-function parseTemplate(raw: unknown, index: number, errors: string[]): Template | undefined {
-  const where = `Vorlage #${index + 1}`;
+function parseTemplate(raw: unknown, index: number, errors: BackupIssue[]): Template | undefined {
+  const where: BackupLocation = { kind: 'template', index: index + 1 };
+  const part = (k: 'task' | 'edge', i: number): BackupLocation => ({
+    ...where,
+    part: { kind: k, index: i + 1 },
+  });
   const startErrors = errors.length;
   if (!isRecord(raw) || !isString(raw['id']) || !isString(raw['title'])) {
-    errors.push(`${where}: ungültig.`);
+    errors.push({ code: 'entry-invalid', at: where });
     return undefined;
   }
   if (!isTimeboxMode(raw['timeboxMode'])) {
-    errors.push(`${where}: ungültiger Zeitmodus.`);
+    errors.push({ code: 'mode-invalid', at: where });
     return undefined;
   }
   if (!Array.isArray(raw['tasks']) || !Array.isArray(raw['edges'])) {
-    errors.push(`${where}: tasks/edges fehlen.`);
+    errors.push({ code: 'parts-missing', at: where });
     return undefined;
   }
   const tasks: Omit<Task, 'done' | 'doneAt'>[] = [];
   for (let i = 0; i < raw['tasks'].length; i++) {
-    const task = parseTask(raw['tasks'][i], `${where}/ToDo #${i + 1}`, errors);
+    const task = parseTask(raw['tasks'][i], part('task', i), errors);
     if (task) {
       const { done: _done, doneAt: _doneAt, ...rest } = task;
       tasks.push(rest);
@@ -173,7 +217,7 @@ function parseTemplate(raw: unknown, index: number, errors: string[]): Template 
   }
   const edges: Edge[] = [];
   for (let i = 0; i < raw['edges'].length; i++) {
-    const edge = parseEdge(raw['edges'][i], `${where}/Pfeil #${i + 1}`, errors);
+    const edge = parseEdge(raw['edges'][i], part('edge', i), errors);
     if (edge) edges.push(edge);
   }
   if (errors.length > startErrors) return undefined;
@@ -194,7 +238,7 @@ function parseTemplate(raw: unknown, index: number, errors: string[]): Template 
     sortOrder: index,
   };
   for (const issue of validateGraph(asList)) {
-    errors.push(`${where}: ${issue.message}`);
+    errors.push({ code: 'graph', at: where, graph: issue.code });
   }
   return errors.length > startErrors ? undefined : template;
 }
@@ -232,34 +276,34 @@ export function createBackup(
 
 /** Prüft rohe Backup-Daten vollständig (Schema, Version, Zyklen, Referenzen). */
 export function validateBackup(input: unknown): ValidationResult {
-  const errors: string[] = [];
+  const errors: BackupIssue[] = [];
   if (!isRecord(input)) {
-    return { ok: false, errors: ['Die Datei enthält kein gültiges Datenobjekt.'] };
+    return { ok: false, errors: [{ code: 'not-object' }] };
   }
   if (input['app'] !== BACKUP_APP_ID) {
-    errors.push('Das ist keine Faden-Sicherungsdatei.');
+    errors.push({ code: 'not-faden' });
   }
   if (!isNumber(input['schemaVersion'])) {
-    errors.push('Die Schema-Version fehlt.');
+    errors.push({ code: 'no-version' });
     return { ok: false, errors };
   }
   if (input['schemaVersion'] > SCHEMA_VERSION) {
-    errors.push('Die Sicherung stammt aus einer neueren App-Version und kann nicht gelesen werden.');
+    errors.push({ code: 'newer-version' });
     return { ok: false, errors };
   }
 
   let migrated: Record<string, unknown>;
   try {
     migrated = migrate(input as { schemaVersion: number } & Record<string, unknown>);
-  } catch (e) {
-    errors.push(e instanceof Error ? e.message : 'Migration fehlgeschlagen.');
+  } catch {
+    errors.push({ code: 'migration' });
     return { ok: false, errors };
   }
 
   const rawLists = migrated['lists'];
   const rawTemplates = migrated['templates'];
-  if (!Array.isArray(rawLists)) errors.push('Die Zettel-Liste fehlt.');
-  if (!Array.isArray(rawTemplates)) errors.push('Die Vorlagen-Liste fehlt.');
+  if (!Array.isArray(rawLists)) errors.push({ code: 'no-lists' });
+  if (!Array.isArray(rawTemplates)) errors.push({ code: 'no-templates' });
   if (errors.length > 0) return { ok: false, errors };
 
   const lists: TodoList[] = [];

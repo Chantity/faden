@@ -13,7 +13,7 @@ import { PageTitleService } from '../../core/i18n/page-title';
 import type { TimeboxMode, TodoList } from '../../core/model';
 import { progress } from '../../core/graph';
 import { listToTemplate } from '../../core/templates';
-import { estimateSums, formatDuration } from '../../core/time';
+import { estimateSums, formatDuration, modeSwitchOffer } from '../../core/time';
 import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { ViewStore, type ListView } from '../../core/state/view.store';
@@ -302,7 +302,13 @@ export class ListDetailPage {
   }
 
   protected onListSaved(event: { id: string | null; title: string; timeboxMode: TimeboxMode }): void {
-    if (event.id) this.store.update(event.id, { title: event.title, timeboxMode: event.timeboxMode });
+    const before = event.id ? this.store.getList(event.id) : undefined;
+    if (!before) return;
+    this.store.update(before.id, { title: event.title, timeboxMode: event.timeboxMode });
+    const offer = modeSwitchOffer(before, event.timeboxMode);
+    const updated = this.store.getList(before.id);
+    if (offer === 'convert' && updated) this.planEditor().openConvert(updated);
+    if (offer === 'scheduleKept') this.snackbar.show(this.t().time.scheduleKept);
   }
 
   protected undo(): void {

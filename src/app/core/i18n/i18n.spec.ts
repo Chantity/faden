@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '../model';
 import { DICTIONARIES, dictionaryFor } from './dictionaries';
+import { describeBackupIssue } from './backup-error';
 
 describe('i18n dictionaries', () => {
   it('Standardsprache ist Englisch', () => {
@@ -29,5 +30,24 @@ describe('i18n dictionaries', () => {
   it('liefert das jeweilige Wörterbuch', () => {
     expect(dictionaryFor('de')).toBe(DICTIONARIES.de);
     expect(dictionaryFor('en')).toBe(DICTIONARIES.en);
+  });
+});
+
+describe('describeBackupIssue', () => {
+  it('übersetzt Befunde samt Fundstelle in beide Sprachen', () => {
+    const issue = {
+      code: 'task-no-title',
+      at: { kind: 'list', index: 2, part: { kind: 'task', index: 3 } },
+    } as const;
+    expect(describeBackupIssue(DICTIONARIES.de, issue)).toBe('Zettel 2 / ToDo 3: ToDo ohne Titel.');
+    expect(describeBackupIssue(DICTIONARIES.en, issue)).toBe('List 2 / Todo 3: Todo without a title.');
+    expect(describeBackupIssue(DICTIONARIES.en, { code: 'json' })).toBe('The file is not readable JSON.');
+    expect(
+      describeBackupIssue(DICTIONARIES.de, {
+        code: 'graph',
+        graph: 'cycle',
+        at: { kind: 'template', index: 1 },
+      }),
+    ).toContain('Vorlage 1: Die Pfeile bilden einen Kreis');
   });
 });

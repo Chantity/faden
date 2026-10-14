@@ -68,7 +68,13 @@ describe('createBackup / validateBackup', () => {
     };
     const result = validateBackup(bad);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.errors.length).toBeGreaterThan(0);
+    if (!result.ok) {
+      expect(result.errors).toContainEqual({
+        code: 'graph',
+        at: { kind: 'list', index: 1 },
+        graph: 'cycle',
+      });
+    }
   });
 
   it('lehnt Pfeile auf nicht existierende ToDos ab', () => {

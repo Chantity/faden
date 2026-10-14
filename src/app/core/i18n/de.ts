@@ -97,6 +97,37 @@ export const de = {
     importSuccess: 'Sicherung eingespielt.',
   },
 
+  backupErrors: {
+    list: (n: number): string => `Zettel ${n}`,
+    template: (n: number): string => `Vorlage ${n}`,
+    task: (n: number): string => `ToDo ${n}`,
+    edge: (n: number): string => `Pfeil ${n}`,
+    graphCycle: 'Die Pfeile bilden einen Kreis (ein ToDo müsste auf sich selbst warten).',
+    graphDuplicate: 'Ein Pfeil ist doppelt vorhanden.',
+    graphReference: 'Ein Pfeil zeigt auf ein ToDo, das es nicht gibt.',
+    codes: {
+      json: 'Die Datei ist keine lesbare JSON-Datei.',
+      'not-object': 'Die Datei enthält keine gültigen Daten.',
+      'not-faden': 'Das ist keine Faden-Sicherungsdatei.',
+      'no-version': 'Die Versionsangabe fehlt.',
+      'newer-version': 'Die Sicherung stammt aus einer neueren App-Version und kann hier nicht gelesen werden.',
+      migration: 'Die Sicherung konnte nicht auf die aktuelle Version gebracht werden.',
+      'no-lists': 'Die Liste der Zettel fehlt.',
+      'no-templates': 'Die Liste der Vorlagen fehlt.',
+      'entry-invalid': 'Eintrag ist ungültig.',
+      'entry-missing-fields': 'Kennung oder Titel fehlt.',
+      'mode-invalid': 'Unbekannte Zeitplanung.',
+      'parts-missing': 'ToDos oder Pfeile fehlen.',
+      'task-invalid': 'ToDo ist ungültig.',
+      'task-no-id': 'ToDo ohne gültige Kennung.',
+      'task-no-title': 'ToDo ohne Titel.',
+      'title-too-long': 'Titel ist zu lang.',
+      'notes-invalid': 'Notizen sind ungültig oder zu lang.',
+      'edge-invalid': 'Pfeil ist ungültig.',
+      graph: 'Die Pfeile sind fehlerhaft.',
+    },
+  },
+
   remind: {
     heading: 'Sicherung empfohlen',
     body: 'Deine Zettel liegen nur in diesem Browser. Erstelle regelmäßig eine Sicherung.',
@@ -133,6 +164,7 @@ export const de = {
       join: 'Voraufgabe erstellen',
       connect: 'Mit anderem ToDo verbinden',
       delete: 'Löschen',
+      deleteOnly: 'Löschen, ohne zu verbinden',
     },
   },
 
@@ -198,6 +230,9 @@ export const de = {
     namePlaceholder: 'z. B. Geschirrspüler einräumen',
     timeboxLabel: 'Zeitplanung',
     create: 'Anlegen',
+    templateLabel: 'Aus Vorlage',
+    noTemplate: 'Ohne Vorlage (leerer Zettel)',
+    fromTemplate: 'Aus Vorlage …',
   },
 
   timebox: {
@@ -249,6 +284,11 @@ export const de = {
       'Die Uhrzeiten (Von/Bis) bleiben erhalten und werden zusätzlich als Datum + Uhrzeit übernommen.',
     convertDate: 'Datum',
     convertApply: 'Übertragen',
+    convertSkip: 'Nicht übertragen',
+    convertOffer: 'Du hast im Tagesplan Uhrzeiten eingetragen. Sollen sie auf ein Datum übertragen werden?',
+    scheduleKept:
+      'Die Datums-Zeiten bleiben gespeichert und sind wieder da, wenn du „Fester Zeitplan“ wählst.',
+    convertLater: 'Tageszeiten kannst du im Zettel unter „Zeitplan bearbeiten“ auf ein Datum übertragen.',
     noPlan: 'Noch keine Zeiten eingetragen.',
   },
 

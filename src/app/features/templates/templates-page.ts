@@ -200,9 +200,8 @@ export class TemplatesPage {
   }
 
   protected createList(template: Template): void {
-    const list = templateToList(template);
-    this.lists.addExisting(list);
-    void this.router.navigate(['/lists', list.id]);
+    const id = this.lists.addNew(templateToList(template));
+    void this.router.navigate(['/zettel', id]);
   }
 
   protected startRename(template: Template): void {

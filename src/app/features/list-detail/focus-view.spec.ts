@@ -179,4 +179,44 @@ describe('FocusView', () => {
       expect(menu.hasAttribute('open')).toBe(true);
     });
   });
+
+  function tripleList(): TodoList {
+    const list = createList('Test');
+    list.tasks = [{ ...createTask('A', 'a'), done: true }, createTask('B', 'b'), createTask('C', 'c')];
+    list.edges = [
+      { id: edgeId('a', 'b'), from: 'a', to: 'b' },
+      { id: edgeId('b', 'c'), from: 'b', to: 'c' },
+    ];
+    return list;
+  }
+
+  it('bietet „Löschen, ohne zu verbinden" nur in der Mitte einer Kette an', async () => {
+    const list = tripleList();
+    const store = TestBed.inject(ListsStore);
+    store.addExisting(list);
+    const fixture = TestBed.createComponent(FocusView);
+    fixture.componentRef.setInput('list', list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const option = [...root.querySelectorAll<HTMLButtonElement>('.menu__panel button')].find(
+      (b) => b.textContent?.trim() === 'Delete without reconnecting',
+    );
+    expect(option).toBeDefined();
+
+    option!.click();
+    await fixture.whenStable();
+    const after = store.getList(list.id)!;
+    expect(after.tasks.map((t) => t.id)).toEqual(['a', 'c']);
+    expect(after.edges.length).toBe(0);
+  });
+
+  it('zeigt die Option nicht, wenn es nichts zu verbinden gibt', async () => {
+    const list = chainList();
+    TestBed.inject(ListsStore).addExisting(list);
+    const fixture = TestBed.createComponent(FocusView);
+    fixture.componentRef.setInput('list', list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).not.toContain('Delete without reconnecting');
+  });
 });

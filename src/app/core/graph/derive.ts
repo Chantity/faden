@@ -121,3 +121,11 @@ export function doneTasks(list: TodoList): Task[] {
 function taskMap(list: TodoList): Map<string, Task> {
   return new Map(list.tasks.map((t) => [t.id, t]));
 }
+
+/**
+ * Macht das „Überbrücken" beim Löschen einen Unterschied? Nur wenn das ToDo
+ * sowohl Vorgänger als auch Nachfolger hat (SPEC 4.3, deleteTask).
+ */
+export function deleteBridges(list: TodoList, taskId: string): boolean {
+  return list.edges.some((e) => e.to === taskId) && list.edges.some((e) => e.from === taskId);
+}

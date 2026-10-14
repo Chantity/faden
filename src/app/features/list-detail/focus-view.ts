@@ -16,7 +16,9 @@ import {
   availableTasks,
   blockedTasks,
   blockingTasks,
+  deleteBridges,
   deleteTask,
+  type DeleteMode,
   insertAfter,
   insertBefore,
   openPredecessors,
@@ -198,6 +200,15 @@ interface Chain {
                     <button type="button" class="danger" (click)="remove(task); closeMenu($event)">
                       {{ t().focus.menu.delete }}
                     </button>
+                    @if (deleteBridges(list(), task.id)) {
+                      <button
+                        type="button"
+                        class="danger"
+                        (click)="remove(task, 'remove-only'); closeMenu($event)"
+                      >
+                        {{ t().focus.menu.deleteOnly }}
+                      </button>
+                    }
                   </div>
                 </details>
               </article>
@@ -563,9 +574,11 @@ export class FocusView {
     this.connectRequest.emit(task.id);
   }
 
-  protected remove(task: Task): void {
+  protected readonly deleteBridges = deleteBridges;
+
+  protected remove(task: Task, mode: DeleteMode = 'bridge'): void {
     const list = this.list();
-    this.store.editList(list.id, (l) => deleteTask(l, task.id, 'bridge'));
+    this.store.editList(list.id, (l) => deleteTask(l, task.id, mode));
     this.snackbar.show(this.t().common.delete, {
       label: this.t().common.undo,
       run: () => this.store.undo(),

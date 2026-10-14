@@ -103,4 +103,29 @@ describe('PlanEditor', () => {
     expect(updated?.startAt).toBe('2026-03-12T10:00');
     expect(updated?.endAt).toBe('2026-03-12T10:30');
   });
+
+  it('bietet nach dem Moduswechsel nur das Übertragen an, Datum = Bezugstag', async () => {
+    const task = createTask('A', 'a');
+    task.dayStart = '09:00';
+    task.dayEnd = '10:00';
+    const list = { ...scheduleList(task), dayPlanReferenceDate: '2026-03-10' };
+    const store = TestBed.inject(ListsStore);
+    store.addExisting(list);
+
+    const fixture = TestBed.createComponent(PlanEditor);
+    fixture.componentInstance.openConvert(list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.querySelector('[data-action="shift"]')).toBeNull();
+    expect(root.querySelector('[data-action="propose"]')).toBeNull();
+    expect((root.querySelector('input[type="date"]') as HTMLInputElement).value).toBe('2026-03-10');
+
+    (root.querySelector('[data-action="convert"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    const after = store.getList(list.id)!.tasks[0]!;
+    expect(after.startAt).toBe('2026-03-10T09:00');
+    expect(after.endAt).toBe('2026-03-10T10:00');
+    expect(after.dayStart).toBe('09:00');
+  });
 });

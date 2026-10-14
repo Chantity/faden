@@ -7,6 +7,7 @@ import {
   type TodoList,
 } from '../model';
 import { FadenDb } from '../storage';
+import { withTimeboxMode } from '../time';
 import { History } from './history';
 
 const CHANNEL_NAME = 'faden';
@@ -53,9 +54,12 @@ export class ListsStore {
 
   async load(): Promise<void> {
     try {
-      const lists = await this.db.getLists();
+      const stored = await this.db.getLists();
+      // Ältere Tagespläne ohne Bezugstag: ab heute gültig (SPEC 7.3).
+      const lists = stored.map((l) => withTimeboxMode(l, l.timeboxMode, new Date()));
       this.all.set(lists);
-      this.persistedIds = new Set(lists.map((l) => l.id));
+      this.persistedIds = new Set(stored.map((l) => l.id));
+      if (lists.some((l, i) => l !== stored[i])) this.schedulePersist();
     } catch {
       // Ohne IndexedDB (z. B. Tests) startet der Store leer und ohne Persistenz.
       this.loaded = false;
@@ -128,7 +132,7 @@ export class ListsStore {
   }
 
   create(title: string, timeboxMode: TimeboxMode = 'none'): string {
-    const list = createList(title, timeboxMode);
+    const list = withTimeboxMode(createList(title), timeboxMode, new Date());
     list.sortOrder = this.nextSortOrder();
     this.commit((lists) => [...lists, list]);
     return list.id;
@@ -143,7 +147,9 @@ export class ListsStore {
   setTimeboxMode(id: string, timeboxMode: TimeboxMode): void {
     this.commit((lists) =>
       lists.map((l) =>
-        l.id === id ? { ...l, timeboxMode, updatedAt: new Date().toISOString() } : l,
+        l.id === id
+          ? { ...withTimeboxMode(l, timeboxMode, new Date()), updatedAt: new Date().toISOString() }
+          : l,
       ),
     );
   }
@@ -154,7 +160,11 @@ export class ListsStore {
     this.commit((lists) =>
       lists.map((l) =>
         l.id === id
-          ? { ...l, title: changes.title, timeboxMode: changes.timeboxMode, updatedAt: now }
+          ? {
+              ...withTimeboxMode(l, changes.timeboxMode, new Date()),
+              title: changes.title,
+              updatedAt: now,
+            }
           : l,
       ),
     );
@@ -188,6 +198,13 @@ export class ListsStore {
 
   remove(id: string): void {
     this.commit((lists) => lists.filter((l) => l.id !== id));
+  }
+
+  /** Fügt einen fertig aufgebauten neuen Zettel (z. B. aus einer Vorlage) unten an. */
+  addNew(list: TodoList): string {
+    const added = { ...list, sortOrder: this.nextSortOrder() };
+    this.commit((lists) => [...lists, added]);
+    return added.id;
   }
 
   /** Rückgängig-/Wiederholen-gerechte Wiederherstellung eines ganzen Zettels. */

@@ -246,6 +246,16 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | Manifest-Sprache | `lang: "en"` statt `"de"`. | 9.1 | Englisch ist Standardsprache (Kap. 6a). |
 | PWA-Tests | **Automatisiert** (`npm run test:pwa`): Edge/Chrome headless über das DevTools-Protokoll + umschaltbarer Server; „nach mehreren Minuten" wird durch erzwungene Update-Prüfung abgedeckt (Details in `docs/PWA-TESTS.md`). | 9.4 | Wiederholbar statt nur Anleitung; keine Abhängigkeit (Node-WebSocket). Safari/iOS und Lighthouse-Accessibility bleiben manuelle Prüfungen. |
 
+## 6g. Lückenschluss gegenüber der SPEC (nach 3.11)
+
+| Thema | Ist-Stand | SPEC-Referenz | Einordnung |
+|---|---|---|---|
+| Bezugstag Tagesplan | `withTimeboxMode` setzt beim Aktivieren von `dayPlan` den Bezugstag auf heute (Anlegen, Moduswechsel, Vorlage). Ältere Zettel ohne Bezugstag erhalten beim Laden einmalig „heute". | 7.3 | **Bug:** Ohne Bezugstag lieferte `plannedBounds` keine Zeiten – „Läuft gerade"/„Nicht abgehakt" und das „Auf heute setzen"-Banner fehlten. |
+| Neuer Zettel aus Vorlage | Übersicht: Button **„Aus Vorlage …"** (nur wenn Vorlagen existieren) öffnet den Anlegen-Dialog mit Vorlagen-Auswahl; Titel/Modus werden vorbelegt und sind änderbar. | 5.2 („zweite Option im Neu-Menü") | Ein Dialog statt Untermenü: gleiche Wirkung, Titel gleich anpassbar. Nebenbei behoben: „Neuer Zettel aus Vorlage" auf der Vorlagenseite navigierte zu `/lists/…` statt `/zettel/…`. |
+| Löschen ohne Überbrücken | Zweiter Menüeintrag **„Löschen, ohne zu verbinden"** (Jetzt dran + Ablauf), nur wenn das ToDo Vorgänger **und** Nachfolger hat. | 4.3 („zweite Option im Dialog") | Kein Dialog vor jedem Löschen (Leitprinzip „keine Pop-ups ohne Not", Undo genügt); die Option erscheint nur, wo sie einen Unterschied macht. `Entf` im Ablauf überbrückt. |
+| Moduswechsel Tagesplan ↔ fester Zeitplan | `dayPlan` → `schedule` mit Tageszeiten: In der Zettel-Ansicht öffnet sich „Tageszeiten auf ein Datum übertragen" (Datum = Bezugstag, „Nicht übertragen" möglich). Aus der Übersicht heraus nur ein Hinweis, wo das geht. `schedule` → `dayPlan`: Hinweis im Hinweisband. | 7.4 | Entscheidung als reine Funktion `modeSwitchOffer` (getestet). |
+| Import-Fehlermeldungen | `validateBackup` liefert strukturierte Befunde (`BackupIssue`: Code + Fundstelle), `describeBackupIssue` übersetzt sie (de/en). | 8.5, Kap. 6a hier | Vorher fest deutsch; bei kaputtem JSON zeigte die UI den internen Code `json`. |
+
 ## 7. Fortschritt
 
 - **Phase 1 – Fundament: abgeschlossen.**
@@ -332,6 +342,9 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
   - `scripts/pwa-test.mjs`: **9/9 Pflichttests bestanden** (`docs/PWA-TESTS.md`).
   - `npm test` = **132 Tests** grün; `npm run build` ohne Warnungen.
 
+- **Lückenschluss nach 3.11: abgeschlossen** (siehe Kap. 6g).
+  - `npm test` = **146 Tests** grün; `npm run build` ohne Warnungen.
+
 ## 8. Laufendes Entscheidungsprotokoll
 
 | Datum | Entscheidung | Grund |
@@ -353,3 +366,4 @@ sind ohne Umbau ergänzbar. Bewusste Entscheidungen:
 | 2026-10-14 | Phase 3.10 (Backup & Speicher) umgesetzt | Kap. 8; `navigator.storage.persist()` nach erster Interaktion. |
 | 2026-10-14 | Bugfix-Runde: längere Pfeile, neue Menünamen, Vorlage + Menü-Schließen in der Übersicht | Nutzerwünsche (Kap. 6e). |
 | 2026-10-14 | Phase 3.11: eigener SW mit stabiler `sw.js` + separater Precache-Liste; PWA-Tests automatisiert, alle grün | Kap. 6f; keine Auto-Updates. |
+| 2026-10-14 | Lückenschluss: Bezugstag-Bug, Vorlage im Anlegen-Dialog, Löschen ohne Verbinden, Moduswechsel-Angebot, Import-Fehler übersetzt | Kap. 6g. |

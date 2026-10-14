@@ -19,6 +19,8 @@ import {
   timeStatus,
   transferDayTimesToList,
   validateDayTimes,
+  modeSwitchOffer,
+  withTimeboxMode,
 } from './index';
 
 function task(partial: Partial<Task> & { id: string; title: string }): Task {
@@ -306,5 +308,61 @@ describe('plannedBounds', () => {
       start: '2026-03-12T09:00',
       end: '2026-03-12T10:00',
     });
+  });
+});
+
+describe('withTimeboxMode (Bezugstag, SPEC 7.3)', () => {
+  const NOW = new Date(2026, 2, 12, 9, 30);
+
+  it('setzt beim Aktivieren des Tagesplans heute als Bezugstag', () => {
+    const list = withTimeboxMode(createList('Plan'), 'dayPlan', NOW);
+    expect(list.timeboxMode).toBe('dayPlan');
+    expect(list.dayPlanReferenceDate).toBe('2026-03-12');
+  });
+
+  it('macht damit Zeitstatus im neuen Tagesplan sofort wirksam', () => {
+    const list = withTimeboxMode(createList('Plan'), 'dayPlan', NOW);
+    list.tasks = [task({ id: 'a', title: 'A', dayStart: '09:00', dayEnd: '10:00' })];
+    expect(timeStatus(list, list.tasks[0]!, NOW)).toBe('running');
+  });
+
+  it('lässt einen vorhandenen Bezugstag unverändert, solange der Modus bleibt', () => {
+    const list = { ...createList('Plan', 'dayPlan'), dayPlanReferenceDate: '2026-03-01' };
+    expect(withTimeboxMode(list, 'dayPlan', NOW)).toBe(list);
+  });
+
+  it('setzt den Bezugstag neu, wenn der Tagesplan erneut aktiviert wird', () => {
+    const list = { ...createList('Plan', 'estimate'), dayPlanReferenceDate: '2026-03-01' };
+    expect(withTimeboxMode(list, 'dayPlan', NOW).dayPlanReferenceDate).toBe('2026-03-12');
+  });
+
+  it('behält Zeitfelder und Bezugstag beim Wechsel in andere Modi', () => {
+    const list = { ...createList('Plan', 'dayPlan'), dayPlanReferenceDate: '2026-03-01' };
+    list.tasks = [task({ id: 'a', title: 'A', dayStart: '09:00', estimateMinutes: 15 })];
+    const switched = withTimeboxMode(list, 'schedule', NOW);
+    expect(switched.timeboxMode).toBe('schedule');
+    expect(switched.dayPlanReferenceDate).toBe('2026-03-01');
+    expect(switched.tasks).toBe(list.tasks);
+  });
+});
+
+describe('modeSwitchOffer (SPEC 7.4)', () => {
+  it('bietet beim Wechsel Tagesplan → fester Zeitplan das Übertragen an', () => {
+    const list = createList('Plan', 'dayPlan');
+    list.tasks = [task({ id: 'a', title: 'A', dayStart: '09:00' })];
+    expect(modeSwitchOffer(list, 'schedule')).toBe('convert');
+  });
+
+  it('bietet nichts an, wenn es keine Tageszeiten gibt', () => {
+    const list = createList('Plan', 'dayPlan');
+    list.tasks = [task({ id: 'a', title: 'A' })];
+    expect(modeSwitchOffer(list, 'schedule')).toBeNull();
+  });
+
+  it('gibt beim Wechsel fester Zeitplan → Tagesplan nur einen Hinweis', () => {
+    const list = createList('Plan', 'schedule');
+    list.tasks = [task({ id: 'a', title: 'A', startAt: '2026-03-12T09:00' })];
+    expect(modeSwitchOffer(list, 'dayPlan')).toBe('scheduleKept');
+    expect(modeSwitchOffer(list, 'estimate')).toBeNull();
   });
 });

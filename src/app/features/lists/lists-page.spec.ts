@@ -5,6 +5,7 @@ import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { FadenDb } from '../../core/storage';
 import { createList, createTask, edgeId } from '../../core/model';
+import { listToTemplate } from '../../core/templates';
 
 describe('ListsPage', () => {
   beforeEach(async () => {
@@ -65,5 +66,31 @@ describe('ListsPage', () => {
     root.querySelector<HTMLElement>('.menu__panel')!.click();
 
     expect(menu.hasAttribute('open')).toBe(true);
+  });
+
+  it('legt über „From template …" einen Zettel aus einer Vorlage an', async () => {
+    const source = createList('Wäsche', 'estimate');
+    source.tasks = [createTask('Sortieren', 'a'), createTask('Waschen', 'b')];
+    source.edges = [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }];
+    await TestBed.inject(TemplatesStore).add(listToTemplate(source));
+    const root = await render();
+    const store = TestBed.inject(ListsStore);
+    const before = store.lists().length;
+
+    const button = [...root.querySelectorAll<HTMLButtonElement>('.page-head__actions button')].find(
+      (b) => b.textContent?.trim() === 'From template …',
+    )!;
+    button.click();
+    await new Promise((r) => setTimeout(r));
+    (root.querySelector('dialog button[type=submit]') as HTMLButtonElement).click();
+
+    const lists = store.lists();
+    expect(lists.length).toBe(before + 1);
+    const created = lists[lists.length - 1]!;
+    expect(created.title).toBe('Wäsche');
+    expect(created.timeboxMode).toBe('estimate');
+    expect(created.tasks.map((t) => t.title)).toEqual(['Sortieren', 'Waschen']);
+    expect(created.tasks.every((t) => !t.done)).toBe(true);
+    expect(created.edges.length).toBe(1);
   });
 });

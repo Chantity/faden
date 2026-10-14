@@ -15,7 +15,9 @@ import {
   addParallelAfter,
   addParallelBefore,
   addStandalone,
+  deleteBridges,
   deleteTask,
+  type DeleteMode,
   disconnect,
   insertAfter,
   insertBefore,
@@ -277,6 +279,11 @@ const MAX_SCALE = 2;
               <button type="button" class="danger" (click)="menuDelete(menu.id)">
                 {{ t().focus.menu.delete }}
               </button>
+              @if (deleteBridges(list(), menu.id)) {
+                <button type="button" class="danger" (click)="menuDelete(menu.id, 'remove-only')">
+                  {{ t().focus.menu.deleteOnly }}
+                </button>
+              }
             </div>
           }
 
@@ -880,10 +887,12 @@ export class FlowView {
     this.connectRequest.emit(id);
   }
 
-  protected menuDelete(id: string): void {
+  protected readonly deleteBridges = deleteBridges;
+
+  protected menuDelete(id: string, mode: DeleteMode = 'bridge'): void {
     this.nodeMenu.set(null);
     const list = this.list();
-    this.store.editList(list.id, (l) => deleteTask(l, id, 'bridge'));
+    this.store.editList(list.id, (l) => deleteTask(l, id, mode));
     this.snackbar.show(this.t().common.delete, {
       label: this.t().common.undo,
       run: () => this.store.undo(),

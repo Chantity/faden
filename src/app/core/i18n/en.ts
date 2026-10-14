@@ -98,6 +98,37 @@ export const en = {
     importSuccess: 'Backup restored.',
   },
 
+  backupErrors: {
+    list: (n: number): string => `List ${n}`,
+    template: (n: number): string => `Template ${n}`,
+    task: (n: number): string => `Todo ${n}`,
+    edge: (n: number): string => `Arrow ${n}`,
+    graphCycle: 'The arrows form a loop (a todo would have to wait for itself).',
+    graphDuplicate: 'An arrow exists twice.',
+    graphReference: 'An arrow points to a todo that does not exist.',
+    codes: {
+      json: 'The file is not readable JSON.',
+      'not-object': 'The file does not contain valid data.',
+      'not-faden': 'This is not a Faden backup file.',
+      'no-version': 'The version information is missing.',
+      'newer-version': 'The backup comes from a newer app version and cannot be read here.',
+      migration: 'The backup could not be brought up to the current version.',
+      'no-lists': 'The list of lists is missing.',
+      'no-templates': 'The list of templates is missing.',
+      'entry-invalid': 'Entry is invalid.',
+      'entry-missing-fields': 'ID or title is missing.',
+      'mode-invalid': 'Unknown time planning.',
+      'parts-missing': 'Todos or arrows are missing.',
+      'task-invalid': 'Todo is invalid.',
+      'task-no-id': 'Todo without a valid ID.',
+      'task-no-title': 'Todo without a title.',
+      'title-too-long': 'Title is too long.',
+      'notes-invalid': 'Notes are invalid or too long.',
+      'edge-invalid': 'Arrow is invalid.',
+      graph: 'The arrows are faulty.',
+    },
+  },
+
   remind: {
     heading: 'Backup recommended',
     body: 'Your lists only live in this browser. Create a backup regularly.',
@@ -134,6 +165,7 @@ export const en = {
       join: 'Create predecessor task',
       connect: 'Connect to another todo',
       delete: 'Delete',
+      deleteOnly: 'Delete without reconnecting',
     },
   },
 
@@ -199,6 +231,9 @@ export const en = {
     namePlaceholder: 'e.g. load the dishwasher',
     timeboxLabel: 'Time planning',
     create: 'Create',
+    templateLabel: 'From template',
+    noTemplate: 'No template (empty list)',
+    fromTemplate: 'From template …',
   },
 
   timebox: {
@@ -252,6 +287,11 @@ export const en = {
       'The times of day (from/to) are kept and additionally copied as date + time.',
     convertDate: 'Date',
     convertApply: 'Transfer',
+    convertSkip: 'Don’t transfer',
+    convertOffer: 'You entered times of day in the day plan. Transfer them onto a date?',
+    scheduleKept:
+      'The date-and-time entries stay saved and come back when you choose “Fixed schedule”.',
+    convertLater: 'You can transfer times of day onto a date in the list under “Edit schedule”.',
     noPlan: 'No times entered yet.',
   },
 

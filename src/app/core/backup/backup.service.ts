@@ -5,6 +5,7 @@ import {
   validateBackup,
   FadenDb,
   type BackupFile,
+  type BackupIssue,
   type ImportMode,
 } from '../storage';
 import { ListsStore } from '../state/lists.store';
@@ -13,7 +14,7 @@ import { TemplatesStore } from '../state/templates.store';
 
 export interface ImportOutcome {
   ok: boolean;
-  errors: string[];
+  errors: BackupIssue[];
 }
 
 const REMINDER_KEY = 'backupReminderDismissedAt';
@@ -82,7 +83,7 @@ export class BackupService {
     try {
       raw = JSON.parse(await file.text());
     } catch {
-      return { ok: false, errors: ['json'] };
+      return { ok: false, errors: [{ code: 'json' }] };
     }
     const validation = validateBackup(raw);
     if (!validation.ok) return { ok: false, errors: validation.errors };

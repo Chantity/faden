@@ -120,7 +120,7 @@ describe('BackupService', () => {
   it('lehnt fehlerhaftes JSON ab', async () => {
     const outcome = await TestBed.inject(BackupService).importFile(file('kein json'), 'merge');
     expect(outcome.ok).toBe(false);
-    expect(outcome.errors).toContain('json');
+    expect(outcome.errors).toContainEqual({ code: 'json' });
   });
 
   it('lehnt eine fremde Datei ab', async () => {

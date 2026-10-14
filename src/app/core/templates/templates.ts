@@ -9,6 +9,7 @@ import {
   type TodoList,
 } from '../model';
 import { extractStrand, topologicalOrder } from '../graph';
+import { withTimeboxMode } from '../time';
 
 /** Minuten zwischen zwei lokalen ISO-Zeitpunkten (oder null). */
 function durationMinutes(startAt: string | undefined, endAt: string | undefined): number | null {
@@ -72,7 +73,7 @@ export function strandToTemplate(list: TodoList, taskId: string, title?: string)
 
 /** Erzeugt einen frischen Zettel aus einer Vorlage (neue IDs, nichts erledigt). */
 export function templateToList(template: Template): TodoList {
-  const list = createList(template.title, template.timeboxMode);
+  const list = withTimeboxMode(createList(template.title), template.timeboxMode, new Date());
   const idMap = new Map<string, string>();
   for (const task of template.tasks) idMap.set(task.id, crypto.randomUUID());
   list.tasks = template.tasks.map((task) => ({

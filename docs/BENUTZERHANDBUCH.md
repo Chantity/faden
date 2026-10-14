@@ -63,7 +63,9 @@ Das Menü schließt sich mit einem Klick/Tipp irgendwo außerhalb, ohne dass du
 etwas auswählen musst.
 
 Oben rechts findest du außerdem **„+ Neuer Zettel"** sowie **Rückgängig** (↶)
-und **Wiederholen** (↷) für die letzten Änderungen.
+und **Wiederholen** (↷) für die letzten Änderungen. Hast du Vorlagen gespeichert,
+steht daneben **„Aus Vorlage …"**: Im Anlegen-Dialog wählst du die Vorlage; Titel
+und Zeitplanung werden übernommen und lassen sich vor dem Anlegen noch ändern.
 
 ## 5. Rückgängig und Wiederholen
 
@@ -132,6 +134,10 @@ findest du die vollständige Liste „Danach kommt noch …".
 - Menü **„Voraufgabe erstellen"**: eine Aufgabe ergänzen, die zusätzlich
   vorher erledigt sein muss, bevor es weitergeht (Zusammenführung).
 - Menü **„Mit anderem ToDo verbinden"**: zwei Stränge zusammenführen.
+- Menü **„Löschen"**: entfernt das ToDo und verbindet alles davor mit allem
+  danach, damit die Kette nicht reißt. Hat das ToDo etwas davor **und** danach,
+  gibt es zusätzlich **„Löschen, ohne zu verbinden"** – dann entsteht an dieser
+  Stelle eine Lücke (zwei getrennte Teile). Beides lässt sich rückgängig machen.
 - **„Neuer eigener Strang"**: eine unabhängige neue Kette auf demselben Zettel.
 
 Ein geöffnetes Menü (die drei Punkte an der Karte) schließt sich mit einem
@@ -162,7 +168,9 @@ Benachrichtigungen** – Faden rechnet nur mit.
   Der Zettel zeigt Summen: offen, gesamt, erledigt und „3 ohne Schätzung".
 - **Tagesplan** – Von-/Bis-Uhrzeit ohne Datum. ToDos sind „Läuft gerade", „Als
   Nächstes" oder „Nicht abgehakt" (dann mit **„Nachträglich abhaken"**).
-  Ist der Plan von gestern, bietet die App an, ihn „Auf heute zu setzen".
+  Die Uhrzeiten gelten für den Tag, an dem du den Tagesplan eingeschaltet
+  hast. Ist dieser Tag vorbei, bietet die App an, den Plan „Auf heute zu
+  setzen".
 - **Fester Zeitplan** – Datum + Uhrzeit, auch über mehrere Tage.
 
 Im Modus **Tagesplan** oder **Fester Zeitplan** findest du im Zettel-Menü (⋯)
@@ -176,6 +184,11 @@ den Eintrag **„Zeitplan bearbeiten"**:
   nacheinander abgelegt (ToDos ohne Schätzung zählen 15 Min).
 - **Tageszeiten auf ein Datum übertragen** (nur Tagesplan) – kopiert Von/Bis als
   Datum + Uhrzeit.
+
+Wechselst du einen Zettel vom **Tagesplan** zum **Festen Zeitplan**, fragt die
+App direkt, ob die Uhrzeiten auf ein Datum übertragen werden sollen (du kannst
+auch „Nicht übertragen" wählen). Umgekehrt geht nichts verloren: Die
+Datums-Zeiten bleiben gespeichert und sind wieder da, wenn du zurückwechselst.
 
 In **„Jetzt dran"** zeigt jede Karte mit Zeit ein Badge und den passenden
 Zustand; im **Ablauf** steht die Zeitspanne klein am Kasten.

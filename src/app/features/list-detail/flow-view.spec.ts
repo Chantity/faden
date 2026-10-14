@@ -104,4 +104,39 @@ describe('FlowView', () => {
     await fixture.whenStable();
     expect(store.getList(list.id)?.tasks.find((t) => t.id === 'a')?.done).toBe(false);
   });
+
+  function tripleList(): TodoList {
+    const list = createList('Test');
+    list.tasks = [{ ...createTask('A', 'a'), done: true }, createTask('B', 'b'), createTask('C', 'c')];
+    list.edges = [
+      { id: edgeId('a', 'b'), from: 'a', to: 'b' },
+      { id: edgeId('b', 'c'), from: 'b', to: 'c' },
+    ];
+    return list;
+  }
+
+  it('löscht im Ablauf wahlweise mit oder ohne Überbrücken', async () => {
+    const store = TestBed.inject(ListsStore);
+    for (const [label, edges] of [
+      ['Delete', 1],
+      ['Delete without reconnecting', 0],
+    ] as const) {
+      const list = tripleList();
+      store.addExisting(list);
+      const fixture = TestBed.createComponent(FlowView);
+      fixture.componentRef.setInput('list', list);
+      await fixture.whenStable();
+      const root = fixture.nativeElement as HTMLElement;
+      (root.querySelectorAll('.node__menu-btn')[1] as HTMLButtonElement).click();
+      await fixture.whenStable();
+      const button = [...root.querySelectorAll<HTMLButtonElement>('.popover button')].find(
+        (b) => b.textContent?.trim() === label,
+      )!;
+      button.click();
+      await fixture.whenStable();
+      const after = store.getList(list.id)!;
+      expect(after.tasks.map((t) => t.id)).toEqual(['a', 'c']);
+      expect(after.edges.length).toBe(edges);
+    }
+  });
 });

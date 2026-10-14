@@ -13,7 +13,8 @@ import { PageTitleService } from '../../core/i18n/page-title';
 import { SUPPORTED_LOCALES, type Locale } from '../../core/model';
 import { BackupService } from '../../core/backup/backup.service';
 import { PwaService, type OfflineState } from '../../core/pwa/pwa.service';
-import { validateBackup } from '../../core/storage';
+import { validateBackup, type BackupIssue } from '../../core/storage';
+import { describeBackupIssue } from '../../core/i18n/backup-error';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 
@@ -125,7 +126,7 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
         @if (importErrors().length > 0) {
           <p class="field__error" role="alert">{{ t().backup.invalid }}</p>
           <ul class="muted errors">
-            @for (error of importErrors(); track $index) {
+            @for (error of importErrorTexts(); track $index) {
               <li>{{ error }}</li>
             }
           </ul>
@@ -271,7 +272,10 @@ export class SettingsPage {
   protected readonly storageStatus = signal<string>('');
   protected readonly canPersist = signal(false);
   protected readonly canShare = signal(false);
-  protected readonly importErrors = signal<string[]>([]);
+  protected readonly importErrors = signal<BackupIssue[]>([]);
+  protected readonly importErrorTexts = computed(() =>
+    this.importErrors().map((issue) => describeBackupIssue(this.t(), issue)),
+  );
 
   private readonly backup = inject(BackupService);
   private readonly snackbar = inject(SnackbarService);
@@ -336,7 +340,7 @@ export class SettingsPage {
     try {
       raw = JSON.parse(text);
     } catch {
-      this.importErrors.set(['json']);
+      this.importErrors.set([{ code: 'json' }]);
       this.openImport();
       return;
     }

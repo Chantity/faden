@@ -11,12 +11,13 @@ import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { TITLE_MAX_LENGTH, type TimeboxMode, type TodoList } from '../../core/model';
 import { availableTasks, progress } from '../../core/graph';
-import { listToTemplate } from '../../core/templates';
+import { listToTemplate, templateToList } from '../../core/templates';
+import { modeSwitchOffer, withTimeboxMode } from '../../core/time';
 import { BackupService } from '../../core/backup/backup.service';
 import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
-import { ListDialog } from './list-dialog';
+import { ListDialog, type ListDialogResult } from './list-dialog';
 
 @Component({
   selector: 'app-lists-page',
@@ -32,7 +33,8 @@ export class ListsPage {
   private readonly dialog = viewChild.required(ListDialog);
   private readonly i18n = inject(I18nStore);
   private readonly backup = inject(BackupService);
-  private readonly templates = inject(TemplatesStore);
+  private readonly templatesStore = inject(TemplatesStore);
+  protected readonly templates = this.templatesStore.templates;
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly t = this.i18n.t;
@@ -81,19 +83,29 @@ export class ListsPage {
     return this.t().lists.archivedCount(this.store.archived().length);
   }
 
-  protected openCreate(): void {
-    this.dialog().showCreate();
+  protected openCreate(fromTemplate = false): void {
+    this.dialog().showCreate(fromTemplate);
   }
 
   protected openEdit(list: TodoList): void {
     this.dialog().showEdit(list);
   }
 
-  protected onSaved(event: { id: string | null; title: string; timeboxMode: TimeboxMode }): void {
-    if (event.id === null) {
+  protected onSaved(event: ListDialogResult): void {
+    const template = this.templates().find((t) => t.id === event.templateId);
+    if (event.id === null && template) {
+      const list = templateToList(template);
+      this.store.addNew(
+        withTimeboxMode({ ...list, title: event.title }, event.timeboxMode, new Date()),
+      );
+    } else if (event.id === null) {
       this.store.create(event.title, event.timeboxMode);
     } else {
+      const before = this.store.getList(event.id);
       this.store.update(event.id, { title: event.title, timeboxMode: event.timeboxMode });
+      const offer = before ? modeSwitchOffer(before, event.timeboxMode) : null;
+      if (offer === 'convert') this.snackbar.show(this.t().time.convertLater);
+      if (offer === 'scheduleKept') this.snackbar.show(this.t().time.scheduleKept);
     }
   }
 
@@ -135,7 +147,7 @@ export class ListsPage {
 
   protected saveAsTemplate(list: TodoList): void {
     const template = listToTemplate(list);
-    void this.templates.add(template);
+    void this.templatesStore.add(template);
     this.snackbar.show(this.t().templates.savedSnack(template.title));
   }
 

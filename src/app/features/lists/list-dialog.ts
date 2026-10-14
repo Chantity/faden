@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nStore } from '../../core/i18n/i18n.store';
+import { TemplatesStore } from '../../core/state/templates.store';
 import {
   TIMEBOX_MODES,
   TITLE_MAX_LENGTH,
@@ -41,6 +42,23 @@ import {
 
         @if (error()) {
           <p class="field__error" role="alert">{{ error() }}</p>
+        }
+
+        @if (!editing() && templates().length > 0) {
+          <label class="field">
+            <span class="field__label">{{ t().listDialog.templateLabel }}</span>
+            <select
+              #templateSelect
+              name="template"
+              [ngModel]="templateId()"
+              (ngModelChange)="onTemplateChange($event)"
+            >
+              <option [ngValue]="null">{{ t().listDialog.noTemplate }}</option>
+              @for (template of templates(); track template.id) {
+                <option [ngValue]="template.id">{{ template.title }}</option>
+              }
+            </select>
+          </label>
         }
 
         <fieldset class="modes">
@@ -104,7 +122,8 @@ import {
       font-size: 0.95rem;
     }
 
-    .field input[type='text'] {
+    .field input[type='text'],
+    .field select {
       min-height: var(--touch-min);
       padding: 0 var(--space-3);
       border: 1px solid var(--color-border);
@@ -170,7 +189,9 @@ import {
 export class ListDialog {
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
   private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  private readonly templateSelect = viewChild<ElementRef<HTMLSelectElement>>('templateSelect');
   private readonly i18n = inject(I18nStore);
+  protected readonly templates = inject(TemplatesStore).templates;
 
   protected readonly t = this.i18n.t;
   protected readonly modes = TIMEBOX_MODES;
@@ -180,19 +201,24 @@ export class ListDialog {
   protected readonly timeboxMode = signal<TimeboxMode>('none');
   protected readonly editing = signal(false);
   protected readonly error = signal('');
+  protected readonly templateId = signal<string | null>(null);
 
   private editingId: string | null = null;
   private restoreFocusTo: HTMLElement | null = null;
 
-  readonly saved = output<{ id: string | null; title: string; timeboxMode: TimeboxMode }>();
+  readonly saved = output<ListDialogResult>();
 
-  showCreate(): void {
+  /** Neuer Zettel; mit `fromTemplate` ist die erste Vorlage vorausgewählt (SPEC 5.2). */
+  showCreate(fromTemplate = false): void {
     this.editing.set(false);
     this.editingId = null;
     this.title.set('');
     this.timeboxMode.set('none');
+    this.templateId.set(null);
     this.error.set('');
-    this.open();
+    const first = fromTemplate ? this.templates()[0] : undefined;
+    if (first) this.onTemplateChange(first.id);
+    this.open(first ? 'template' : 'title');
   }
 
   showEdit(list: TodoList): void {
@@ -200,8 +226,9 @@ export class ListDialog {
     this.editingId = list.id;
     this.title.set(list.title);
     this.timeboxMode.set(list.timeboxMode);
+    this.templateId.set(null);
     this.error.set('');
-    this.open();
+    this.open('title');
   }
 
   close(): void {
@@ -210,6 +237,17 @@ export class ListDialog {
 
   protected onTitleChange(value: string): void {
     this.title.set(value);
+    if (this.error()) this.error.set('');
+  }
+
+  /** Vorlage gewählt: Titel (falls noch leer bzw. von der vorigen Vorlage) und Modus übernehmen. */
+  protected onTemplateChange(id: string | null): void {
+    const previous = this.templates().find((t) => t.id === this.templateId());
+    const next = this.templates().find((t) => t.id === id);
+    this.templateId.set(next ? next.id : null);
+    if (!next) return;
+    if (this.title().trim() === '' || this.title() === previous?.title) this.title.set(next.title);
+    this.timeboxMode.set(next.timeboxMode);
     if (this.error()) this.error.set('');
   }
 
@@ -223,7 +261,12 @@ export class ListDialog {
       this.error.set(this.i18n.t().errors.titleTooLong(TITLE_MAX_LENGTH));
       return;
     }
-    this.saved.emit({ id: this.editingId, title, timeboxMode: this.timeboxMode() });
+    this.saved.emit({
+      id: this.editingId,
+      title,
+      timeboxMode: this.timeboxMode(),
+      templateId: this.editing() ? null : this.templateId(),
+    });
     this.close();
   }
 
@@ -232,10 +275,21 @@ export class ListDialog {
     this.restoreFocusTo = null;
   }
 
-  private open(): void {
+  private open(focus: 'title' | 'template'): void {
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     const dialog = this.dialogRef().nativeElement;
     dialog.showModal();
-    queueMicrotask(() => this.titleInput()?.nativeElement.focus());
+    queueMicrotask(() =>
+      (focus === 'template' ? this.templateSelect() : this.titleInput())?.nativeElement.focus(),
+    );
   }
+}
+
+export interface ListDialogResult {
+  /** `null` = neuer Zettel. */
+  id: string | null;
+  title: string;
+  timeboxMode: TimeboxMode;
+  /** Nur beim Anlegen: Vorlage, aus der der Zettel entsteht. */
+  templateId: string | null;
 }

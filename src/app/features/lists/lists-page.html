@@ -20,6 +20,11 @@
       >
         ↷
       </button>
+      @if (templates().length > 0) {
+        <button type="button" class="btn" (click)="openCreate(true)">
+          {{ t().listDialog.fromTemplate }}
+        </button>
+      }
       <button type="button" class="btn btn--primary" (click)="openCreate()">
         + {{ t().lists.newList }}
       </button>

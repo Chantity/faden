@@ -2,7 +2,7 @@
 // Zeiten aus Schätzungen vorschlagen und Tageszeiten auf ein Datum übertragen.
 // Reine Funktionen, ohne Angular.
 import { type Task, type TodoList, type TimeboxMode } from '../model';
-import { parseHhMm, roundToFiveMinutes } from './format';
+import { parseHhMm, roundToFiveMinutes, toIsoDate } from './format';
 
 export interface EstimateSums {
   /** Summe der Minuten aller offenen ToDos mit Schätzung. */
@@ -236,4 +236,38 @@ export function modeFields(mode: TimeboxMode): readonly (keyof Task)[] {
     default:
       return [];
   }
+}
+
+/**
+ * Setzt den Zeitmodus eines Zettels. Wird der Tagesplan aktiviert (oder fehlt
+ * sein Bezugstag), gilt ab jetzt der heutige Tag als Bezugstag (SPEC 7.3).
+ * Zeitfelder der ToDos bleiben unberührt (SPEC 7: kein Datenverlust).
+ */
+export function withTimeboxMode(list: TodoList, mode: TimeboxMode, now: Date): TodoList {
+  const activatesDayPlan =
+    mode === 'dayPlan' && (list.timeboxMode !== 'dayPlan' || !list.dayPlanReferenceDate);
+  if (list.timeboxMode === mode && !activatesDayPlan) return list;
+  return {
+    ...list,
+    timeboxMode: mode,
+    ...(activatesDayPlan ? { dayPlanReferenceDate: toIsoDate(now) } : {}),
+  };
+}
+
+/**
+ * Was beim Moduswechsel angeboten wird (SPEC 7.4):
+ * - 'convert': `dayPlan` → `schedule` und es gibt Tageszeiten → Übertragen anbieten.
+ * - 'scheduleKept': `schedule` → `dayPlan` und es gibt Datums-Zeiten → nur Hinweis.
+ */
+export function modeSwitchOffer(
+  before: TodoList,
+  next: TimeboxMode,
+): 'convert' | 'scheduleKept' | null {
+  if (before.timeboxMode === 'dayPlan' && next === 'schedule') {
+    return before.tasks.some((t) => t.dayStart || t.dayEnd) ? 'convert' : null;
+  }
+  if (before.timeboxMode === 'schedule' && next === 'dayPlan') {
+    return before.tasks.some((t) => t.startAt || t.endAt) ? 'scheduleKept' : null;
+  }
+  return null;
 }

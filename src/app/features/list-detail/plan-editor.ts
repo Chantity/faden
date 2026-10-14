@@ -48,84 +48,90 @@ const UNIT_MS: Record<ShiftUnit, number> = {
           <p class="field__error" role="alert">{{ error() }}</p>
         }
 
-        <fieldset class="section">
-          <legend class="field__label">{{ t().time.shiftHeading }}</legend>
-          <div class="row">
-            <input
-              type="number"
-              class="input"
-              [value]="shiftAmount()"
-              (input)="onShiftAmount($event)"
-            />
-            <select class="input" [value]="shiftUnit()" (change)="onShiftUnit($event)">
-              <option value="minutes">{{ t().time.unitMinutes }}</option>
-              <option value="hours">{{ t().time.unitHours }}</option>
-              @if (mode() === 'schedule') {
-                <option value="days">{{ t().time.unitDays }}</option>
-              }
-            </select>
-            <button type="button" class="btn btn--primary" data-action="shift" (click)="applyShift()">
-              {{ t().time.shiftApply }}
-            </button>
-          </div>
-        </fieldset>
-
-        @if (mode() === 'schedule') {
+        @if (!convertOnly()) {
           <fieldset class="section">
-            <legend class="field__label">{{ t().time.stretchHeading }}</legend>
+            <legend class="field__label">{{ t().time.shiftHeading }}</legend>
             <div class="row">
-              <label class="field">
-                <span class="field__label">{{ t().time.stretchStart }}</span>
-                <input
-                  type="datetime-local"
-                  class="input"
-                  [value]="stretchStart()"
-                  (input)="stretchStart.set($any($event.target).value)"
-                />
-              </label>
-              <label class="field">
-                <span class="field__label">{{ t().time.stretchEnd }}</span>
-                <input
-                  type="datetime-local"
-                  class="input"
-                  [value]="stretchEnd()"
-                  (input)="stretchEnd.set($any($event.target).value)"
-                />
-              </label>
-              <button type="button" class="btn btn--primary" data-action="stretch" (click)="applyStretch()">
-                {{ t().time.stretchApply }}
+              <input
+                type="number"
+                class="input"
+                [value]="shiftAmount()"
+                (input)="onShiftAmount($event)"
+              />
+              <select class="input" [value]="shiftUnit()" (change)="onShiftUnit($event)">
+                <option value="minutes">{{ t().time.unitMinutes }}</option>
+                <option value="hours">{{ t().time.unitHours }}</option>
+                @if (mode() === 'schedule') {
+                  <option value="days">{{ t().time.unitDays }}</option>
+                }
+              </select>
+              <button type="button" class="btn btn--primary" data-action="shift" (click)="applyShift()">
+                {{ t().time.shiftApply }}
               </button>
             </div>
           </fieldset>
+
+          @if (mode() === 'schedule') {
+            <fieldset class="section">
+              <legend class="field__label">{{ t().time.stretchHeading }}</legend>
+              <div class="row">
+                <label class="field">
+                  <span class="field__label">{{ t().time.stretchStart }}</span>
+                  <input
+                    type="datetime-local"
+                    class="input"
+                    [value]="stretchStart()"
+                    (input)="stretchStart.set($any($event.target).value)"
+                  />
+                </label>
+                <label class="field">
+                  <span class="field__label">{{ t().time.stretchEnd }}</span>
+                  <input
+                    type="datetime-local"
+                    class="input"
+                    [value]="stretchEnd()"
+                    (input)="stretchEnd.set($any($event.target).value)"
+                  />
+                </label>
+                <button type="button" class="btn btn--primary" data-action="stretch" (click)="applyStretch()">
+                  {{ t().time.stretchApply }}
+                </button>
+              </div>
+            </fieldset>
+          }
+
+          <fieldset class="section">
+            <legend class="field__label">{{ t().time.proposeHeading }}</legend>
+            <div class="row">
+              @if (mode() === 'schedule') {
+                <input
+                  type="datetime-local"
+                  class="input"
+                  [value]="proposeStart()"
+                  (input)="proposeStart.set($any($event.target).value)"
+                />
+              } @else {
+                <input
+                  type="time"
+                  class="input"
+                  [value]="proposeStart()"
+                  (input)="proposeStart.set($any($event.target).value)"
+                />
+              }
+              <button type="button" class="btn btn--primary" data-action="propose" (click)="applyPropose()">
+                {{ t().time.proposeApply }}
+              </button>
+            </div>
+          </fieldset>
+
         }
 
-        <fieldset class="section">
-          <legend class="field__label">{{ t().time.proposeHeading }}</legend>
-          <div class="row">
-            @if (mode() === 'schedule') {
-              <input
-                type="datetime-local"
-                class="input"
-                [value]="proposeStart()"
-                (input)="proposeStart.set($any($event.target).value)"
-              />
-            } @else {
-              <input
-                type="time"
-                class="input"
-                [value]="proposeStart()"
-                (input)="proposeStart.set($any($event.target).value)"
-              />
-            }
-            <button type="button" class="btn btn--primary" data-action="propose" (click)="applyPropose()">
-              {{ t().time.proposeApply }}
-            </button>
-          </div>
-        </fieldset>
-
-        @if (mode() === 'dayPlan') {
+        @if (mode() === 'dayPlan' || convertOnly()) {
           <fieldset class="section">
             <legend class="field__label">{{ t().time.convertHeading }}</legend>
+            @if (convertOnly()) {
+              <p>{{ t().time.convertOffer }}</p>
+            }
             <p class="hint muted">{{ t().time.convertHint }}</p>
             <div class="row">
               <label class="field">
@@ -145,7 +151,9 @@ const UNIT_MS: Record<ShiftUnit, number> = {
         }
 
         <div class="sheet__actions">
-          <button type="button" class="btn" (click)="close()">{{ t().common.cancel }}</button>
+          <button type="button" class="btn" (click)="close()">
+            {{ convertOnly() ? t().time.convertSkip : t().common.cancel }}
+          </button>
         </div>
       </div>
     </dialog>
@@ -253,10 +261,20 @@ export class PlanEditor {
   protected readonly convertDate = signal('');
 
   protected readonly error = signal('');
+  /** Nur „Tageszeiten übertragen" zeigen (Angebot nach Moduswechsel, SPEC 7.4). */
+  protected readonly convertOnly = signal(false);
 
   private restoreFocusTo: HTMLElement | null = null;
 
+  /** Bietet nach dem Wechsel Tagesplan → fester Zeitplan das Übertragen an (SPEC 7.4). */
+  openConvert(list: TodoList): void {
+    this.open(list);
+    this.convertOnly.set(true);
+    this.convertDate.set(list.dayPlanReferenceDate ?? todayIso(this.nowStore.now()));
+  }
+
   open(list: TodoList): void {
+    this.convertOnly.set(false);
     this.listId.set(list.id);
     this.error.set('');
     this.shiftAmount.set(30);
