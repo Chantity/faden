@@ -1,0 +1,314 @@
+{
+  "app": "faden",
+  "schemaVersion": 3,
+  "exportedAt": "2026-10-15T08:00:00.000Z",
+  "settings": { "theme": "system", "language": "de", "schemaVersion": 3 },
+  "lists": [
+    {
+      "id": "mt-chain",
+      "title": "① Kette & Tastatur",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 0,
+      "tasks": [
+        {
+          "id": "mt-chain-a",
+          "title": "Geschirrspüler einräumen",
+          "done": false,
+          "notes": "Prüfen:\n- V (oder „Erst noch etwas anderes nötig …“) öffnet das Sheet, Enter legt an und öffnet sofort das nächste (Kette), Esc beendet.\n- Mehrzeiligen Text ins Titelfeld einfügen → eine Zeile, ein ToDo.\n- N legt danach an, E bearbeitet, Strg+Z macht rückgängig, ? zeigt die Tastenkürzel.\n- Alles ohne Maus, Fokusrahmen immer sichtbar."
+        }
+      ],
+      "edges": []
+    },
+    {
+      "id": "mt-branch",
+      "title": "② Verzweigung (UND) & Stränge",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 1,
+      "tasks": [
+        { "id": "mt-branch-a", "title": "Einkaufen", "done": false },
+        {
+          "id": "mt-branch-b",
+          "title": "Gemüse schneiden",
+          "done": false,
+          "notes": "Im Ablauf ⋯ → Löschen: „Essen servieren“ hängt danach direkt an „Einkaufen“. „Löschen, ohne zu verbinden“: die Pfeile entfallen."
+        },
+        { "id": "mt-branch-c", "title": "Nudeln kochen", "done": false },
+        {
+          "id": "mt-branch-d",
+          "title": "Essen servieren",
+          "done": false,
+          "notes": "Erst „Jetzt dran“, wenn BEIDE Zweige (Gemüse und Nudeln) erledigt sind."
+        },
+        {
+          "id": "mt-branch-e",
+          "title": "Tisch decken",
+          "done": false,
+          "notes": "Eigener Strang: ist sofort „Jetzt dran“. Im Ablauf ⋯ → Strang als Vorlage speichern."
+        }
+      ],
+      "edges": [
+        { "id": "mt-branch-a__mt-branch-b", "from": "mt-branch-a", "to": "mt-branch-b" },
+        { "id": "mt-branch-a__mt-branch-c", "from": "mt-branch-a", "to": "mt-branch-c" },
+        { "id": "mt-branch-b__mt-branch-d", "from": "mt-branch-b", "to": "mt-branch-d" },
+        { "id": "mt-branch-c__mt-branch-d", "from": "mt-branch-c", "to": "mt-branch-d" }
+      ]
+    },
+    {
+      "id": "mt-checklist",
+      "title": "③ Checkliste",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 2,
+      "tasks": [
+        {
+          "id": "mt-checklist-a",
+          "title": "Wocheneinkauf (Punkte direkt auf der Karte abhaken)",
+          "done": false,
+          "checklist": [
+            { "id": "mt-cl-1", "text": "Milch", "done": true },
+            { "id": "mt-cl-2", "text": "Brot", "done": false },
+            { "id": "mt-cl-3", "text": "Äpfel", "done": false },
+            { "id": "mt-cl-4", "text": "Kaffee", "done": false }
+          ]
+        },
+        {
+          "id": "mt-checklist-b",
+          "title": "Text → Checkliste → Text umschalten (Inhalt bleibt, Haken entfallen)",
+          "done": false,
+          "notes": "- Punkt eins\nPunkt zwei ohne Strich\n- Punkt drei\n\n(Leere Zeilen entfallen)"
+        }
+      ],
+      "edges": [{ "id": "mt-checklist-a__mt-checklist-b", "from": "mt-checklist-a", "to": "mt-checklist-b" }]
+    },
+    {
+      "id": "mt-dayplan",
+      "title": "④ Tagesplan: Pausen & relatives Einfügen",
+      "timeboxMode": "dayPlan",
+      "dayPlanReferenceDate": "2026-10-15",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 3,
+      "tasks": [
+        {
+          "id": "mt-day-a",
+          "title": "Aufstehen",
+          "done": false,
+          "dayStart": "07:00",
+          "estimateMinutes": 15,
+          "notes": "Prüfen im Ablauf:\n- Pfeile zeigen Pausen (15, 15, 10, 20 Min).\n- „+“ über Aufstehen: Dauer + Pause danach; „Davor einplanen“ vs. „Startzeit beibehalten“ (dann rückt der ganze Morgen-Strang, die Spätschicht nicht).\n- „+“ auf dem Pfeil Aufstehen → Duschen: „Danach alles nach hinten“ vs. „Davor alles nach vorne“, Vorschauzeile lesen.\n- „+“ unter Duschen (Verzweigung): Frühstück UND Kaffee rücken gleich weit.\n- „Uhrzeit direkt eingeben“ wechselt zur normalen Eingabe.\n- Danach einmal Rückgängig: Einfügen und Verschieben sind ein Schritt.\nIst der 15.10.2026 vorbei, bietet die App „Auf heute setzen“ an."
+        },
+        { "id": "mt-day-b", "title": "Duschen", "done": false, "dayStart": "07:30", "estimateMinutes": 15 },
+        { "id": "mt-day-c", "title": "Frühstück machen", "done": false, "dayStart": "08:00", "estimateMinutes": 20 },
+        { "id": "mt-day-d", "title": "Kaffee kochen", "done": false, "dayStart": "08:00", "estimateMinutes": 10 },
+        {
+          "id": "mt-day-e",
+          "title": "Frühstücken",
+          "done": false,
+          "dayStart": "08:30",
+          "estimateMinutes": 30,
+          "notes": "⋯ → „Strang verschieben …“ um 30 Min: Vorschau zeigt erste und letzte Zeit; nur der Morgen-Strang ändert sich."
+        },
+        {
+          "id": "mt-day-f",
+          "title": "Spätschicht (Mitternachts-Grenze)",
+          "done": false,
+          "dayStart": "23:00",
+          "estimateMinutes": 45,
+          "notes": "- Zettel-⋯ → Zeitplan bearbeiten → Alles verschieben um +30 Min: Hinweis „zwischen 0:00 und 24:00“, nichts ändert sich.\n- „+“ darunter mit Pause 10 + Dauer 15: Fehler statt Uhrzeit nach Mitternacht.\n- Bearbeiten, Dauer 90 Min: Fehler (Ende nach 24:00)."
+        }
+      ],
+      "edges": [
+        { "id": "mt-day-a__mt-day-b", "from": "mt-day-a", "to": "mt-day-b" },
+        { "id": "mt-day-b__mt-day-c", "from": "mt-day-b", "to": "mt-day-c" },
+        { "id": "mt-day-b__mt-day-d", "from": "mt-day-b", "to": "mt-day-d" },
+        { "id": "mt-day-c__mt-day-e", "from": "mt-day-c", "to": "mt-day-e" },
+        { "id": "mt-day-d__mt-day-e", "from": "mt-day-d", "to": "mt-day-e" }
+      ]
+    },
+    {
+      "id": "mt-schedule",
+      "title": "⑤ Fester Zeitplan: Zeitumstellung & mehrere Tage",
+      "timeboxMode": "schedule",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 4,
+      "tasks": [
+        {
+          "id": "mt-sched-a",
+          "title": "Bäcker",
+          "done": false,
+          "startAt": "2026-10-24T09:00",
+          "estimateMinutes": 30,
+          "notes": "Zettel-⋯ → Zeitplan bearbeiten → Alles verschieben um 1 Tag: Bäcker steht danach am So. 25.10. um 09:00 (nicht 08:00), obwohl in der Nacht die Uhr umgestellt wird.\nAuch prüfen: Auf Zeitraum strecken; Moduswechsel zum Tagesplan und zurück verliert nichts."
+        },
+        { "id": "mt-sched-b", "title": "Markt", "done": false, "startAt": "2026-10-24T10:00", "estimateMinutes": 60 },
+        {
+          "id": "mt-sched-c",
+          "title": "Wochenend-Ausflug (über Nacht)",
+          "done": false,
+          "startAt": "2026-10-24T14:00",
+          "estimateMinutes": 1500,
+          "notes": "Dauert über Mitternacht (25 Std) – im festen Zeitplan erlaubt."
+        }
+      ],
+      "edges": [
+        { "id": "mt-sched-a__mt-sched-b", "from": "mt-sched-a", "to": "mt-sched-b" },
+        { "id": "mt-sched-b__mt-sched-c", "from": "mt-sched-b", "to": "mt-sched-c" }
+      ]
+    },
+    {
+      "id": "mt-estimate",
+      "title": "⑥ Zeitschätzung: Summen & Teilsummen",
+      "timeboxMode": "estimate",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 5,
+      "tasks": [
+        {
+          "id": "mt-est-a",
+          "title": "Staubsaugen",
+          "done": false,
+          "estimateMinutes": 15,
+          "notes": "Kopf: Offen 1 Std 5 Min, „1 ohne Schätzung“. Ablauf: über jedem der beiden Stränge eine Teilsumme."
+        },
+        { "id": "mt-est-b", "title": "Wischen", "done": false, "estimateMinutes": 20 },
+        { "id": "mt-est-c", "title": "Fenster putzen", "done": false, "estimateMinutes": 30 },
+        { "id": "mt-est-d", "title": "Rahmen abwischen", "done": false }
+      ],
+      "edges": [
+        { "id": "mt-est-a__mt-est-b", "from": "mt-est-a", "to": "mt-est-b" },
+        { "id": "mt-est-c__mt-est-d", "from": "mt-est-c", "to": "mt-est-d" }
+      ]
+    },
+    {
+      "id": "mt-done",
+      "title": "⑦ Alles erledigt (wird beim Neuladen archiviert)",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 6,
+      "tasks": [
+        { "id": "mt-done-a", "title": "Erledigtes ToDo", "done": true, "doneAt": "2026-10-15T08:00:00.000Z" },
+        { "id": "mt-done-b", "title": "Noch eins erledigt", "done": true, "doneAt": "2026-10-15T08:05:00.000Z" }
+      ],
+      "edges": [{ "id": "mt-done-a__mt-done-b", "from": "mt-done-a", "to": "mt-done-b" }]
+    },
+    {
+      "id": "mt-archived",
+      "title": "⑧ Archiv: Menü & Duplizieren",
+      "timeboxMode": "estimate",
+      "archived": true,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 7,
+      "tasks": [
+        {
+          "id": "mt-arch-a",
+          "title": "Archiv: Chip „Zeitschätzung“, „Enthaltene ToDos (2)“ aufklappen",
+          "done": true,
+          "doneAt": "2026-10-15T08:00:00.000Z",
+          "estimateMinutes": 10
+        },
+        {
+          "id": "mt-arch-b",
+          "title": "⋯ → Duplizieren: Kopie heißt „… (2)“, ist aktiv und nicht abgehakt",
+          "done": true,
+          "doneAt": "2026-10-15T08:10:00.000Z",
+          "estimateMinutes": 5
+        }
+      ],
+      "edges": [{ "id": "mt-arch-a__mt-arch-b", "from": "mt-arch-a", "to": "mt-arch-b" }]
+    },
+    {
+      "id": "mt-name-1",
+      "title": "⑨ Doppelter Name",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 8,
+      "tasks": [
+        {
+          "id": "mt-name-1-a",
+          "title": "Nach dem Neuladen heißt der andere Zettel „⑨ doppelter name (2)“",
+          "done": false,
+          "notes": "Außerdem: Neuer Zettel / Umbenennen auf „⑨ DOPPELTER NAME“ → Hinweis, Speichern gesperrt."
+        }
+      ],
+      "edges": []
+    },
+    {
+      "id": "mt-name-2",
+      "title": "⑨ doppelter name",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 9,
+      "tasks": [{ "id": "mt-name-2-a", "title": "Gleicher Name, nur andere Schreibweise", "done": false }],
+      "edges": []
+    },
+    {
+      "id": "mt-long",
+      "title": "⑩ Lange Titel auf dem Handy (360 px) – Karten, Ablauf und Seitenleiste dürfen nicht horizontal scrollen",
+      "timeboxMode": "dayPlan",
+      "dayPlanReferenceDate": "2026-10-15",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 10,
+      "tasks": [
+        {
+          "id": "mt-long-a",
+          "title": "Ein sehr langer ToDo-Titel, der auf schmalen Bildschirmen umbrechen muss und im Ablauf nach drei Zeilen sauber abgeschnitten wird, statt die Karte zu sprengen",
+          "done": false,
+          "dayStart": "18:00",
+          "estimateMinutes": 45
+        },
+        {
+          "id": "mt-long-b",
+          "title": "Superlangeswortohneleerzeichenzumtestendesumbruchsinkartenundimablaufdiagramm",
+          "done": false,
+          "dayStart": "19:00",
+          "estimateMinutes": 15
+        }
+      ],
+      "edges": [{ "id": "mt-long-a__mt-long-b", "from": "mt-long-a", "to": "mt-long-b" }]
+    }
+  ],
+  "templates": [
+    {
+      "id": "mt-tpl-morning",
+      "title": "Vorlage: Morgenroutine (Tagesplan mit Checkliste)",
+      "timeboxMode": "dayPlan",
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "tasks": [
+        { "id": "mt-tpl-a", "title": "Aufstehen", "dayStart": "07:00", "estimateMinutes": 10 },
+        {
+          "id": "mt-tpl-b",
+          "title": "Tasche packen",
+          "dayStart": "07:20",
+          "estimateMinutes": 10,
+          "checklist": [
+            { "id": "mt-tpl-cl-1", "text": "Schlüssel", "done": false },
+            { "id": "mt-tpl-cl-2", "text": "Handy", "done": false },
+            { "id": "mt-tpl-cl-3", "text": "Geldbeutel", "done": false }
+          ]
+        }
+      ],
+      "edges": [{ "id": "mt-tpl-a__mt-tpl-b", "from": "mt-tpl-a", "to": "mt-tpl-b" }]
+    }
+  ]
+}

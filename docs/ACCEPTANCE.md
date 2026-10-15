@@ -38,6 +38,34 @@ auf eine Bildschirmgröße einschränken.
 | 17 | **Checkliste:** Beschreibung als Text oder Checkliste umschaltbar ohne Inhaltsverlust (Haken entfallen beim Wechsel zu Text); Punkte direkt auf der Karte in „Jetzt dran“ abhakbar. | Unit-Tests `checklist.spec`, `task-editor.spec`, `focus-view.spec`; `test:acceptance` Tests 8 | ✔ |
 | 18 | **Zeitplanung mit Start + Dauer:** Zeit im Sheet als Zusammenfassungszeile (beim Anlegen im Tagesplan/festen Zeitplan aufgeklappt); Pause am Pfeil nur bei > 0; Verschieben für Zettel oder Strang mit Vorschau, im Tagesplan nie über 0:00/24:00; relatives Einfügen vor dem ersten, nach dem letzten und dazwischen (beide Optionen, Verzweigungen), nur im eigenen Strang, ein Undo-Schritt; „+1 Tag“ behält die Uhrzeit über die Zeitumstellung. | Unit-Tests `time.spec` (`pauseBetween`, `relativeContext`, `placeRelative`, `shiftPlan` mit Bereich und Zeitumstellung, `shiftLeavesDay`), `task-editor.spec` (Zeit), `plan-editor.spec`, `flow-view.spec`; `test:acceptance` Tests 8 (Ablauf und Sheet im Tagesplan) | ✔ |
 
+## Manuelle Testdaten
+
+[`manual-test-data.json`](manual-test-data.json) ist ein Backup für schnelle
+Handtests. Import unter **Einstellungen → Backup importieren**:
+„Zusammenführen“ ergänzt die vorhandenen Daten, „Alles ersetzen“ gibt einen
+sauberen Stand (vorher wird automatisch gesichert). Danach einmal neu laden,
+damit Auto-Archiv (⑦) und eindeutige Namen (⑨) greifen.
+
+| Zettel | Prüft |
+|---|---|
+| ① Kette & Tastatur | Enter-Kette im Sheet, mehrzeiliges Einfügen, Tastenkürzel |
+| ② Verzweigung (UND) & Stränge | UND-Semantik, Löschen mit/ohne Überbrücken, Strang als Vorlage |
+| ③ Checkliste | Abhaken auf der Karte, Umschalten Text ↔ Checkliste |
+| ④ Tagesplan | Pausen am Pfeil, relatives Einfügen (alle Fälle), Strang verschieben, 24:00-Grenze |
+| ⑤ Fester Zeitplan | „+1 Tag“ über die Zeitumstellung (25.10.2026), mehrtägige Dauer, Strecken |
+| ⑥ Zeitschätzung | Summen, „ohne Schätzung“, Teilsummen je Strang |
+| ⑦ Alles erledigt | Auto-Archiv beim Betreten der Übersicht, mit Rückgängig |
+| ⑧ Archiv | Modus-Chip, enthaltene ToDos, Menü, Duplizieren als „(2)“ |
+| ⑨ Doppelter Name (2×) | Bereinigung beim Laden, gesperrte Namen im Dialog |
+| ⑩ Lange Titel | Umbruch und Abschneiden bei 360 px |
+| Vorlage: Morgenroutine | Vorlage mit Zeiten und Checkliste einsetzen |
+
+Was jeweils zu tun ist, steht in den Notizen der ToDos. Neue Features ergänzen
+hier ihren Zettel; der Unit-Test in `storage.spec` stellt sicher, dass die Datei
+ein gültiges Backup im aktuellen Schema bleibt. Wird dieselbe Datei zweimal
+zusammengeführt, entstehen gleichnamige Zettel – das ist der Ausgangsfall für
+die Import-Konflikte aus Phase 5.
+
 ## Offen (nur manuell möglich)
 
 | Prüfung | Warum manuell | Status |

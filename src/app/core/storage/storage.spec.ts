@@ -11,6 +11,7 @@ import {
 } from '../model';
 import { applyImport, createBackup, validateBackup, type BackupFile } from './backup';
 import { migrate, upgradeList, upgradeLists } from './migrations';
+import manualTestData from '../../../../docs/manual-test-data.json';
 
 const NOW = '2026-01-01T00:00:00.000Z';
 
@@ -232,6 +233,18 @@ describe('uniqueTitle', () => {
     const result = uniqueTitle(long, [long]);
     expect(result.length).toBe(TITLE_MAX_LENGTH);
     expect(result.endsWith(' (2)')).toBe(true);
+  });
+});
+
+describe('docs/manual-test-data.json', () => {
+  it('ist ein gültiges, aktuelles Backup (sonst ist die manuelle Testsuite veraltet)', () => {
+    const result = validateBackup(manualTestData);
+    expect(result.ok ? [] : result.errors).toEqual([]);
+    if (!result.ok) return;
+    expect(result.value.lists).toHaveLength(manualTestData.lists.length);
+    expect(result.value.templates).toHaveLength(manualTestData.templates.length);
+    // Absichtlich doppelter Name (⑨): wird beim Laden eindeutig gemacht.
+    expect(upgradeLists(result.value.lists).map((l) => l.title)).toContain('⑨ doppelter name (2)');
   });
 });
 
