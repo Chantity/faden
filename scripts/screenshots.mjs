@@ -307,6 +307,8 @@ for (const lang of ['en', 'de']) {
   await shoot(lang, 'templates', 'main', { maxHeight: 360 });
   await open('#/einstellungen', `document.querySelector('main h1') !== null`);
   await shoot(lang, 'settings', 'main', { maxHeight: 1400, tall: true });
+  await open('#/ueber', `document.querySelector('main h1') !== null`);
+  await shoot(lang, 'about', 'main', { maxHeight: 900, tall: true });
   await open('#/einstellungen/fortgeschritten', `document.querySelector('.keys') !== null`);
   await shoot(lang, 'advanced', 'main', { maxHeight: 760, tall: true });
   await open('#/einstellungen', `document.querySelector('main h1') !== null`);

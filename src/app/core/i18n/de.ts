@@ -35,6 +35,7 @@ export const de = {
     lists: 'Zettel',
     templates: 'Vorlagen',
     settings: 'Einstellungen',
+    about: 'Über',
   },
 
   titles: {
@@ -43,6 +44,7 @@ export const de = {
     templates: 'Vorlagen',
     settings: 'Einstellungen',
     advanced: 'Für Fortgeschrittene',
+    about: 'Über',
   },
 
   lists: {

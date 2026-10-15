@@ -245,11 +245,13 @@ await test('2 Server aus: App startet, anlegen, abhaken, Export', async () => {
   assert(list?.tasks[0]?.title === TASK_TITLE && list.tasks[0].done, 'Backup enthält Änderungen nicht');
 
   // Anleitung kommt aus dem Precache
+  await page.goto(BASE + '#/ueber');
+  await page.waitFor(`[...document.querySelectorAll('button')].some((b) => b.textContent.trim() === 'Read the guide')`, 'Tab „About“');
   await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Read the guide').click()`);
   await page.waitFor(`document.querySelector('dialog[open] .guide__content h2')`, 'Anleitung offline');
   await page.press('Escape');
   await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'What’s new?').click()`);
-  await page.waitFor(`document.querySelector('dialog[open] .guide__content h3')?.textContent.trim() === '2.1.0'`, 'Changelog offline');
+  await page.waitFor(`document.querySelector('dialog[open] .guide__content h3')?.textContent.trim() === ${JSON.stringify(manifest.version)}`, 'Changelog offline');
   await page.press('Escape');
   await assertSwIntact(page);
   return `Zettel + ToDo offline angelegt und abgehakt, ${file} exportiert, Anleitung und Changelog offline gelesen`;
@@ -293,7 +295,7 @@ const hasButton = (label) =>
 
 await test('8a Update auf Knopfdruck: unvollständige neue Version ändert nichts', async () => {
   await setMode('newer-broken');
-  await page.goto(BASE + '#/einstellungen');
+  await page.goto(BASE + '#/ueber');
   await page.waitFor(hasButton('Check for a new version'), 'Update-Button');
   await clickButton('Check for a new version');
   await page.waitFor(`document.body.innerText.includes('New version 98.0.0 available')`, 'Angebot');
@@ -308,7 +310,7 @@ await test('8a Update auf Knopfdruck: unvollständige neue Version ändert nicht
 
 await test('8b Update auf Knopfdruck: vollständige neue Version wird übernommen', async () => {
   await setMode('newer');
-  await page.goto(BASE + '#/einstellungen');
+  await page.goto(BASE + '#/ueber');
   await page.waitFor(hasButton('Check for a new version'), 'Update-Button');
   await clickButton('Check for a new version');
   await page.waitFor(`document.body.innerText.includes('New version 99.0.0 available')`, 'Angebot');

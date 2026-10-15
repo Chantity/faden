@@ -20,6 +20,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/settings/settings-page').then((m) => m.SettingsPage),
   },
   {
+    path: 'ueber',
+    loadComponent: () => import('./features/about/about-page').then((m) => m.AboutPage),
+  },
+  {
     path: 'einstellungen/fortgeschritten',
     loadComponent: () => import('./features/settings/advanced-page').then((m) => m.AdvancedPage),
   },

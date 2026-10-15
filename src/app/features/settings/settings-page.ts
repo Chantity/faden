@@ -7,7 +7,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { APP_REPO_URL, APP_VERSION } from '../../app-meta';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { SUPPORTED_LOCALES, type Locale } from '../../core/model';
@@ -18,14 +17,12 @@ import { ListsStore } from '../../core/state/lists.store';
 import { describeBackupIssue } from '../../core/i18n/backup-error';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
-import { GuideDialog } from '../../shared/guide/guide-dialog';
 import { RouterLink } from '@angular/router';
-import { formatBytes } from '../../core/time';
 
 @Component({
   selector: 'app-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [GuideDialog, RouterLink],
+  imports: [RouterLink],
   template: `
     <h1>{{ t().nav.settings }}</h1>
 
@@ -66,19 +63,6 @@ import { formatBytes } from '../../core/time';
     </section>
 
     <section class="card block">
-      <h2>{{ t().settings.storageHeading }}</h2>
-      <p class="muted">{{ storageStatus() }}</p>
-      @if (storageUsage(); as usage) {
-        <p class="muted">{{ usage }}</p>
-      }
-      @if (canPersist()) {
-        <button type="button" class="btn" (click)="requestPersist()">
-          {{ t().settings.persistAction }}
-        </button>
-      }
-    </section>
-
-    <section class="card block">
       <h2>{{ t().settings.installHeading }}</h2>
       <p class="muted" role="status">{{ offlineLabel() }}</p>
       @if (pwa.installed()) {
@@ -96,55 +80,6 @@ import { formatBytes } from '../../core/time';
           <p class="muted">{{ t().settings.installManual }}</p>
         }
       }
-    </section>
-
-    <section class="card block">
-      <h2>{{ t().settings.versionHeading }}</h2>
-      <p class="muted">{{ t().settings.versionLabel }}: {{ appVersion }}</p>
-      <div class="actions">
-        <button type="button" class="btn" (click)="guide.open('changelog')">{{ t().settings.changelogOpen }}</button>
-      </div>
-      @if (pwa.offline() === 'ready') {
-        <p class="muted">{{ t().settings.updateHint }}</p>
-        @switch (pwa.update()) {
-          @case ('available') {
-            <div class="update-banner" role="status">
-              <p>{{ t().settings.updateAvailable(pwa.updateVersion() ?? '') }}</p>
-              <div class="actions">
-                <button type="button" class="btn btn--primary" (click)="pwa.applyUpdate()">
-                  {{ t().settings.updateApply }}
-                </button>
-                <button type="button" class="btn" (click)="pwa.update.set('idle')">
-                  {{ t().settings.updateLater }}
-                </button>
-              </div>
-            </div>
-          }
-          @case ('checking') {
-            <p role="status">{{ t().settings.updateChecking }}</p>
-          }
-          @case ('applying') {
-            <p role="status">{{ t().settings.updateApplying }}</p>
-          }
-          @default {
-            @if (updateMessage(); as message) {
-              <p role="status">{{ message }}</p>
-            }
-            <button type="button" class="btn" (click)="pwa.checkForUpdate()">
-              {{ t().settings.updateCheck }}
-            </button>
-          }
-        }
-      }
-    </section>
-
-    <section class="card block">
-      <h2>{{ t().settings.helpHeading }}</h2>
-      <div class="actions">
-        <button type="button" class="btn" (click)="guide.open()">{{ t().settings.guideOpen }}</button>
-        <a class="btn" [href]="repoUrl" target="_blank" rel="noopener">{{ t().settings.repoLink }}</a>
-      </div>
-      <app-guide-dialog #guide />
     </section>
 
     <section class="card block">
@@ -340,8 +275,6 @@ export class SettingsPage {
   protected readonly settings = inject(SettingsStore);
   private readonly i18n = inject(I18nStore);
   protected readonly t = this.i18n.t;
-  protected readonly appVersion = APP_VERSION;
-  protected readonly repoUrl = APP_REPO_URL;
 
   protected readonly themeOptions = computed<{ value: ThemeChoice; label: string }[]>(() => {
     const s = this.t().settings;
@@ -372,33 +305,6 @@ export class SettingsPage {
     return labels[this.pwa.offline()];
   });
 
-  protected readonly updateMessage = computed(() => {
-    const s = this.t().settings;
-    switch (this.pwa.update()) {
-      case 'current':
-        return s.updateCurrent;
-      case 'unreachable':
-        return s.updateUnreachable;
-      case 'failed':
-        return s.updateFailed;
-      default:
-        return null;
-    }
-  });
-
-  protected readonly storageStatus = signal<string>('');
-  protected readonly canPersist = signal(false);
-  private readonly storageEstimate = signal<{ usage: number; quota: number } | null>(null);
-  /** `navigator.storage.estimate()` als Info. */
-  protected readonly storageUsage = computed(() => {
-    const estimate = this.storageEstimate();
-    if (!estimate) return null;
-    const locale = this.settings.language();
-    return this.t().settings.storageUsage(
-      formatBytes(estimate.usage, locale),
-      formatBytes(estimate.quota, locale),
-    );
-  });
   protected readonly canShare = signal(false);
   protected readonly importErrors = signal<BackupIssue[]>([]);
   protected readonly importErrorTexts = computed(() =>
@@ -428,23 +334,7 @@ export class SettingsPage {
 
   constructor() {
     inject(PageTitleService).set('settings');
-    this.storageStatus.set(this.t().settings.storagePending);
     this.canShare.set(this.backup.canShare());
-    void this.checkStorage();
-    void this.checkEstimate();
-  }
-
-  protected async requestPersist(): Promise<void> {
-    if (typeof navigator === 'undefined' || !navigator.storage?.persist) return;
-    try {
-      const granted = await navigator.storage.persist();
-      this.storageStatus.set(
-        granted ? this.t().settings.persistGranted : this.t().settings.persistDenied,
-      );
-      this.canPersist.set(!granted);
-    } catch {
-      // Ignoriert: Status bleibt wie zuvor.
-    }
   }
 
   protected async install(): Promise<void> {
@@ -526,29 +416,5 @@ export class SettingsPage {
   private openImport(): void {
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     this.importDlg().nativeElement.showModal();
-  }
-
-  private async checkEstimate(): Promise<void> {
-    if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return;
-    try {
-      const { usage, quota } = await navigator.storage.estimate();
-      if (typeof usage === 'number' && typeof quota === 'number' && quota > 0) {
-        this.storageEstimate.set({ usage, quota });
-      }
-    } catch {
-      // Nur eine Info – fehlt sie, wird nichts angezeigt.
-    }
-  }
-
-  private async checkStorage(): Promise<void> {
-    if (typeof navigator === 'undefined' || !navigator.storage?.persisted) {
-      this.storageStatus.set(this.t().settings.storageUnprotected);
-      return;
-    }
-    const persisted = await navigator.storage.persisted();
-    this.storageStatus.set(
-      persisted ? this.t().settings.storagePersisted : this.t().settings.storageUnprotected,
-    );
-    this.canPersist.set(!persisted && typeof navigator.storage.persist === 'function');
   }
 }

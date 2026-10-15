@@ -75,8 +75,10 @@
     justify-content: space-between;
   }
 
+  /* Vier Tabs passen ab 360 px in eine Zeile; schmaler brechen sie in zwei. */
   .app-header__nav a {
-    flex: 1;
+    flex: 1 1 auto;
+    padding-inline: var(--space-2);
     text-align: center;
   }
 }

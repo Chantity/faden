@@ -347,6 +347,7 @@ const PAGES = [
   { name: 'Ablauf (lange Titel)', hash: '#/zettel/lang', view: 'flow', fullZoom: true },
   { name: 'Vorlagen', hash: '#/vorlagen' },
   { name: 'Einstellungen', hash: '#/einstellungen' },
+  { name: 'Über', hash: '#/ueber' },
   { name: 'Für Fortgeschrittene', hash: '#/einstellungen/fortgeschritten' },
 ];
 

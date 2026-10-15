@@ -35,6 +35,7 @@ export const en = {
     lists: 'Lists',
     templates: 'Templates',
     settings: 'Settings',
+    about: 'About',
   },
 
   titles: {
@@ -43,6 +44,7 @@ export const en = {
     templates: 'Templates',
     settings: 'Settings',
     advanced: 'Advanced',
+    about: 'About',
   },
 
   lists: {
