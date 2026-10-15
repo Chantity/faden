@@ -12,9 +12,13 @@ describe('GuideDialog', () => {
     }).compileComponents();
   });
 
-  afterEach(() => vi.unstubAllGlobals());
+  // Testdateien teilen sich hier den Worker (keine Isolation): nichts Globales zurücklassen.
+  const originalScroll = HTMLElement.prototype.scrollIntoView;
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    HTMLElement.prototype.scrollIntoView = originalScroll;
+  });
 
-  // Reihenfolge wichtig: Die Anleitung wird pro Sitzung zwischengespeichert, ein Fehler nicht.
   it('meldet ruhig, wenn die Anleitung nicht geladen werden kann', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404 })));
     const fixture = TestBed.createComponent(GuideDialog);

@@ -259,6 +259,12 @@ Dauern und Modus – nie den Erledigt-Status und nie absolute Datumsangaben.
 - **Unit-Tests** (Vitest) für jede reine Funktion, inklusive Grenzfällen
   (Zyklen, Verzweigungen, Sommer-/Winterzeit, Migration, Import-Roundtrip).
 - **Komponententests** für Bedienabläufe mit Logik in der Komponente.
+- `ng test` isoliert Testdateien **nicht** (`--isolate` ist aus): Dateien im
+  selben Worker teilen Modul-Variablen und Globales. Deshalb kein Zustand auf
+  Modulebene (Zwischenspeicher gehören in Services, die jedes TestBed neu
+  anlegt), und Tests stellen alles Globale wieder her. Wie die CI mit wenigen
+  Kernen prüfen: `ng test --runner-config` mit
+  `{ test: { maxWorkers: 1, fileParallelism: false } }`.
 - **PWA-Pflichttests** (`npm run test:pwa`) gegen den Produktionsbuild in einem
   echten Browser: Offline, 404/500/Captive-Portal, keine Auto-Updates, Neustart,
   keine externen Requests (`docs/PWA-TESTS.md`).

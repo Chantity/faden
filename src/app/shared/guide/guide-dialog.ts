@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   inject,
+  Injectable,
   Injector,
   signal,
   viewChild,
@@ -14,17 +15,24 @@ import { I18nStore } from '../../core/i18n/i18n.store';
 /** Vom Build erzeugt (scripts/guide.mjs) und vorab gecacht – also auch offline da. */
 const GUIDE_URL = 'guide/guide.html';
 
-let loading: Promise<string> | null = null;
+/**
+ * Lädt die Anleitung einmal pro Sitzung (geteilt von allen Dialogen); nach einem
+ * Fehler beim nächsten Öffnen erneut. Als Service statt Modul-Variable, damit
+ * jeder Test frisch beginnt (Vitest isoliert Testdateien hier nicht).
+ */
+@Injectable({ providedIn: 'root' })
+export class GuideLoader {
+  private loading: Promise<string> | null = null;
 
-/** Lädt die Anleitung einmal pro Sitzung; nach einem Fehler beim nächsten Öffnen erneut. */
-function loadGuide(): Promise<string> {
-  loading ??= fetch(GUIDE_URL)
-    .then((response) => (response.ok ? response.text() : Promise.reject(new Error(String(response.status)))))
-    .catch((error: unknown) => {
-      loading = null;
-      throw error;
-    });
-  return loading;
+  load(): Promise<string> {
+    this.loading ??= fetch(GUIDE_URL)
+      .then((response) => (response.ok ? response.text() : Promise.reject(new Error(String(response.status)))))
+      .catch((error: unknown) => {
+        this.loading = null;
+        throw error;
+      });
+    return this.loading;
+  }
 }
 
 /** Wie der Konverter: GitHub-Anker (Angulars Sanitizer entfernt die `id`s, sie werden hier neu gesetzt). */
@@ -156,6 +164,7 @@ function slug(text: string): string {
 export class GuideDialog {
   private readonly injector = inject(Injector);
   private readonly i18n = inject(I18nStore);
+  private readonly loader = inject(GuideLoader);
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
   private readonly bodyRef = viewChild.required<ElementRef<HTMLElement>>('body');
 
@@ -171,7 +180,7 @@ export class GuideDialog {
     const dialog = this.dialogRef().nativeElement;
     if (!dialog.open) dialog.showModal();
     try {
-      this.html.set(await loadGuide());
+      this.html.set(await this.loader.load());
     } catch {
       this.failed.set(true);
       return;
