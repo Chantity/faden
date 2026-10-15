@@ -341,7 +341,7 @@ Bausteine:
 | `scripts/generate-icons.mjs` | Rastert die Icon-Geometrie (Quelle: `public/icons/icon.svg`) ohne Fremdpakete zu PNG/ICO (`npm run icons`). |
 | `core/pwa/pwa.service.ts` | Registriert `./sw.js` (nur Produktion, nach `load`), fängt `beforeinstallprompt` ab, erkennt iOS und installierten Modus, fragt den SW nach dem Precache-Status („Offline bereit"). |
 | `scripts/pwa-test.mjs` | Automatisierte Pflichttests, siehe `docs/PWA-TESTS.md`. |
-| `scripts/guide.mjs`, `scripts/lib/markdown.mjs` | Läuft vor `ng build` und `ng serve`: wandelt `docs/USER-GUIDE.md` mit einem eigenen kleinen Konverter (nur die genutzten Elemente, keine Abhängigkeit; Tests mit `npm run test:scripts`) in das Fragment `public/guide/guide.html` um und kopiert `docs/images/`. Nicht eingecheckt; über den Build im Precache, also offline lesbar. |
+| `scripts/guide.mjs`, `scripts/lib/markdown.mjs` | Läuft vor `ng build` und `ng serve`: wandelt `docs/USER-GUIDE.md` mit einem eigenen kleinen Konverter (nur die genutzten Elemente, Zitate als Kästen „Am PC / Auf dem Handy“, keine Abhängigkeit; Tests mit `npm run test:scripts`) in das Fragment `public/guide/guide.html` um und kopiert `docs/images/`. Nicht eingecheckt; über den Build im Precache, also offline lesbar. |
 
 Ablauf im Service Worker:
 
@@ -374,7 +374,17 @@ npm run test:pwa   # PWA-/Offline-Pflichttests gegen den Produktionsbuild
 npm run test:acceptance  # Abnahme: Tastatur, Responsive, Reizarm (docs/ACCEPTANCE.md)
 npm run test:scripts     # Tests der Build-Skripte (Anleitungs-Konverter, node --test)
 npm run icons      # Icons neu erzeugen (nur nach Änderung am Icon)
+npm run screenshots      # Bilder der Anleitung neu erzeugen (nach npm run build)
 ```
+
+**Screenshots der Anleitung** (`scripts/screenshots.mjs`): spielt je Sprache
+eigene Testdaten in IndexedDB ein, steuert die App per CDP und speichert
+zugeschnittene WebP-Bilder nach `docs/images/{en,de}/` – Handyformat 360 px,
+vom Desktop (1280 px) nur der Ablauf mit Seitenleiste. Einfache Pixeldichte,
+damit die Bilder auf GitHub und in der App so groß erscheinen wie auf dem
+Gerät. Das Skript bricht mit Fehler ab, wenn alle Bilder zusammen größer als
+1,5 MB sind (sie landen im Precache). Nach Änderungen an der Oberfläche neu
+erzeugen und die Bilder sichten.
 
 Wichtig: `npm run build` statt nur `ng build` verwenden – ohne
 `precache-manifest.json` installiert sich der Service Worker nicht (die App läuft

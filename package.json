@@ -7,6 +7,7 @@
     "build": "node scripts/guide.mjs && ng build && node scripts/precache.mjs",
     "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
     "icons": "node scripts/generate-icons.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
     "test:pwa": "node scripts/pwa-test.mjs",
     "test:acceptance": "node scripts/acceptance-test.mjs",
     "watch": "ng build --watch --configuration development",

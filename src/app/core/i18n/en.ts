@@ -250,7 +250,7 @@ export const en = {
     timeNone: 'No time',
     pauseAfterLabel: 'Break after',
     pauseBeforeLabel: 'Break before',
-    placementLabel: 'And the other to-dos?',
+    placementLabel: 'And the other todos?',
     placeBefore: 'Schedule it before',
     keepStart: 'Keep the start time',
     shiftLater: 'Push everything after it later',
@@ -259,7 +259,7 @@ export const en = {
     enterRelative: 'Enter relative to neighbours',
     startsAt: (time: string): string => `Starts at ${time}.`,
     previewShift: (n: number, duration: string, later: boolean, title: string, time: string): string =>
-      `${n === 1 ? '1 to-do moves' : `${n} to-dos move`} ${duration} ${later ? 'later' : 'earlier'} (“${title}” then at ${time}).`,
+      `${n === 1 ? '1 todo moves' : `${n} todos move`} ${duration} ${later ? 'later' : 'earlier'} (“${title}” then at ${time}).`,
   },
 
   flow: {

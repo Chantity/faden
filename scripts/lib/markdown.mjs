@@ -1,7 +1,7 @@
 // Kleiner Markdown → HTML-Konverter für die Anleitung (keine Abhängigkeit).
 // Kann nur, was docs/USER-GUIDE.md nutzt: Überschriften mit Ankern, Absätze,
-// Trennlinien, Listen (auch verschachtelt und nummeriert, mit Folgezeilen),
-// Tabellen, fett/kursiv/Code, Links und Bilder.
+// Trennlinien, Zitate (Hinweis-Kästen), Listen (auch verschachtelt und
+// nummeriert, mit Folgezeilen), Tabellen, fett/kursiv/Code, Links und Bilder.
 
 const LIST_ITEM = /^(\s*)([-*]|\d+\.)\s+(.*)$/;
 const TABLE_SEPARATOR = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/;
@@ -102,6 +102,12 @@ export function markdownToHtml(markdown, options = {}) {
     if (line.trim() === '') {
       flush();
       i++;
+    } else if (line.startsWith('>')) {
+      // Zitat = Hinweis-Kasten („Am PC“ / „Auf dem Handy“); Inhalt wie ein eigenes Dokument.
+      flush();
+      const quoted = [];
+      while (i < lines.length && lines[i].startsWith('>')) quoted.push(lines[i++].replace(/^>\s?/, ''));
+      html.push(`<blockquote>${markdownToHtml(quoted.join('\n'), options)}</blockquote>`);
     } else if (/^-{3,}\s*$/.test(line)) {
       flush();
       html.push('<hr>');

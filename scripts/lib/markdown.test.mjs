@@ -59,6 +59,13 @@ test('Leerzeile zwischen Punkten setzt die Liste fort, ein Absatz beendet sie', 
   assert.equal(markdownToHtml('- a\n\n- b\n\nText'), '<ul><li>a</li><li>b</li></ul>\n<p>Text</p>');
 });
 
+test('Zitate als Hinweis-Kasten, mit Liste darin', () => {
+  assert.equal(
+    markdownToHtml('> **On a phone:** tap\n> - one\n> - two\n\nAfter'),
+    '<blockquote><p><strong>On a phone:</strong> tap</p>\n<ul><li>one</li><li>two</li></ul></blockquote>\n<p>After</p>',
+  );
+});
+
 test('Tabellen', () => {
   assert.equal(
     markdownToHtml('| Term | Meaning |\n|---|---|\n| **List** | A list. |'),

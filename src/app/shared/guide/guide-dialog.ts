@@ -73,8 +73,11 @@ function slug(text: string): string {
 
     @media (max-width: 600px) {
       dialog.guide[open] {
+        width: 100%;
+        max-width: 100%;
         height: 100dvh;
         max-height: 100dvh;
+        margin: 0;
         border-radius: 0;
       }
     }
@@ -130,6 +133,23 @@ function slug(text: string): string {
 
     .guide__content a {
       color: var(--color-primary);
+    }
+
+    /* Kästen „Am PC“ / „Auf dem Handy“ */
+    .guide__content blockquote {
+      margin: var(--space-3) 0;
+      padding: var(--space-2) var(--space-4);
+      border-left: 4px solid var(--color-primary);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-2);
+    }
+
+    .guide__content blockquote > :first-child {
+      margin-top: 0;
+    }
+
+    .guide__content blockquote > :last-child {
+      margin-bottom: 0;
     }
   `,
 })
