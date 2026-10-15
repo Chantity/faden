@@ -95,12 +95,12 @@ export const en = {
     export: 'Download backup',
     share: 'Share backup',
     importHeading: 'Restore a backup',
-    importHint: 'Choose a previously downloaded backup file (JSON).',
+    importChosen: (file: string): string => `“${file}” is a valid backup. How should it be restored?`,
     importTitle: 'Restore a backup',
     merge: 'Merge',
     replace: 'Replace everything',
-    replaceConfirm:
-      'Replace everything? Your current data will be downloaded as a backup first.',
+    modesHint:
+      '“Merge” adds the backup to your data. “Replace everything” replaces your data; it is downloaded as a backup first.',
     invalid: 'Not a valid Faden backup file.',
     importSuccess: 'Backup restored.',
     conflictsHeading: (n: number): string =>

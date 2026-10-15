@@ -39,6 +39,7 @@ describe('SettingsPage – Konflikte beim Zusammenführen', () => {
     input.dispatchEvent(new Event('change'));
     await vi.waitFor(() => expect(root.querySelector('dialog')!.open).toBe(true));
     await fixture.whenStable();
+    expect(root.querySelector('dialog')!.textContent).toContain('“b.json” is a valid backup.');
 
     const button = (label: string) =>
       [...root.querySelectorAll<HTMLButtonElement>('dialog button')].find((b) => b.textContent?.trim() === label)!;

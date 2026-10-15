@@ -200,8 +200,8 @@ import { formatBytes } from '../../core/time';
             </button>
           </div>
         } @else {
-          <p class="muted">{{ t().backup.importHint }}</p>
-          <p class="muted">{{ t().backup.replaceConfirm }}</p>
+          <p>{{ t().backup.importChosen(pendingFileName()) }}</p>
+          <p class="muted">{{ t().backup.modesHint }}</p>
           <div class="actions">
             <button type="button" class="btn" (click)="merge()">
               {{ t().backup.merge }}
@@ -416,6 +416,7 @@ export class SettingsPage {
   private readonly importDlg = viewChild.required<ElementRef<HTMLDialogElement>>('importDlg');
 
   private pendingFile: File | null = null;
+  protected readonly pendingFileName = signal('');
   private restoreFocusTo: HTMLElement | null = null;
 
   protected readonly lastBackupLabel = computed(() => {
@@ -468,6 +469,7 @@ export class SettingsPage {
     const file = input.files?.[0];
     if (!file) return;
     this.pendingFile = file;
+    this.pendingFileName.set(file.name);
     // Erstmalig nur validieren, ohne Daten anzutasten.
     const text = await file.text();
     let raw: unknown;

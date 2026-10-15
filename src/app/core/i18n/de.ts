@@ -95,11 +95,12 @@ export const de = {
     export: 'Sicherung herunterladen',
     share: 'Sicherung teilen',
     importHeading: 'Sicherung einspielen',
-    importHint: 'Wähle eine zuvor heruntergeladene Sicherungsdatei (JSON).',
+    importChosen: (file: string): string => `„${file}“ ist eine gültige Sicherung. Wie soll sie eingespielt werden?`,
     importTitle: 'Sicherung einspielen',
     merge: 'Zusammenführen',
     replace: 'Alles ersetzen',
-    replaceConfirm: 'Alles ersetzen? Deine aktuellen Daten werden vorher als Sicherung heruntergeladen.',
+    modesHint:
+      '„Zusammenführen“ ergänzt deine Daten um die Sicherung. „Alles ersetzen“ ersetzt deine Daten; sie werden vorher als Sicherung heruntergeladen.',
     invalid: 'Keine gültige Faden-Sicherungsdatei.',
     importSuccess: 'Sicherung eingespielt.',
     conflictsHeading: (n: number): string =>
