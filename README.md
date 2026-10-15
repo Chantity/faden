@@ -52,7 +52,7 @@ repository settings, set *Pages → Source* to **GitHub Actions** once.
 **Host once:** Put the contents of `dist/faden/browser` on any HTTPS host (or
 use GitHub Pages), open the page once, wait until Settings shows “Offline
 ready”, and install it. After that the host may disappear – Faden then runs
-entirely from the local cache and **never updates by itself** (Settings →
+entirely from the local cache and **never updates by itself** (About →
 “Check for a new version”). **iOS:** only the installed app (Share → Add to
 Home Screen) is protected from Safari's automatic data deletion. Download a
 backup regularly (Settings).
@@ -120,7 +120,7 @@ Dazu einmalig in den Repository-Einstellungen unter *Pages → Source*
 HTTPS-Host legen (oder GitHub Pages nutzen), die Seite einmal öffnen, warten bis
 die Einstellungen „Offline bereit" zeigen, und installieren. Danach darf der
 Host verschwinden – Faden läuft dann vollständig aus dem lokalen Cache und
-aktualisiert sich **nie von selbst** (Einstellungen → „Nach neuer Version
+aktualisiert sich **nie von selbst** (Über → „Nach neuer Version
 suchen"). **iOS:** nur die installierte App (Teilen → Zum Home-Bildschirm) ist
 vor Safaris automatischem Löschen geschützt. Regelmäßig ein Backup
 herunterladen (Einstellungen).

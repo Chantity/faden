@@ -45,6 +45,9 @@ src/app/
 │  │  ├─ plan.ts                    Validierung, Verschieben, Strecken, Vorschläge
 │  │  └─ relative.ts                Pause am Pfeil, Einfügen mit relativen Zeiten
 │  ├─ keymap.ts                     REINE Tastenkürzel-Logik (Standard, eigene Belegung, Konflikte)
+│  ├─ preferences.ts                Einstellungen ab 2.2: Notiz-Standard, erledigte Zettel, einfacher Modus
+│  ├─ color-scheme.ts               REINE Farbschema-Logik (Standard „Salbei“, Ableitung, Kontrast, Prüfung)
+│  ├─ tour.ts                       REINE Tour-Schritte (Ziel, wann erledigt)
 │  ├─ templates/                    REINE Vorlagen-Logik (framewerkfrei, Phase 3)
 │  │  └─ templates.ts               Zettel/Strang → Vorlage, Vorlage → Zettel/Strang
 │  ├─ storage/                      Persistenz (IndexedDB, Migration, Backup)
@@ -59,7 +62,7 @@ src/app/
 │     ├─ templates.store.ts         Vorlagen
 │     ├─ view.store.ts              Ansicht „Jetzt dran"/„Ablauf" je Zettel
 │     ├─ now.store.ts               minütliches now-Signal (Timeboxing)
-│     └─ settings.store.ts          Einstellungen (Theme, Sprache) + Anwendung
+│     └─ settings.store.ts          Einstellungen (Theme, Sprache, einfacher Modus, Farbschemata …) + Anwendung
 ├─ features/
 │  ├─ lists/                        Zettel-Übersicht (Phase 1, fertig)
 │  ├─ list-detail/                  Zettel-Detail (Phase 2, fertig)
@@ -67,16 +70,19 @@ src/app/
 │  │  ├─ focus-view.ts              „Jetzt dran" (Karten, Ketten-Eingabe)
 │  │  ├─ flow-view.ts               „Ablauf" (Layout, SVG-Pfeile, Pan/Zoom, „+")
 │  │  ├─ task-editor.ts             Bearbeiten-Sheet (Titel/Notizen/Chips)
-│  │  ├─ connect-dialog.ts          Ziel-Auswahl „Mit anderem ToDo verbinden"
-│  │  ├─ plan-editor.ts             „Zeitplan bearbeiten" / „Strang verschieben"
+│  │  ├─ plan-editor.ts             „Zeitplan bearbeiten" / „Ab hier / Strang verschieben"
 │  │  └─ shortcut-help.ts           Tastenkürzel-Übersicht
 │  ├─ templates/                    Vorlagen-Seite (Phase 3, fertig)
-│  └─ settings/                     Einstellungen; advanced-page.ts = „Für Fortgeschrittene“ (Tastenkürzel)
+│  ├─ settings/                     Einstellungen; advanced-page.ts = „Für Fortgeschrittene“,
+│  │                                scheme-section.ts / scheme-editor-page.ts = Farbschemata
+│  └─ about/                        Tab „Über“: Version, Hilfe (Tour, Anleitung), Speicher
 └─ shared/
    ├─ menus.ts                      gemeinsames Schließen aller ⋯-Menüs (Klick, Esc)
    ├─ focus.ts                      focusAfterRender (Fokus in neu erscheinende Felder)
-   ├─ first-run/                    Erst-Start: Speicher-Hinweis → Anleitung anbieten (FirstRunStore)
-   ├─ guide/                        Anleitungs-Dialog (lädt guide/guide.html, setzt Anker)
+   ├─ language-picker.ts            Sprachwahl (Einstellungen, Start-Dialog)
+   ├─ first-run/                    Erst-Start: Speicher-Hinweis → Sprache + Tour/Anleitung anbieten (FirstRunStore)
+   ├─ guide/                        Anleitungs-Dialog (lädt guide/{guide,changelog}.{en,de}.html, setzt Anker)
+   ├─ tour/                         Geführte Tour: TourService (Schritte, Übungszettel) + TourOverlay (Hinweis)
    ├─ install-banner/               Hinweis „Als App installieren" (erst nach first-run)
    └─ snackbar/                     nicht-modaler Hinweisband-Dienst + Komponente
 ```
@@ -185,6 +191,37 @@ Doppelbelegungen in Bereichen, die zugleich aktiv sein können (`global`
 überschneidet sich mit allen). Die Seite `einstellungen/fortgeschritten`
 nimmt neue Tasten auf; die Tastenkürzel-Hilfe zeigt die aktuelle Belegung.
 
+## 4a3. Einfacher Modus, Farbschemata, Tour (ab 2.2)
+
+- **Einfacher Modus** (`core/preferences.ts`): `AppSettings.simpleMode =
+  { enabled, show? }`. `SIMPLE_FEATURES` zählt auf, was er einschränkt;
+  `show[feature] = true` blendet einzelnes wieder ein.
+  `SettingsStore.simple()(feature)` ist die **einzige** Abfrage, die
+  Komponenten stellen (Menüs, Zeitplanungs-Modi, Tabs, Bearbeiten-Dialog). Fehlt
+  die Angabe, entscheidet der Erst-Start: neue Installation → an, vorhandene
+  Daten → aus. Die Entscheidung steht im Meta-Eintrag `simpleModeDefault`, nicht
+  in den Einstellungen – so überschreibt der Erst-Start nie gleichzeitig
+  gespeicherte Einstellungen. Im Bearbeiten-Dialog bietet ein einzelnes Dropdown
+  nur „freie Enden“ an (`singleLinkOptions` in `core/graph/derive.ts`: kein
+  Nachfolger bzw. Vorgänger, kein Kreis); so entsteht keine Verzweigung.
+  Verzweigte Daten (Import, Vorlagen) zeigen weiter die Chip-Liste.
+- **Farbschemata** (`core/color-scheme.ts`): Ein Schema legt drei Rollen fest
+  (Primär, Auswahl, Fokus), je hell/dunkel. `schemeProperties` leitet daraus die
+  CSS-Variablen ab (`--color-primary-strong`, `--color-accent-soft` usw. per
+  `color-mix()`, `--color-on-primary` per Kontrast), `contrastIssues` liefert
+  ruhige Hinweise (WCAG 3:1 bzw. 4.5:1). Das Standardschema „Salbei“ ist nur
+  `styles.css` (+ `DEFAULT_SCHEME` als Vorlage fürs Duplizieren) und wird nie
+  gespeichert; eigene Schemata setzt `SettingsStore` als Inline-Variablen auf
+  `<html>`. Warn- und Gefahrfarben sowie Flächen gehören bewusst nicht dazu.
+- **Geführte Tour** (`core/tour.ts`, `shared/tour/`): Schritte sind Daten (Ziel-
+  Selektor, `done`-Bedingung auf Stores). Der `TourService` geht weiter, sobald
+  `done` erfüllt ist, und merkt sich den Übungszettel. Der `TourOverlay` ist
+  nicht modal (die App bleibt bedienbar), steht auf der dem Ziel abgewandten
+  Seite, weicht offenen Dialogen sofort (MutationObserver auf `open`) und hebt
+  das Ziel hervor (`.tour-target`). `localStorage['faden.tourActive']` erkennt
+  eine abgebrochene Tour: Beim nächsten Start bietet der Start-Dialog sie erneut
+  an.
+
 ## 4b. Vorlagen-Logik (`core/templates`)
 
 Ebenfalls frameworkfrei und getestet. `templates.ts`:
@@ -284,7 +321,8 @@ Undo-Snackbar beim Löschen.
 Undo/Redo, Menü), der Umschalter **„Jetzt dran" | „Ablauf"** (Wahl je Zettel im
 `ViewStore` gemerkt) und die seitenweiten Tastenkürzel (`Strg/Cmd+Z`,
 `Strg/Cmd+Shift+Z`, `Strg+Y`, `?`). Die beiden Ansichten und alle Dialoge
-(`task-editor`, `connect-dialog`, `shortcut-help`) hängen als Kinder darunter.
+(`task-editor`, `shortcut-help`, `plan-editor` …) hängen als Kinder darunter. Ein
+leerer Zettel öffnet beim Aufrufen einmal von selbst „Neues ToDo“.
 
 - **„Jetzt dran"** (`focus-view`) zeigt **nur** `isAvailable`-ToDos als große
   Karten. Der wichtigste Pfad ist „Erst noch etwas anderes nötig …"
@@ -306,7 +344,8 @@ Undo/Redo, Menü), der Umschalter **„Jetzt dran" | „Ablauf"** (Wahl je Zette
   jeder Karte am Strang-Anfang, unter jeder Karte am Strang-Ende **und an
   Verzweigungen** (dort ersetzt es die überlagernden Kanten-„+"; Einfügen =
   Engpass-Einfügung, alle bisherigen Nachfolger hängen danach vom neuen Knoten
-  ab), **auf** jeder Kante, Karten- und Kanten-Menüs, Verbinden per Dialog.
+  ab), **auf** jeder Kante, Karten- und Kanten-Menüs. Verbunden wird im
+  Bearbeiten-Dialog (der frühere Verbinden-Dialog entfiel mit 2.2).
   Zustände immer als **Icon + Text + Farbe**.
 - **ToDo-Sheet** (`task-editor`) zum **Anlegen und Bearbeiten**: Titel,
   Beschreibung (Text oder Checkliste, Umwandlung über `core/checklist.ts`),
@@ -357,7 +396,7 @@ Bausteine:
 | `scripts/generate-icons.mjs` | Rastert die Icon-Geometrie (Quelle: `public/icons/icon.svg`) ohne Fremdpakete zu PNG/ICO (`npm run icons`). |
 | `core/pwa/pwa.service.ts` | Registriert `./sw.js` (nur Produktion, nach `load`), fängt `beforeinstallprompt` ab, erkennt iOS und installierten Modus, fragt den SW nach dem Precache-Status („Offline bereit"). |
 | `scripts/pwa-test.mjs` | Automatisierte Pflichttests, siehe `docs/PWA-TESTS.md`. |
-| `scripts/guide.mjs`, `scripts/lib/markdown.mjs` | Läuft vor `ng build` und `ng serve`: wandelt `docs/USER-GUIDE.md` und `CHANGELOG.md` mit einem eigenen kleinen Konverter (nur die genutzten Elemente, Zitate als Kästen „Am PC / Auf dem Handy“, keine Abhängigkeit; Tests mit `npm run test:scripts`) in die Fragmente `public/guide/guide.html` und `public/guide/changelog.html` um (der `GuideDialog` zeigt beide, „Was ist neu?“) und kopiert `docs/images/`. Nicht eingecheckt; über den Build im Precache, also offline lesbar. |
+| `scripts/guide.mjs`, `scripts/lib/markdown.mjs` | Läuft vor `ng build` und `ng serve`: wandelt `docs/USER-GUIDE.md` und `CHANGELOG.md` mit einem eigenen kleinen Konverter (nur die genutzten Elemente, Zitate als Kästen „Am PC / Auf dem Handy“, keine Abhängigkeit; Tests mit `npm run test:scripts`) je Sprache in die Fragmente `public/guide/{guide,changelog}.{en,de}.html` um (`splitLanguages` trennt an `## English` / `## Deutsch`; der `GuideDialog` lädt die Datei der eingestellten Sprache und wechselt bei offenem Dialog mit) und kopiert `docs/images/`. Nicht eingecheckt; über den Build im Precache, also offline lesbar. |
 
 Ablauf im Service Worker:
 
@@ -441,7 +480,7 @@ Entscheidungen werden hier ergänzt.
 | Graph-Layout | Eigenes deterministisches top-down Layered-Layout statt `@dagrejs/dagre`. Kartenhöhe **variabel** (1–3 Titelzeilen, geschätzt über `nodeCharsPerLine`, gespiegelt per `line-clamp`); die nächste Schicht beginnt unter der höchsten Karte. Schichtabstand 128 px. | Keine Abhängigkeit; feste Höhen schnitten lange Titel ab und ließen Karten überlappen. 128 px lassen Karten- und Kanten-„+" an Verzweigungen nebeneinander Platz. |
 | Pfeile | Gerade Linien von Unter- zu Oberkante. Umweg-Pfeile (A→C trotz A→B→C) werden **nur beim Zeichnen** ausgeblendet (`transitiveReduction`). | Rechtwinklige Führung überlagerte sich an Verzweigungen; Ausblenden statt Verbieten ist verlustfrei. |
 | „+" im Ablauf | Ein „+" pro Pfeil (`insertBetween`); Karten-„+" darüber nur am Strang-Anfang, darunter am Strang-Ende **und an Verzweigungen** (≥ 2 Nachfolger, Engpass-Einfügung über `insertAfter`). Sichtbarer Kreis klein (38/30 px), Trefferfläche 44 × 44 px über `::after`. Unter ~60 % Zoom ausgeblendet mit Hinweis. | In einer Kette täten drei „+" dasselbe; so ist alles überlappungsfrei erreichbar. |
-| Verbinden | „Mit anderem ToDo verbinden" über einen **Auswahl-Dialog** statt Ziel-Antippen oder Ziehen. | Per Tastatur und Screenreader bedienbar. |
+| Verbinden | Im **Bearbeiten-Dialog** („Muss vorher erledigt sein“ / „Kommt danach“) statt Ziel-Antippen oder Ziehen; der eigene Verbinden-Dialog entfiel mit 2.2. | Per Tastatur und Screenreader bedienbar, ein Weg statt zwei. |
 | ⋯-Menüs | `<details class="menu">` mit `.menu__panel`; **ein** gemeinsamer Handler (`shared/menus.ts`), in der App-Shell an `document` gehängt: Klick außerhalb **oder auf das offene `<details>` selbst** schließt (mit `preventDefault`, sonst klappt es nativ wieder auf), nur Klicks im Menüinhalt lassen es offen; **Esc** schließt und gibt den Fokus an das ⋯ zurück. Die Popover im Ablauf (Signal statt `<details>`) öffnen mit `stopPropagation` und schließen bei jedem anderen Dokument-Klick und bei Esc. | Auf dem Handy gab es sonst keinen Weg, ein Menü ohne Auswahl zu schließen. Vorher hatte jede Seite eine eigene Kopie, und das Zettel-Menü in der Detailansicht fehlte ganz. |
 | Automatisches Archivieren | `ListsStore.archiveCompleted()` (ein Befehl im Verlauf der Übersicht) läuft einmal pro Besuch der Übersicht, sobald `ListsStore.ready` (erster Ladeversuch fertig) gesetzt ist. | Beim allerersten Öffnen ist die Übersicht schon da, bevor IndexedDB geladen hat. |
 | „Jetzt dran"/„Wartet" | **Transitiv** über `openAncestors`. | In einer Kette offen → erledigt → offen ist nur der vorderste offene Schritt dran. |

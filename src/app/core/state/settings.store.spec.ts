@@ -5,7 +5,10 @@ import { createList, SCHEMA_VERSION, type AppSettings } from '../model';
 
 /** Kleiner Ersatz für IndexedDB: nur, was SettingsStore.load() braucht. */
 function fakeDb(stored: { settings?: AppSettings; lists?: number }) {
+  const meta = new Map<string, unknown>();
   return {
+    getMeta: async (key: string) => meta.get(key),
+    setMeta: async (key: string, value: unknown) => void meta.set(key, value),
     getSettings: async () => stored.settings,
     getLists: async () => Array.from({ length: stored.lists ?? 0 }, (_, i) => createList(`Z${i}`)),
     getTemplates: async () => [],
@@ -19,11 +22,17 @@ function setup(stored: { settings?: AppSettings; lists?: number } = {}): Setting
 }
 
 describe('SettingsStore – einfacher Modus', () => {
-  it('ist bei einer neuen Installation an', async () => {
-    const store = setup();
+  it('ist bei einer neuen Installation an – auch beim nächsten Start, wenn es dann schon Zettel gibt', async () => {
+    const db = fakeDb({});
+    TestBed.configureTestingModule({ providers: [{ provide: FadenDb, useValue: db }] });
+    const store = TestBed.inject(SettingsStore);
     await store.load();
     expect(store.simpleEnabled()).toBe(true);
     expect(store.simple()('flowMenu')).toBe(true);
+
+    db.getLists = async () => [createList('Neu')];
+    await store.load();
+    expect(store.simpleEnabled()).toBe(true);
   });
 
   it('ist bei bestehenden Daten aus (Zettel oder gespeicherte Einstellungen)', async () => {

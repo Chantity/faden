@@ -461,13 +461,13 @@ export const en = {
     toggle: 'Use simple mode',
     intro:
       'Hides rarely used features so getting started stays easy – such as branches and fixed times.',
-    detailsLink: 'Choose what is hidden',
+    detailsLink: 'Fine-tune',
     showHeading: 'Show anyway in simple mode',
     showHint: 'Tick what you want to see even in simple mode.',
     offHint: 'Simple mode is off – everything is visible.',
     features: {
       listModes: 'All time planning modes for lists (day plan, fixed schedule)',
-      fromTemplate: 'Create a list “From template”',
+      fromTemplate: '“From template …” button in the overview (the template choice in “New list” always stays)',
       listMenu: '“Duplicate”, “Move up” and “Move down” in the ⋯ menu of the overview',
       focusMenu: '“Create successor task” in the ⋯ menu of “Now”',
       flowMenu:

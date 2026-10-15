@@ -306,6 +306,118 @@
         }
       ],
       "edges": []
+    },
+    {
+      "id": "mt-v22-from",
+      "title": "⑫ Ab hier verschieben",
+      "timeboxMode": "schedule",
+      "archived": false,
+      "createdAt": "2026-10-16T08:00:00.000Z",
+      "updatedAt": "2026-10-16T08:00:00.000Z",
+      "sortOrder": 12,
+      "tasks": [
+        {
+          "id": "mt-v22-from-a",
+          "title": "Einkaufen",
+          "done": false,
+          "startAt": "2026-10-20T09:00",
+          "estimateMinutes": 60,
+          "notes": "v2.2: Ablauf → ⋯ an „Kochen“ → „Ab hier verschieben …“ → +30 Min.\nErwartet: Kochen und Essen rücken 30 Min nach hinten; Einkaufen und Tisch decken bleiben stehen.\nIm Dialog lässt sich auf „Nur diesen Strang“ und „Den ganzen Zettel“ umschalten (Vorschau ändert sich)."
+        },
+        {
+          "id": "mt-v22-from-b",
+          "title": "Kochen",
+          "done": false,
+          "startAt": "2026-10-20T10:30",
+          "estimateMinutes": 60
+        },
+        {
+          "id": "mt-v22-from-c",
+          "title": "Tisch decken",
+          "done": false,
+          "startAt": "2026-10-20T10:30",
+          "estimateMinutes": 15
+        },
+        {
+          "id": "mt-v22-from-d",
+          "title": "Essen",
+          "done": false,
+          "startAt": "2026-10-20T12:00",
+          "estimateMinutes": 45
+        }
+      ],
+      "edges": [
+        {
+          "id": "mt-v22-from-a__mt-v22-from-b",
+          "from": "mt-v22-from-a",
+          "to": "mt-v22-from-b"
+        },
+        {
+          "id": "mt-v22-from-a__mt-v22-from-c",
+          "from": "mt-v22-from-a",
+          "to": "mt-v22-from-c"
+        },
+        {
+          "id": "mt-v22-from-b__mt-v22-from-d",
+          "from": "mt-v22-from-b",
+          "to": "mt-v22-from-d"
+        }
+      ]
+    },
+    {
+      "id": "mt-v22-simple",
+      "title": "⑬ Einfacher Modus",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-16T08:00:00.000Z",
+      "updatedAt": "2026-10-16T08:00:00.000Z",
+      "sortOrder": 13,
+      "tasks": [
+        {
+          "id": "mt-v22-simple-a",
+          "title": "Koffer holen",
+          "done": false,
+          "notes": "v2.2: Einstellungen → „Einfachen Modus verwenden“ einschalten.\n- Übersicht: kein „Aus Vorlage …“, ⋯ nur Umbenennen, Als Vorlage, Archivieren, Löschen; Tab „Vorlagen“ weg.\n- „Jetzt dran“-⋯: nur Bearbeiten, Danach einfügen, Löschen. Ablauf-⋯: nur Bearbeiten, Löschen; Pfeil-Menü ohne „Pfeil entfernen“.\n- „Neuer Zettel“: nur „Keine Zeitplanung“ und „Zeitschätzung“.\n- „Packen“ bearbeiten: zwei Vorarbeiten → weiter die Chip-Liste. „Koffer holen“ bearbeiten: je ein Dropdown, „Kommt danach“ bietet nur ToDos ohne Vorgänger (hier: „Reisepass suchen“).\n- Für Fortgeschrittene → Einfacher Modus: „Tab Vorlagen“ anhaken → Tab ist wieder da."
+        },
+        {
+          "id": "mt-v22-simple-b",
+          "title": "Kleidung waschen",
+          "done": false
+        },
+        {
+          "id": "mt-v22-simple-c",
+          "title": "Packen",
+          "done": false
+        },
+        {
+          "id": "mt-v22-simple-d",
+          "title": "Reisepass suchen",
+          "done": false
+        }
+      ],
+      "edges": [
+        {
+          "id": "mt-v22-simple-a__mt-v22-simple-c",
+          "from": "mt-v22-simple-a",
+          "to": "mt-v22-simple-c"
+        },
+        {
+          "id": "mt-v22-simple-b__mt-v22-simple-c",
+          "from": "mt-v22-simple-b",
+          "to": "mt-v22-simple-c"
+        }
+      ]
+    },
+    {
+      "id": "mt-v22-empty",
+      "title": "⑭ Leer",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-16T08:00:00.000Z",
+      "updatedAt": "2026-10-16T08:00:00.000Z",
+      "sortOrder": 14,
+      "tasks": [],
+      "edges": []
     }
   ],
   "templates": [

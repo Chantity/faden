@@ -7,6 +7,7 @@ import {
   effect,
   ElementRef,
   inject,
+  signal,
   viewChild,
 } from '@angular/core';
 import { I18nStore } from '../../core/i18n/i18n.store';
@@ -30,6 +31,7 @@ const TARGET_CLASS = 'tour-target';
             #panel
             class="tour"
             [class.is-raised]="raised()"
+            [class.is-top]="atTop()"
             role="dialog"
             aria-labelledby="tour-title"
             tabindex="-1"
@@ -65,7 +67,7 @@ const TARGET_CLASS = 'tour-target';
             </div>
           </section>
         } @else {
-          <div class="tour tour--bar" [class.is-raised]="raised()" role="region" [attr.aria-label]="t().tour.label">
+          <div class="tour tour--bar" [class.is-raised]="raised()" [class.is-top]="atTop()" role="region" [attr.aria-label]="t().tour.label">
             <span class="tour__bar-text">
               @if (tour.counter(); as c) {
                 {{ t().tour.stepOf(c.n, c.total) }}:
@@ -100,6 +102,12 @@ const TARGET_CLASS = 'tour-target';
     /* Über der Snackbar, wenn beide unten stehen. */
     .tour.is-raised {
       bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
+    }
+
+    /* Liegt das Ziel in der unteren Hälfte, steht der Hinweis oben – nie darüber. */
+    .tour.is-top {
+      top: calc(env(safe-area-inset-top, 0px) + var(--space-3));
+      bottom: auto;
     }
 
     .tour__counter {
@@ -145,6 +153,7 @@ export class TourOverlay {
   private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
 
   protected readonly raised = computed(() => this.snackbar.state() !== null);
+  protected readonly atTop = signal(false);
   protected readonly text = computed(() => {
     const step = this.tour.step();
     const tour = this.t().tour;
@@ -207,7 +216,12 @@ export class TourOverlay {
   private poll(): void {
     const open = document.querySelector('dialog[open]') !== null;
     if (open !== this.tour.dialogOpen()) this.tour.setDialogOpen(open);
-    this.highlight(open ? null : this.target());
+    const target = open ? null : this.target();
+    this.highlight(target);
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      this.atTop.set(rect.top + rect.height / 2 > window.innerHeight / 2);
+    }
   }
 
   private highlight(target: HTMLElement | null): void {

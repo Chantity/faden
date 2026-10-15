@@ -42,8 +42,9 @@ The very first time you open Faden, two notes appear one after the other:
 1. **“Your data stays with you”**: Faden doesn't use cookies; it keeps your
    lists and settings in this browser's storage, and they never leave your
    device. **“Got it”** closes the note.
-2. **“Read the guide?”**: **“Read the guide”** opens this guide,
-   **“Ignore”** skips it. You can always find it under **Settings → Help**.
+2. **“How do you want to start?”**: first choose the **language**, then
+   **“Guided tour”** (see below), **“Read the guide”** (this guide) or
+   **“Ignore”**. You can always find both under **About → Help**.
 
 Both notes appear only once. Then:
 
@@ -51,7 +52,44 @@ Both notes appear only once. Then:
 2. Enter a title, e.g. “Kitchen”. Every list needs its own name.
 3. Optionally choose a **time planning** (section 7). The default is
    “No time planning”.
-4. **“Create”** – the list opens, and you can write down the first todo.
+4. **“Create”**, then open the list – an empty list asks for the first todo
+   right away.
+
+#### The guided tour
+
+![A hint of the guided tour](images/en/tour.webp)
+
+The tour shows the basics with real actions on a **practice list**: a hint at
+the bottom explains one thing, **“Got it”** hides it, and you do it yourself –
+then the next hint follows. **“Show hint”** brings the current hint back, **“End
+tour”** stops at any time. While a dialog is open, the hint waits.
+
+After the basics, **“Done”** ends the tour and **“Show more”** switches simple
+mode off and shows the advanced features (branches, time planning, templates,
+advanced settings). At the end you decide whether to keep or delete the
+practice list. If you leave the app during the tour, the start dialog offers it
+again next time. Replay it any time under **About → Help → “Start the guided
+tour”**.
+
+#### Simple mode
+
+New installations start in **simple mode**. It hides rarely used features so
+you can't build complicated flows by accident:
+
+- New lists offer only “No time planning” and “Time estimate”.
+- The overview has no “From template …” button (the template choice in “New
+  list” stays); the card menu only **Rename**, **Save list as template**,
+  **Archive** and **Delete**.
+- In “Now”, the card menu only has **Edit**, **Insert after** and **Delete**;
+  in the Flow only **Edit** and **Delete**.
+- In the edit dialog, **“Must be done before”** and **“Comes after”** are a
+  single choice each (section 6).
+- The **Templates** tab, **“Insert template into list”** and the **?** button
+  are hidden.
+
+Switch it off under **Settings → Simple mode**, or choose under **Settings →
+Advanced** exactly what stays visible (section 9). Installations that already
+had data before version 2.2 start without simple mode.
 
 ### 3. The list overview
 
@@ -64,7 +102,8 @@ without opening the list. Long titles are shortened to two lines. Tapping the
 card opens it.
 
 At the top are **Undo** (↶) and **Redo** (↷) for what you did in the overview,
-and – once you have templates – **“From template …”**.
+and – once you have templates and simple mode doesn't hide it – **“From
+template …”**.
 
 The **menu (⋯)** on a card offers:
 
@@ -86,7 +125,8 @@ applies to templates.
 
 **Finished lists archive themselves:** when you come back to the overview,
 every list whose todos are all done moves to the archive, with **“Undo”** at
-the bottom.
+the bottom. Under **Settings → Advanced → Finished lists** you can choose
+**Delete** or **Do nothing** instead.
 
 #### The archive
 
@@ -124,9 +164,9 @@ menu (⋯).
 - Below the title it says what comes next (“Then: …”) and, where branches come
   together, what else has to be done as well.
 - The card menu (⋯) has **Edit**, **Insert after**, **Create successor task**,
-  **Create predecessor task**, **Connect to another todo**, **Delete** and –
-  if the todo has something before *and* after it – **Delete without
-  reconnecting**.
+  **Delete** and – if the todo has something before *and* after it – **Delete
+  without reconnecting**. Simple mode shows only Edit, Insert after and
+  Delete.
 - **✚** above the cards adds a new todo without prerequisites.
 - **Checklists** show “2 of 4 checked”; tick the items right on the card, e.g.
   while shopping. That doesn't check off the todo itself.
@@ -168,9 +208,9 @@ are highlighted, waiting ones show a lock. Each card shows its state, its time
   again.
 - The card menu (⋯) has **Edit**, **Create successor task** (a parallel
   branch after it), **Create predecessor task** (something else that has to be
-  done before it), **Connect to another todo**, **Save strand as template**,
-  **Delete** and **Delete without reconnecting**; with a time planning also
-  **Shift strand …** (section 7).
+  done before it), **Save strand as template**, **Delete** and **Delete without
+  reconnecting**; with a time planning also **Shift from here …** and **Shift
+  strand …** (section 7). Simple mode shows only Edit and Delete.
 
 The buttons at the top right: **+** and **−** zoom, **⤢** fits everything into
 view, **◎** jumps to the current todo, **✚** starts a **new separate strand**.
@@ -196,7 +236,8 @@ editing; every “+”, “✚” and “Create … task” opens it for a new t
 - **Title** – required. When creating, **Enter** creates the todo right away;
   in a chain (“Now”) the next empty sheet follows. Pasting several lines
   creates one todo per line, as a chain.
-- **Notes** – switch between **Text** and **Checklist**:
+- **Notes** – switch between **Text** and **Checklist** (which one new todos
+  start with is set under **Settings → Advanced → Notes**):
   - *Text*: free notes.
   - *Checklist*: one item per line with a checkbox. **Enter** in an item adds
     one below it, **✕** removes it, **“Add item”** adds one at the end. Empty
@@ -208,7 +249,10 @@ editing; every “+”, “✚” and “Create … task” opens it for a new t
   “14:30 · 30 min”; tap it to show the fields (section 7). When creating in a
   day plan or fixed schedule it is already open.
 - **When editing** also **“Must be done before”** and **“Comes after”**: add
-  or remove connections without any dragging.
+  or remove connections without any dragging. In simple mode each is a single
+  choice: “– none –” or a todo that is still free on that side (nothing after
+  it, or nothing before it). That keeps every chain straight. Once a todo
+  already has several connections, the full list appears again.
 
 ### 7. Time planning
 
@@ -268,9 +312,15 @@ In a day plan or fixed schedule, the list menu (⋯) has **“Edit schedule”**
 - **Transfer times of day onto a date** (day plan) – copies the start times as
   date + time.
 
-To shift only **one strand**, open **⋯ → “Shift strand …”** on one of its cards
-in the Flow; you can still switch to the whole list there. In a day plan,
-nothing may move past 0:00 or 24:00 – Faden says so and changes nothing.
+To shift only part of the list, open the card menu (⋯) in the Flow:
+
+- **“Shift from here …”** moves this todo and everything after it; the todos
+  before it stay put.
+- **“Shift strand …”** moves the whole strand of this card.
+
+In the dialog you can still switch between “This todo and everything after
+it”, “Only this strand” and “The whole list”. In a day plan, nothing may move
+past 0:00 or 24:00 – Faden says so and changes nothing.
 
 When you switch a list from day plan to fixed schedule, the app offers to
 transfer the times onto a date right away. The other way round nothing is lost:
@@ -296,25 +346,61 @@ preview, **Rename** or **Delete** it (with Undo) and create a
 **“New list from template”**. In an open list, the menu has **“Insert template
 into list”**: the template is added as a new, separate strand.
 
-### 9. Settings
+### 9. Settings and About
 
 ![The settings page](images/en/settings.webp)
 
+**Settings:**
+
 - **Theme** – system setting, light or dark.
 - **Language** – English or German, takes effect immediately.
-- **Storage** – how much space Faden uses and whether the browser protects it
-  permanently. If not, **“Protect permanently”** asks the browser.
+- **Simple mode** – on or off (section 2).
 - **Install** – shows **“Offline ready”** once Faden is completely stored on
   your device, plus **“Install app”** where the browser offers it.
-- **Version** – the installed version. **“What's new?”** shows the changes of
-  every version (also offline). Faden **never updates by itself**; **“Check
-  for a new version”** asks, and a new version is only switched to once it has
-  been downloaded completely.
-- **Help** – **“Read the guide”** opens this guide in the app (also offline);
-  **“Faden on GitHub”** opens the source code and the place to report problems.
-- **Advanced** – settings most people never need; for now the keyboard
-  shortcuts (section 12).
+- **Advanced** – see below.
 - **Backup and data** – section 10.
+
+![The About tab](images/en/about.webp)
+
+**About:**
+
+- **Version** – the installed version. **“What's new?”** shows the changes of
+  every version in your language (also offline). Faden **never updates by
+  itself**; **“Check for a new version”** asks, and a new version is only
+  switched to once it has been downloaded completely.
+- **Help** – **“Start the guided tour”** (section 2), **“Read the guide”**
+  opens this guide in the app (also offline), **“Faden on GitHub”** opens the
+  source code and the place to report problems.
+- **Storage** – how much space Faden uses and whether the browser protects it
+  permanently. If not, **“Protect permanently”** asks the browser.
+
+#### Advanced
+
+Settings most people never need:
+
+- **Simple mode** – switch it on or off and tick what stays visible anyway,
+  e.g. the Templates tab or the full edit dialog.
+- **Notes** – whether new todos start with text or a checklist.
+- **Finished lists** – archive (default), delete, or do nothing.
+- **Color scheme** – see below.
+- **Keyboard shortcuts** – section 12.
+
+#### Color schemes
+
+![Editing a color scheme](images/en/scheme-editor.webp)
+
+A color scheme changes only the accent colors: the **main color** (important
+buttons, active choices, check marks), **selection** (radio circles and
+checkboxes; “Browser default” keeps the browser's own color) and the **focus
+ring**. Light and dark mode stay as they are; each color has a value for light
+and one for dark.
+
+The default scheme **“Sage”** is built in and can't be changed – it always
+matches the current version of Faden. **“Duplicate”** (or **“New scheme”**)
+creates your own copy and opens the editor: name, a color picker plus hex value
+per color, and a preview in light and dark. If the contrast gets too low, a
+calm hint says so. **“Save”** stores the scheme and uses it right away. Tap a
+scheme to switch; **“Delete”** removes your own schemes (with Undo).
 
 > **On a phone (iPhone/iPad):** in Safari, **Share → Add to Home Screen**
 > installs Faden. Important: Safari deletes data of websites that haven't been
@@ -389,7 +475,7 @@ Shortcuts only work while no input field is active.
 - **Data gone after a long break (iPhone/iPad):** Safari removes data of
   websites not used for about a week. Install Faden (section 9) and restore
   your last backup.
-- **A problem or an idea:** **Settings → Help → “Faden on GitHub”**.
+- **A problem or an idea:** **About → Help → “Faden on GitHub”**.
 
 ---
 
@@ -431,9 +517,9 @@ Beim allerersten Öffnen erscheinen nacheinander zwei Hinweise:
 1. **„Deine Daten bleiben bei dir“**: Faden nutzt keine Cookies; deine Zettel
    und Einstellungen liegen im Speicher dieses Browsers und verlassen dein
    Gerät nicht. **„Verstanden“** schließt den Hinweis.
-2. **„Anleitung lesen?“**: **„Anleitung lesen“** öffnet diese Anleitung,
-   **„Ignorieren“** überspringt sie. Du findest sie jederzeit unter
-   **Einstellungen → Hilfe**.
+2. **„Wie möchtest du starten?“**: Zuerst die **Sprache** wählen, dann
+   **„Geführte Tour“** (siehe unten), **„Anleitung lesen“** (diese Anleitung)
+   oder **„Ignorieren“**. Beides findest du jederzeit unter **Über → Hilfe**.
 
 Beide Hinweise kommen nur einmal. Danach:
 
@@ -442,8 +528,47 @@ Beide Hinweise kommen nur einmal. Danach:
    Namen.
 3. Optional eine **Zeitplanung** wählen (Abschnitt 7). Standard ist „Keine
    Zeitplanung“.
-4. **„Anlegen“** – der Zettel öffnet sich, und du kannst das erste ToDo
-   eintragen.
+4. **„Anlegen“**, dann den Zettel öffnen – ein leerer Zettel fragt gleich nach
+   dem ersten ToDo.
+
+#### Die geführte Tour
+
+![Ein Hinweis der geführten Tour](images/de/tour.webp)
+
+Die Tour zeigt die Grundlagen mit echten Handgriffen an einem **Übungszettel**:
+Ein Hinweis unten erklärt eine Sache, **„Verstanden“** blendet ihn aus, und du
+machst es selbst – dann kommt der nächste Hinweis. **„Hinweis zeigen“** holt den
+aktuellen Hinweis zurück, **„Tour beenden“** hört jederzeit auf. Solange ein
+Dialog offen ist, wartet der Hinweis.
+
+Nach den Grundlagen beendet **„Fertig“** die Tour, **„Mehr anzeigen“** schaltet
+den einfachen Modus aus und zeigt die erweiterten Funktionen (Verzweigungen,
+Zeitplanung, Vorlagen, Für Fortgeschrittene). Am Ende entscheidest du, ob der
+Übungszettel bleibt oder gelöscht wird. Verlässt du die App während der Tour,
+bietet der Start-Dialog sie beim nächsten Mal wieder an. Wiederholen jederzeit
+unter **Über → Hilfe → „Geführte Tour starten“**.
+
+#### Der einfache Modus
+
+Neue Installationen starten im **einfachen Modus**. Er blendet selten
+gebrauchte Funktionen aus, damit niemand aus Versehen verschachtelte Abläufe
+baut:
+
+- Neue Zettel bieten nur „Keine Zeitplanung“ und „Zeitschätzung“.
+- Die Übersicht hat keinen Knopf „Aus Vorlage …“ (die Vorlagen-Wahl in „Neuer
+  Zettel“ bleibt); das Karten-Menü nur **Umbenennen**, **Zettel als Vorlage
+  speichern**, **Archivieren** und **Löschen**.
+- In „Jetzt dran“ hat das Karten-Menü nur **Bearbeiten**, **Danach einfügen**
+  und **Löschen**, im Ablauf nur **Bearbeiten** und **Löschen**.
+- Im Bearbeiten-Dialog sind **„Muss vorher erledigt sein“** und **„Kommt
+  danach“** je eine einzelne Auswahl (Abschnitt 6).
+- Der Tab **Vorlagen**, **„Vorlage in Zettel einfügen“** und der Knopf **?**
+  sind ausgeblendet.
+
+Ausschalten unter **Einstellungen → Einfacher Modus**, oder unter
+**Einstellungen → Für Fortgeschrittene** genau wählen, was trotzdem sichtbar
+bleibt (Abschnitt 9). Installationen, die schon vor Version 2.2 Daten hatten,
+starten ohne einfachen Modus.
 
 ### 3. Die Zettel-Übersicht
 
@@ -456,7 +581,8 @@ weißt du, was als Nächstes kommt, ohne den Zettel zu öffnen. Lange Titel werd
 auf zwei Zeilen gekürzt. Ein Tipp auf die Karte öffnet ihn.
 
 Oben stehen **Rückgängig** (↶) und **Wiederholen** (↷) für das, was du in der
-Übersicht getan hast, und – sobald es Vorlagen gibt – **„Aus Vorlage …“**.
+Übersicht getan hast, und – sobald es Vorlagen gibt und der einfache Modus es
+nicht ausblendet – **„Aus Vorlage …“**.
 
 Das **Menü (⋯)** einer Karte bietet:
 
@@ -478,7 +604,9 @@ sagt warum. Für Vorlagen gilt dasselbe.
 
 **Fertige Zettel archivieren sich selbst:** Kommst du zurück in die Übersicht,
 wandert jeder Zettel, dessen ToDos alle erledigt sind, ins Archiv – mit
-**„Rückgängig“** unten.
+**„Rückgängig“** unten. Unter **Einstellungen → Für Fortgeschrittene →
+Erledigte Zettel** kannst du stattdessen **Löschen** oder **Nichts tun**
+wählen.
 
 #### Das Archiv
 
@@ -516,9 +644,9 @@ Fortschritt, Modus-Etikett, Rückgängig/Wiederholen für diesen Zettel, **?**
 - Unter dem Titel steht, was danach kommt („Danach: …“), und wo Zweige
   zusammenlaufen, was außerdem noch erledigt sein muss.
 - Das Karten-Menü (⋯) hat **Bearbeiten**, **Danach einfügen**,
-  **Nachfolgeaufgabe erstellen**, **Voraufgabe erstellen**, **Mit anderem ToDo
-  verbinden**, **Löschen** und – wenn das ToDo etwas davor *und* danach hat –
-  **Löschen, ohne zu verbinden**.
+  **Nachfolgeaufgabe erstellen**, **Löschen** und – wenn das ToDo etwas davor
+  *und* danach hat – **Löschen, ohne zu verbinden**. Der einfache Modus zeigt
+  nur Bearbeiten, Danach einfügen und Löschen.
 - **✚** über den Karten legt ein neues ToDo ohne Vorarbeit an.
 - **Checklisten** zeigen „2 von 4 abgehakt“; die Punkte hakst du direkt auf der
   Karte ab, z. B. beim Einkaufen. Das hakt nicht das ToDo selbst ab.
@@ -563,9 +691,10 @@ ihren Zustand, ihre Zeit (falls der Zettel eine hat), einen Checklisten-Zähler
 - **Der runde Kreis** oben links auf einer Karte hakt sie ab – und wieder auf.
 - Das Karten-Menü (⋯) hat **Bearbeiten**, **Nachfolgeaufgabe erstellen** (ein
   paralleler Zweig danach), **Voraufgabe erstellen** (noch etwas, das davor
-  erledigt sein muss), **Mit anderem ToDo verbinden**, **Strang als Vorlage
-  speichern**, **Löschen** und **Löschen, ohne zu verbinden**; mit Zeitplanung
-  außerdem **Strang verschieben …** (Abschnitt 7).
+  erledigt sein muss), **Strang als Vorlage speichern**, **Löschen** und
+  **Löschen, ohne zu verbinden**; mit Zeitplanung außerdem **Ab hier
+  verschieben …** und **Strang verschieben …** (Abschnitt 7). Der einfache
+  Modus zeigt nur Bearbeiten und Löschen.
 
 Die Knöpfe oben rechts: **+** und **−** zoomen, **⤢** passt alles ein, **◎**
 springt zum aktuellen ToDo, **✚** beginnt einen **neuen eigenen Strang**. Mit
@@ -592,7 +721,9 @@ ein neues ToDo.
 - **Titel** – Pflicht. Beim Anlegen legt **Enter** das ToDo sofort an; in einer
   Kette („Jetzt dran“) folgt gleich das nächste leere Sheet. Mehrere eingefügte
   Zeilen werden zu je einem ToDo, als Kette.
-- **Notizen** – umschaltbar zwischen **Text** und **Checkliste**:
+- **Notizen** – umschaltbar zwischen **Text** und **Checkliste** (womit neue
+  ToDos beginnen, stellst du unter **Einstellungen → Für Fortgeschrittene →
+  Notizen** ein):
   - *Text*: freie Notizen.
   - *Checkliste*: ein Punkt pro Zeile mit Haken. **Enter** in einem Punkt legt
     darunter einen neuen an, **✕** entfernt ihn, **„Punkt hinzufügen“** hängt
@@ -604,7 +735,11 @@ ein neues ToDo.
   „14:30 · 30 Min“; ein Tipp zeigt die Felder (Abschnitt 7). Beim Anlegen im
   Tagesplan oder festen Zeitplan ist sie schon aufgeklappt.
 - **Beim Bearbeiten** außerdem **„Muss vorher erledigt sein“** und **„Kommt
-  danach“**: Verbindungen ganz ohne Ziehen hinzufügen oder entfernen.
+  danach“**: Verbindungen ganz ohne Ziehen hinzufügen oder entfernen. Im
+  einfachen Modus ist das je eine einzelne Auswahl: „– keine –“ oder ein ToDo,
+  das auf dieser Seite noch frei ist (nichts danach bzw. nichts davor). So
+  bleibt jede Kette gerade. Hat ein ToDo schon mehrere Verbindungen, erscheint
+  wieder die volle Liste.
 
 ### 7. Zeitplanung
 
@@ -665,10 +800,15 @@ bearbeiten“**:
 - **Tageszeiten auf ein Datum übertragen** (Tagesplan) – kopiert die
   Startzeiten als Datum + Uhrzeit.
 
-Um nur **einen Strang** zu verschieben, öffne im Ablauf auf einer seiner Karten
-**⋯ → „Strang verschieben …“**; dort kannst du auch auf den ganzen Zettel
-umschalten. Im Tagesplan darf nichts über 0:00 oder 24:00 hinaus – Faden sagt
-das und ändert nichts.
+Um nur einen Teil zu verschieben, öffne im Ablauf das Karten-Menü (⋯):
+
+- **„Ab hier verschieben …“** verschiebt dieses ToDo und alles danach; die ToDos
+  davor bleiben stehen.
+- **„Strang verschieben …“** verschiebt den ganzen Strang dieser Karte.
+
+Im Dialog kannst du weiter zwischen „Dieses ToDo und alles danach“, „Nur diesen
+Strang“ und „Den ganzen Zettel“ wechseln. Im Tagesplan darf nichts über 0:00
+oder 24:00 hinaus – Faden sagt das und ändert nichts.
 
 Wechselst du einen Zettel vom Tagesplan zum festen Zeitplan, bietet die App
 gleich an, die Zeiten auf ein Datum zu übertragen. Umgekehrt geht nichts
@@ -696,26 +836,63 @@ auf, kannst sie **Umbenennen** oder **Löschen** (mit Rückgängig) und mit
 Zettel hat das Menü **„Vorlage in Zettel einfügen“**: Die Vorlage kommt als
 neuer, eigener Strang dazu.
 
-### 9. Einstellungen
+### 9. Einstellungen und Über
 
 ![Die Seite „Einstellungen“](images/de/settings.webp)
 
+**Einstellungen:**
+
 - **Design** – Systemeinstellung, hell oder dunkel.
 - **Sprache** – Englisch oder Deutsch, wirkt sofort.
-- **Speicher** – wie viel Platz Faden belegt und ob der Browser ihn dauerhaft
-  schützt. Wenn nicht, fragt **„Dauerhaft schützen“** beim Browser nach.
+- **Einfacher Modus** – an oder aus (Abschnitt 2).
 - **Installieren** – zeigt **„Offline bereit“**, sobald Faden vollständig auf
   deinem Gerät liegt, und **„App installieren“**, wo der Browser es anbietet.
-- **Version** – die installierte Version. **„Was ist neu?“** zeigt die
-  Änderungen jeder Version (auch offline). Faden **aktualisiert sich nie von
-  selbst**; **„Nach neuer Version suchen“** fragt nach, und auf eine neue
-  Version wird erst umgeschaltet, wenn sie vollständig geladen ist.
-- **Hilfe** – **„Anleitung lesen“** öffnet diese Anleitung in der App (auch
-  offline); **„Faden auf GitHub“** öffnet den Quellcode und die Stelle zum
-  Melden von Fehlern.
-- **Für Fortgeschrittene** – Einstellungen, die die meisten nie brauchen;
-  vorerst die Tastenkürzel (Abschnitt 12).
+- **Für Fortgeschrittene** – siehe unten.
 - **Sicherung und Daten** – Abschnitt 10.
+
+![Der Tab „Über“](images/de/about.webp)
+
+**Über:**
+
+- **Version** – die installierte Version. **„Was ist neu?“** zeigt die
+  Änderungen jeder Version in deiner Sprache (auch offline). Faden
+  **aktualisiert sich nie von selbst**; **„Nach neuer Version suchen“** fragt
+  nach, und auf eine neue Version wird erst umgeschaltet, wenn sie vollständig
+  geladen ist.
+- **Hilfe** – **„Geführte Tour starten“** (Abschnitt 2), **„Anleitung lesen“**
+  öffnet diese Anleitung in der App (auch offline), **„Faden auf GitHub“**
+  öffnet den Quellcode und die Stelle zum Melden von Fehlern.
+- **Speicher** – wie viel Platz Faden belegt und ob der Browser ihn dauerhaft
+  schützt. Wenn nicht, fragt **„Dauerhaft schützen“** beim Browser nach.
+
+#### Für Fortgeschrittene
+
+Einstellungen, die die meisten nie brauchen:
+
+- **Einfacher Modus** – ein- oder ausschalten und anhaken, was trotzdem
+  sichtbar bleibt, z. B. der Tab Vorlagen oder der volle Bearbeiten-Dialog.
+- **Notizen** – ob neue ToDos mit Text oder einer Checkliste beginnen.
+- **Erledigte Zettel** – archivieren (Standard), löschen oder nichts tun.
+- **Farbschema** – siehe unten.
+- **Tastenkürzel** – Abschnitt 12.
+
+#### Farbschemata
+
+![Ein Farbschema bearbeiten](images/de/scheme-editor.webp)
+
+Ein Farbschema ändert nur die Akzentfarben: die **Hauptfarbe** (wichtige
+Knöpfe, aktive Auswahl, Haken), die **Auswahl** (Radio-Kreise und Kästchen;
+„Browser-Standard“ behält die Farbe des Browsers) und den **Fokusrahmen**. Hell
+und Dunkel bleiben, wie sie sind; jede Farbe hat einen Wert für hell und einen
+für dunkel.
+
+Das Standardschema **„Salbei“** ist fest eingebaut und nicht änderbar – es passt
+immer zur aktuellen Version von Faden. **„Duplizieren“** (oder **„Neues
+Schema“**) legt eine eigene Kopie an und öffnet den Editor: Name, je Farbe ein
+Farbwähler plus Hex-Wert und eine Vorschau in hell und dunkel. Wird der Kontrast
+zu gering, sagt ein ruhiger Hinweis das. **„Speichern“** sichert das Schema und
+verwendet es sofort. Ein Tipp auf ein Schema wechselt dorthin; **„Löschen“**
+entfernt eigene Schemata (mit Rückgängig).
 
 > **Auf dem Handy (iPhone/iPad):** In Safari installiert **Teilen → Zum
 > Home-Bildschirm** Faden. Wichtig: Safari löscht Daten von Websites, die etwa
@@ -798,5 +975,4 @@ nur, wenn gerade kein Eingabefeld aktiv ist.
 - **Daten nach langer Pause weg (iPhone/iPad):** Safari entfernt Daten von
   Websites, die etwa eine Woche nicht benutzt wurden. Installiere Faden
   (Abschnitt 9) und spiele deine letzte Sicherung ein.
-- **Ein Problem oder eine Idee:** **Einstellungen → Hilfe → „Faden auf
-  GitHub“**.
+- **Ein Problem oder eine Idee:** **Über → Hilfe → „Faden auf GitHub“**.

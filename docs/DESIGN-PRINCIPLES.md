@@ -72,6 +72,11 @@ danach“.
 - **Farben:** gedämpfte Palette über Design-Tokens, Kontrast mindestens WCAG AA
   (Text AAA, wo möglich). Hell, Dunkel und System; Dunkel ist gleichwertig
   gestaltet.
+- **Farbschemata** ändern nur Akzentfarben (Primär, Auswahl, Fokus), nie
+  Flächen, Text, Warn- oder Gefahrfarben – die tragen Bedeutung. Das
+  Standardschema lebt nur im Code und wird nie gespeichert, damit es mit jeder
+  Version aktuell bleibt. Zu geringer Kontrast wird ruhig angezeigt, nicht
+  verboten.
 - **Zustände nie nur über Farbe**, immer Icon + Text + Farbe.
 - **Fehler und Verpasstes** in ruhigem Bernstein/Grau, neutral formuliert.
 - **Schrift:** Systemschrift, Basisgröße ≥ 17 px, großzügiger Zeilenabstand,
@@ -131,8 +136,9 @@ danach“.
   auf zwei (Karten) bzw. drei Zeilen (Ablauf), der Titel in „Jetzt dran“ bleibt
   vollständig.
 - **Fertige Zettel archivieren sich selbst** beim Betreten der Übersicht (mit
-  Rückgängig). Archivierte Zettel bleiben vollständig nutzbar (Inhalt ansehen,
-  duplizieren, als Vorlage).
+  Rückgängig; einstellbar: löschen oder nichts tun). Archivierte Zettel bleiben
+  vollständig nutzbar (Inhalt ansehen, duplizieren, als Vorlage).
+- Ein **leerer Zettel** fragt beim Öffnen gleich nach dem ersten ToDo.
 - **Jedes Anlegen eines ToDos öffnet dasselbe Sheet** wie das Bearbeiten; Enter
   im Titel legt sofort an, Vorarbeiten lassen sich als Enter-Kette eintippen.
   Ein einheitlicher Weg statt eines zusätzlichen Schnellwegs.
@@ -179,6 +185,18 @@ danach“.
 
 **Vorlagen:** speichern Struktur, Titel, Notizen, Checklisten (ohne Haken),
 Dauern und Modus – nie den Erledigt-Status und nie absolute Datumsangaben.
+
+**Einfacher Modus und Einstieg:**
+
+- Neue Nutzer starten im **einfachen Modus**: Er blendet aus, womit man aus
+  Versehen verschachtelte Abläufe baut (Verzweigungen, feste Zeitpläne, seltene
+  Menüeinträge). Eine Kette bleibt dort immer gerade. Bestehende Daten bleiben
+  bedienbar – was schon verzweigt ist, wird normal angezeigt. Jede Einschränkung
+  lässt sich einzeln einblenden; neue Funktionen prüfen, ob sie dazugehören.
+- Ein Update schaltet bestehenden Nutzern nie Funktionen weg.
+- Die **geführte Tour** lässt mit echten Handgriffen üben, nie modal, jederzeit
+  beendbar. Neue Grundfunktionen bekommen einen Tour-Schritt, wenn sie zum
+  Einstieg gehören.
 
 ### A6. Daten und Datenschutz
 

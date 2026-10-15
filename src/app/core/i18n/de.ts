@@ -461,13 +461,13 @@ export const de = {
     toggle: 'Einfachen Modus verwenden',
     intro:
       'Blendet selten gebrauchte Funktionen aus, damit der Anfang leicht bleibt – etwa Verzweigungen und feste Uhrzeiten.',
-    detailsLink: 'Einstellen, was ausgeblendet wird',
+    detailsLink: 'Genauer einstellen',
     showHeading: 'Im einfachen Modus trotzdem zeigen',
     showHint: 'Hake an, was du auch im einfachen Modus sehen möchtest.',
     offHint: 'Der einfache Modus ist aus – alles ist sichtbar.',
     features: {
       listModes: 'Alle Zeitplanungen beim Zettel (Tagesplan, fester Zeitplan)',
-      fromTemplate: 'Zettel „Aus Vorlage“ anlegen',
+      fromTemplate: 'Knopf „Aus Vorlage …“ in der Übersicht (im Dialog „Neuer Zettel“ bleibt die Vorlagen-Wahl immer)',
       listMenu: '„Duplizieren“, „Nach oben“ und „Nach unten“ im ⋯-Menü der Übersicht',
       focusMenu: '„Nachfolgeaufgabe erstellen“ im ⋯-Menü von „Jetzt dran“',
       flowMenu:

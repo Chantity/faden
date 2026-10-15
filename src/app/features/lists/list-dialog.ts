@@ -50,7 +50,8 @@ import { focusAfterRender } from '../../shared/focus';
 
         <p class="field__hint" id="list-title-hint" role="status">{{ hint() }}</p>
 
-        @if (!editing() && templates().length > 0 && !settings.simple()('fromTemplate')) {
+        <!-- Auch im einfachen Modus: nur der Knopf „Aus Vorlage …“ in der Übersicht entfällt. -->
+        @if (!editing() && templates().length > 0) {
           <label class="field">
             <span class="field__label">{{ t().listDialog.templateLabel }}</span>
             <select

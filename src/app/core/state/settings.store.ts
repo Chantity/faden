@@ -20,6 +20,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   schemaVersion: SCHEMA_VERSION,
 };
 
+/** Meta-Eintrag: einfacher Modus bei Erst-Start an (neue Installation) oder aus. */
+const SIMPLE_DEFAULT_KEY = 'simpleModeDefault';
+
 function normalizeSettings(stored: AppSettings | undefined): AppSettings {
   return stored ? { ...parseSettings(stored), schemaVersion: SCHEMA_VERSION } : DEFAULT_SETTINGS;
 }
@@ -66,15 +69,7 @@ export class SettingsStore {
     try {
       const stored = await this.db.getSettings();
       let value = normalizeSettings(stored);
-      if (!value.simpleMode) {
-        // Erst-Start: neue Nutzer beginnen im einfachen Modus, bestehende nicht.
-        const existing =
-          stored !== undefined ||
-          (await this.db.getLists()).length > 0 ||
-          (await this.db.getTemplates()).length > 0;
-        value = { ...value, simpleMode: { enabled: !existing } };
-        await this.db.putSettings(value);
-      }
+      if (!value.simpleMode) value = { ...value, simpleMode: { enabled: await this.simpleDefault(stored) } };
       this.settings.set(value);
       this.applyTheme(value.theme);
       this.i18n.setLocale(value.language);
@@ -82,6 +77,20 @@ export class SettingsStore {
       // Ohne IndexedDB (z. B. Tests) bleiben die Standardwerte aktiv.
       this.i18n.setLocale(DEFAULT_SETTINGS.language);
     }
+  }
+
+  /**
+   * Erst-Start: neue Nutzer beginnen im einfachen Modus, bestehende nicht. Die
+   * Entscheidung steht in einem eigenen Meta-Eintrag – sie überschreibt nie
+   * Einstellungen, die gleichzeitig (anderer Tab) gespeichert werden.
+   */
+  private async simpleDefault(stored: AppSettings | undefined): Promise<boolean> {
+    const decided = await this.db.getMeta<boolean>(SIMPLE_DEFAULT_KEY);
+    if (typeof decided === 'boolean') return decided;
+    const existing =
+      stored !== undefined || (await this.db.getLists()).length > 0 || (await this.db.getTemplates()).length > 0;
+    await this.db.setMeta(SIMPLE_DEFAULT_KEY, !existing);
+    return !existing;
   }
 
   async setTheme(theme: ThemeChoice): Promise<void> {

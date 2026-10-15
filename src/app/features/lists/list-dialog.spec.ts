@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { ListDialog } from './list-dialog';
 import { ListsStore } from '../../core/state/lists.store';
+import { SettingsStore } from '../../core/state/settings.store';
+import { TemplatesStore } from '../../core/state/templates.store';
 import { FadenDb } from '../../core/storage';
 import { createList } from '../../core/model';
 
@@ -52,5 +54,32 @@ describe('ListDialog – Namen', () => {
     await type('Bad');
     expect(button().disabled).toBe(false);
     expect(hint()).toBe('');
+  });
+});
+
+describe('ListDialog – einfacher Modus', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ListDialog],
+      providers: [{ provide: FadenDb, useFactory: () => new FadenDb() }],
+    }).compileComponents();
+    await TestBed.inject(SettingsStore).setSimpleEnabled(true);
+  });
+
+  it('bietet weiter die Vorlagen-Wahl, aber nur „Keine Zeitplanung“ und „Zeitschätzung“', async () => {
+    TestBed.inject(TemplatesStore).add({
+      id: 't',
+      title: 'Morgen',
+      timeboxMode: 'none',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      tasks: [],
+      edges: [],
+    });
+    const fixture = TestBed.createComponent(ListDialog);
+    fixture.componentInstance.showCreate();
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('select[name=template]')).not.toBeNull();
+    expect(root.querySelectorAll('input[type=radio]')).toHaveLength(2);
   });
 });

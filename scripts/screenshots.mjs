@@ -229,7 +229,8 @@ for (const lang of ['en', 'de']) {
       // lastBackupAt: kein Backup-Hinweisband in den Bildern.
       tx.objectStore('settings').put({
         key: 'app',
-        value: { theme: 'light', language: '${lang}', schemaVersion: 3, lastBackupAt: new Date().toISOString() },
+        // Volle Oberfläche (ohne einfachen Modus) – die Bilder zeigen alle Funktionen.
+        value: { theme: 'light', language: '${lang}', schemaVersion: 3, lastBackupAt: new Date().toISOString(), simpleMode: { enabled: false } },
       });
       tx.oncomplete = () => { db.close(); resolve(true); };
       tx.onerror = () => reject(tx.error);
@@ -310,7 +311,27 @@ for (const lang of ['en', 'de']) {
   await open('#/ueber', `document.querySelector('main h1') !== null`);
   await shoot(lang, 'about', 'main', { maxHeight: 900, tall: true });
   await open('#/einstellungen/fortgeschritten', `document.querySelector('.keys') !== null`);
-  await shoot(lang, 'advanced', 'main', { maxHeight: 760, tall: true });
+  await page.eval(`document.querySelector('#shortcuts-heading').scrollIntoView()`);
+  await shoot(lang, 'advanced', 'section[aria-labelledby=shortcuts-heading]', { maxHeight: 760, tall: true });
+
+  // Farbschema: Standard duplizieren, Hauptfarbe ändern (nicht speichern)
+  await click('app-scheme-section .scheme:first-child .scheme__actions button');
+  await page.waitFor(`document.querySelector('.picker__hex') !== null`, 'Farbschema-Editor');
+  await page.eval(`(() => {
+    const hex = document.querySelector('.picker__hex');
+    hex.value = '#2f5d7c';
+    hex.dispatchEvent(new Event('change'));
+  })()`);
+  await sleep(100);
+  await shoot(lang, 'scheme-editor', 'main', { maxHeight: 1500, tall: true });
+
+  // Geführte Tour: erster Hinweis, gestartet aus „Über“
+  await open('#/ueber', `document.querySelector('main h1') !== null`);
+  await click('main .btn--primary');
+  await page.waitFor(`document.querySelector('.tour .tour__title') !== null && document.querySelector('.tour-target') !== null`, 'Tour');
+  await sleep(150);
+  await shoot(lang, 'tour', 'body', { maxHeight: 740 });
+  await click('.tour .btn--ghost');
   await open('#/einstellungen', `document.querySelector('main h1') !== null`);
 
   // Import mit gleichnamigem Zettel
