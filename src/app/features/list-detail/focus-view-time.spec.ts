@@ -17,8 +17,9 @@ function dayPlanList(reference: string, ...tasks: Task[]): TodoList {
 
 function task(id: string, dayStart: string, dayEnd: string): Task {
   const created = createTask(`ToDo ${id}`, id);
+  const minutes = (value: string) => Number(value.slice(0, 2)) * 60 + Number(value.slice(3));
   created.dayStart = dayStart;
-  created.dayEnd = dayEnd;
+  created.estimateMinutes = minutes(dayEnd) - minutes(dayStart);
   return created;
 }
 

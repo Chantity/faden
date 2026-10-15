@@ -45,3 +45,10 @@ auf eine Bildschirmgröße einschränken.
 - **Karten im Diagramm bei Zoom < 100 %**: Sie werden mit dem Zoom kleiner; bei
   100 % werden sie mitgeprüft.
 - Elemente in geschlossenen Menüs/Aufklappern und hinter offenen Dialogen.
+- Elemente, die gerade unter einem **schwebenden** Element liegen (`position:
+  fixed`/`sticky`, z. B. der runde „+ Neuer Zettel“-Button): Sie sind durch
+  Weiterscrollen erreichbar; der zusätzliche Abstand unten in der Übersicht
+  sorgt dafür, dass auch das letzte Element frei liegt.
+- Einmalige Erst-Start-Hinweise (Installations-Banner) sind in den
+  Abnahmetests vorab als „gesehen“ markiert, damit sie nicht mitten in einen
+  Tab-Durchlauf fallen; sie haben eigene Tests.

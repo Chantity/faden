@@ -95,6 +95,11 @@ export function toDatetimeLocal(value: string | undefined): string {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
+  return toLocalIso(date);
+}
+
+/** „YYYY-MM-DDTHH:mm“ (lokale Zeit ohne Zeitzone) aus einem Datum. */
+export function toLocalIso(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   const h = String(date.getHours()).padStart(2, '0');

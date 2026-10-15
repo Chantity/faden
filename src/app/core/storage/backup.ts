@@ -1,7 +1,9 @@
 import {
+  CHECKLIST_MAX_ITEMS,
   DEFAULT_LOCALE,
   isLocale,
   NOTES_MAX_LENGTH,
+  type ChecklistItem,
   SCHEMA_VERSION,
   TIMEBOX_MODES,
   TITLE_MAX_LENGTH,
@@ -45,6 +47,7 @@ export type BackupIssueCode =
   | 'task-no-title'
   | 'title-too-long'
   | 'notes-invalid'
+  | 'checklist-invalid'
   | 'edge-invalid'
   | 'graph';
 
@@ -112,15 +115,39 @@ function parseTask(raw: unknown, at: BackupLocation, errors: BackupIssue[]): Tas
     return undefined;
   }
 
+  const checklist = raw['checklist'] === undefined ? undefined : parseChecklist(raw['checklist']);
+  if (checklist === null) {
+    errors.push({ code: 'checklist-invalid', at });
+    return undefined;
+  }
+
   const task: Task = { id: raw['id'], title: raw['title'], done: raw['done'] === true };
   if (isString(raw['doneAt'])) task.doneAt = raw['doneAt'];
   if (isNumber(raw['estimateMinutes'])) task.estimateMinutes = raw['estimateMinutes'];
   if (isString(raw['notes'])) task.notes = raw['notes'];
+  if (checklist) task.checklist = checklist;
   if (isString(raw['dayStart'])) task.dayStart = raw['dayStart'];
-  if (isString(raw['dayEnd'])) task.dayEnd = raw['dayEnd'];
   if (isString(raw['startAt'])) task.startAt = raw['startAt'];
-  if (isString(raw['endAt'])) task.endAt = raw['endAt'];
   return task;
+}
+
+/** Checkliste prüfen; `null` = ungültig. */
+function parseChecklist(raw: unknown): ChecklistItem[] | null {
+  if (!Array.isArray(raw) || raw.length > CHECKLIST_MAX_ITEMS) return null;
+  const items: ChecklistItem[] = [];
+  for (const item of raw) {
+    if (
+      !isRecord(item) ||
+      !isString(item['id']) ||
+      !isString(item['text']) ||
+      item['text'].trim() === '' ||
+      item['text'].length > TITLE_MAX_LENGTH
+    ) {
+      return null;
+    }
+    items.push({ id: item['id'], text: item['text'], done: item['done'] === true });
+  }
+  return items;
 }
 
 function parseEdge(raw: unknown, at: BackupLocation, errors: BackupIssue[]): Edge | undefined {

@@ -2,7 +2,7 @@
 // Zeiten aus Schätzungen vorschlagen und Tageszeiten auf ein Datum übertragen.
 // Reine Funktionen, ohne Angular.
 import { type Task, type TodoList, type TimeboxMode } from '../model';
-import { parseHhMm, roundToFiveMinutes, toIsoDate } from './format';
+import { minutesToHhMm, parseHhMm, roundToFiveMinutes, toIsoDate, toLocalIso } from './format';
 
 export interface EstimateSums {
   /** Summe der Minuten aller offenen ToDos mit Schätzung. */
@@ -34,17 +34,18 @@ export function estimateSums(list: TodoList): EstimateSums {
   return { openMinutes, totalMinutes, doneMinutes, openWithoutEstimate };
 }
 
-/** Validiert „Bis > Von" im Tagesplan. */
+/**
+ * Validiert Start + Dauer im Tagesplan: gültige Uhrzeit, und das Ende liegt
+ * spätestens um 24:00 (über Mitternacht geht nur der feste Zeitplan).
+ */
 export function validateDayTimes(
   dayStart: string | undefined,
-  dayEnd: string | undefined,
+  minutes: number | undefined,
 ): { ok: boolean; message?: 'invalid' | 'order' } {
-  const start = dayStart !== undefined && dayStart !== '' ? parseHhMm(dayStart) : null;
-  const end = dayEnd !== undefined && dayEnd !== '' ? parseHhMm(dayEnd) : null;
-  if ((dayStart && start === null) || (dayEnd && end === null)) {
-    return { ok: false, message: 'invalid' };
-  }
-  if (start !== null && end !== null && end <= start) {
+  if (!dayStart) return { ok: true };
+  const start = parseHhMm(dayStart);
+  if (start === null) return { ok: false, message: 'invalid' };
+  if (minutes !== undefined && start + minutes > 24 * 60) {
     return { ok: false, message: 'order' };
   }
   return { ok: true };
@@ -56,42 +57,23 @@ function shiftIso(value: string, deltaMs: number): string {
   return toLocalIso(new Date(date.getTime() + deltaMs));
 }
 
-function toLocalIso(date: Date): string {
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  const h = String(date.getHours()).padStart(2, '0');
-  const min = String(date.getMinutes()).padStart(2, '0');
-  return `${date.getFullYear()}-${m}-${d}T${h}:${min}`;
-}
-
 /**
- * Verschiebt alle geplanten Zeiten eines Zettels um `deltaMs`
- * („Alles verschieben"). Wirkt auf `startAt`/`endAt` sowie – sofern
- * der Modus `dayPlan` ist – auch auf `dayStart`/`dayEnd`.
+ * Verschiebt alle geplanten Startzeiten eines Zettels um `deltaMs`
+ * („Alles verschieben"). Wirkt auf `startAt` sowie – sofern der Modus
+ * `dayPlan` ist – auch auf `dayStart`. Die Dauern bleiben.
  */
 export function shiftPlan(list: TodoList, deltaMs: number): TodoList {
   const tasks = list.tasks.map((task) => {
     const next: Task = { ...task };
     if (list.timeboxMode === 'dayPlan') {
       const start = parseHhMm(task.dayStart);
-      const end = parseHhMm(task.dayEnd);
-      const deltaMinutes = Math.round(deltaMs / 60_000);
-      if (start !== null) next.dayStart = minutesToHh(start + deltaMinutes);
-      if (end !== null) next.dayEnd = minutesToHh(end + deltaMinutes);
-    } else {
-      if (task.startAt) next.startAt = shiftIso(task.startAt, deltaMs);
-      if (task.endAt) next.endAt = shiftIso(task.endAt, deltaMs);
+      if (start !== null) next.dayStart = minutesToHhMm(start + Math.round(deltaMs / 60_000));
+    } else if (task.startAt) {
+      next.startAt = shiftIso(task.startAt, deltaMs);
     }
     return next;
   });
   return { ...list, tasks };
-}
-
-function minutesToHh(minutes: number): string {
-  const total = ((Math.round(minutes) % 1440) + 1440) % 1440;
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 export interface StretchInput {
@@ -106,8 +88,9 @@ export interface StretchInput {
 }
 
 /**
- * Bildet alle `startAt`/`endAt` proportional auf einen neuen Zeitraum ab
- * („Auf Zeitraum strecken/stauchen"), auf 5 Minuten gerundet.
+ * Bildet alle Zeiten proportional auf einen neuen Zeitraum ab
+ * („Auf Zeitraum strecken/stauchen"), auf 5 Minuten gerundet: Start und Ende
+ * jedes ToDos werden abgebildet, die Dauer ergibt sich aus beiden.
  */
 export function stretchPlan(list: TodoList, input: StretchInput): TodoList {
   const oldStartMs = new Date(input.oldStart).getTime();
@@ -121,19 +104,18 @@ export function stretchPlan(list: TodoList, input: StretchInput): TodoList {
 
   const scale = (newEndMs - newStartMs) / oldSpan;
 
-  const map = (value: string): string => {
-    const ms = new Date(value).getTime();
-    if (Number.isNaN(ms)) return value;
-    const offsetMs = ms - oldStartMs;
-    const mapped = newStartMs + offsetMs * scale;
-    const rounded = roundToFiveMinutes(mapped / 60_000) * 60_000;
-    return toLocalIso(new Date(rounded));
-  };
+  const map = (ms: number): number =>
+    roundToFiveMinutes((newStartMs + (ms - oldStartMs) * scale) / 60_000) * 60_000;
 
   const tasks = list.tasks.map((task) => {
-    const next: Task = { ...task };
-    if (task.startAt) next.startAt = map(task.startAt);
-    if (task.endAt) next.endAt = map(task.endAt);
+    if (!task.startAt) return task;
+    const startMs = new Date(task.startAt).getTime();
+    if (Number.isNaN(startMs)) return task;
+    const next: Task = { ...task, startAt: toLocalIso(new Date(map(startMs))) };
+    if (task.estimateMinutes !== undefined) {
+      const endMs = map(startMs + task.estimateMinutes * 60_000);
+      next.estimateMinutes = Math.max(5, Math.round((endMs - map(startMs)) / 60_000));
+    }
     return next;
   });
   return { ...list, tasks };
@@ -144,31 +126,25 @@ export function planBounds(list: TodoList): { start: string; end: string } | nul
   let start: number | undefined;
   let end: number | undefined;
   for (const task of list.tasks) {
-    for (const value of [task.startAt, task.endAt]) {
-      if (!value) continue;
-      const ms = new Date(value).getTime();
-      if (Number.isNaN(ms)) continue;
-      if (start === undefined || ms < start) start = ms;
-      if (end === undefined || ms > end) end = ms;
-    }
+    if (!task.startAt) continue;
+    const startMs = new Date(task.startAt).getTime();
+    if (Number.isNaN(startMs)) continue;
+    const endMs = startMs + (task.estimateMinutes ?? 0) * 60_000;
+    if (start === undefined || startMs < start) start = startMs;
+    if (end === undefined || endMs > end) end = endMs;
   }
   if (start === undefined || end === undefined) return null;
   return { start: toLocalIso(new Date(start)), end: toLocalIso(new Date(end)) };
 }
 
 /**
- * Überträgt Tageszeiten (`dayStart`/`dayEnd`) auf ein gewähltes Datum und
- * erzeugt daraus `startAt`/`endAt` (Moduswechsel `dayPlan` →
- * `schedule`).
+ * Überträgt Tageszeiten (`dayStart`) auf ein gewähltes Datum und erzeugt daraus
+ * `startAt` (Moduswechsel `dayPlan` → `schedule`). Die Dauer bleibt.
  */
 export function transferDayTimesToList(list: TodoList, day: string): TodoList {
   const tasks = list.tasks.map((task) => {
-    const next: Task = { ...task };
     const start = parseHhMm(task.dayStart);
-    const end = parseHhMm(task.dayEnd);
-    if (start !== null) next.startAt = combine(day, start);
-    if (end !== null) next.endAt = combine(day, end);
-    return next;
+    return start === null ? task : { ...task, startAt: combine(day, start) };
   });
   return { ...list, tasks };
 }
@@ -188,8 +164,8 @@ export interface ProposeOptions {
 
 /**
  * Legt die ToDos in topologischer Reihenfolge nacheinander ab einer gewählten
- * Startzeit an. `dayPlan` nutzt `dayStart`/`dayEnd`, `schedule`
- * `startAt`/`endAt`.
+ * Startzeit an. `dayPlan` setzt `dayStart`, `schedule` `startAt`; ToDos ohne
+ * Dauer erhalten die Standarddauer.
  */
 export function proposeTimes(
   list: TodoList,
@@ -207,13 +183,11 @@ export function proposeTimes(
     const task = tasksById.get(id);
     if (!task || task.done) continue;
     const duration = task.estimateMinutes ?? fallback;
-    const next: Task = { ...task };
+    const next: Task = { ...task, estimateMinutes: duration };
     if (list.timeboxMode === 'dayPlan') {
-      next.dayStart = minutesToHh(cursorMinutes);
-      next.dayEnd = minutesToHh(cursorMinutes + duration);
+      next.dayStart = minutesToHhMm(cursorMinutes);
     } else if (list.timeboxMode === 'schedule') {
       next.startAt = combine(day, cursorMinutes);
-      next.endAt = combine(day, cursorMinutes + duration);
     }
     tasks.push(next);
     cursorMinutes += duration;
@@ -230,9 +204,9 @@ export function modeFields(mode: TimeboxMode): readonly (keyof Task)[] {
     case 'estimate':
       return ['estimateMinutes'];
     case 'dayPlan':
-      return ['dayStart', 'dayEnd'];
+      return ['dayStart', 'estimateMinutes'];
     case 'schedule':
-      return ['startAt', 'endAt'];
+      return ['startAt', 'estimateMinutes'];
     default:
       return [];
   }
@@ -264,10 +238,10 @@ export function modeSwitchOffer(
   next: TimeboxMode,
 ): 'convert' | 'scheduleKept' | null {
   if (before.timeboxMode === 'dayPlan' && next === 'schedule') {
-    return before.tasks.some((t) => t.dayStart || t.dayEnd) ? 'convert' : null;
+    return before.tasks.some((t) => t.dayStart) ? 'convert' : null;
   }
   if (before.timeboxMode === 'schedule' && next === 'dayPlan') {
-    return before.tasks.some((t) => t.startAt || t.endAt) ? 'scheduleKept' : null;
+    return before.tasks.some((t) => t.startAt) ? 'scheduleKept' : null;
   }
   return null;
 }

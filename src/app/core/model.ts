@@ -41,21 +41,29 @@ export interface Task {
   id: string;
   /** Pflicht, max. 200 Zeichen. */
   title: string;
-  /** optional, max. 2000 Zeichen. */
+  /** optional, max. 2000 Zeichen. Gilt nur, solange `checklist` fehlt. */
   notes?: string;
+  /** Gesetzt = die Beschreibung ist eine Checkliste statt Freitext. */
+  checklist?: ChecklistItem[];
   done: boolean;
   /** ISO, wann abgehakt. */
   doneAt?: string;
-  /** Modus 'estimate' (ganzzahlig, 1–1440). */
+  /**
+   * Dauer in Minuten (ganzzahlig, 1–1440): Schätzung im Modus 'estimate', Plan-Dauer
+   * in 'dayPlan'/'schedule'. Das Ende wird daraus berechnet, nie gespeichert.
+   */
   estimateMinutes?: number;
-  /** 'HH:mm', Modus 'dayPlan'. */
+  /** Start 'HH:mm', Modus 'dayPlan'. */
   dayStart?: string;
-  /** 'HH:mm', Modus 'dayPlan'. */
-  dayEnd?: string;
-  /** 'YYYY-MM-DDTHH:mm' (lokale Zeit ohne Zeitzone), Modus 'schedule'. */
+  /** Start 'YYYY-MM-DDTHH:mm' (lokale Zeit ohne Zeitzone), Modus 'schedule'. */
   startAt?: string;
-  /** 'YYYY-MM-DDTHH:mm' (lokale Zeit ohne Zeitzone), Modus 'schedule'. */
-  endAt?: string;
+}
+
+export interface ChecklistItem {
+  id: string;
+  /** Pflicht, max. 200 Zeichen. */
+  text: string;
+  done: boolean;
 }
 
 export interface Edge {
@@ -83,10 +91,11 @@ export interface AppSettings {
   schemaVersion: number;
 }
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const TITLE_MAX_LENGTH = 200;
 export const NOTES_MAX_LENGTH = 2000;
+export const CHECKLIST_MAX_ITEMS = 100;
 
 /** Deterministische Kanten-ID aus dem from/to-Paar (Doppelpfeile sind verboten). */
 export function edgeId(from: string, to: string): string {
@@ -96,6 +105,27 @@ export function edgeId(from: string, to: string): string {
 /** Erzeugt eine neue Task mit Standardwerten. */
 export function createTask(title: string, id: string = crypto.randomUUID()): Task {
   return { id, title, done: false };
+}
+
+/** Vergleichsschlüssel für Zettel-Namen: getrimmt, ohne Groß-/Kleinschreibung. */
+export function titleKey(title: string): string {
+  return title.trim().toLocaleLowerCase();
+}
+
+/**
+ * Macht `title` eindeutig gegenüber `taken` (Namen anderer Zettel): „Einkauf",
+ * sonst „Einkauf (2)", „Einkauf (3)" … Ein vorhandenes „ (n)" wird weitergezählt.
+ */
+export function uniqueTitle(title: string, taken: Iterable<string>): string {
+  const keys = new Set([...taken].map(titleKey));
+  const trimmed = title.trim();
+  if (!keys.has(titleKey(trimmed))) return trimmed;
+  const base = trimmed.replace(/ \(\d+\)$/, '');
+  for (let n = 2; ; n++) {
+    const suffix = ` (${n})`;
+    const candidate = base.slice(0, TITLE_MAX_LENGTH - suffix.length) + suffix;
+    if (!keys.has(titleKey(candidate))) return candidate;
+  }
 }
 
 /** Erzeugt einen leeren Zettel. */

@@ -30,7 +30,7 @@ Alle Änderungen laufen über `migrate()` (`src/app/core/storage/`) als reine, g
 | **Dauer statt Ende** | `estimateMinutes` (in der Oberfläche „Dauer“) ist in **allen** Modi die Dauer: Schätzung in `estimate`, Plan-Dauer in `dayPlan`/`schedule`. Der Start bleibt `dayStart` (`HH:mm`) bzw. `startAt` (`YYYY-MM-DDTHH:mm`). Das **Ende wird berechnet**, nie gespeichert. `dayEnd` und `endAt` entfallen. |
 | Migration Dauer | Sind Start und Ende gesetzt, gilt Dauer = Ende − Start. Das überschreibt eine abweichende Schätzung, denn der konkrete Plan gewinnt. Ist nur das Ende gesetzt, gilt Start = Ende − (`estimateMinutes` ?? 15) und Dauer = `estimateMinutes` ?? 15. Ist nur der Start gesetzt, bleibt alles, wie es ist. Haben `dayStart`/`dayEnd` und `startAt`/`endAt` beide Werte, werden beide Paare umgerechnet. Weichen die Dauern ab, gewinnt das Paar des aktiven Modus. |
 | **Eindeutige Zettel-Namen** | Bestehende Duplikate (Vergleich siehe 4.9) erhalten bei der Migration „ (2)“, „ (3)“ usw. Das ältere `createdAt` behält den Namen. |
-| Backup | Die Validierung in `backup.ts` kennt `checklist` und lehnt `dayEnd`/`endAt` in Schema 3 ab; ältere Schemata werden vorher migriert. Neue `BackupIssueCode`s erhalten Übersetzungen. |
+| Backup | Die Validierung in `backup.ts` kennt `checklist`; ältere Schemata werden vorher migriert, `dayEnd`/`endAt` in einer Schema-3-Datei werden ignoriert. Die Migrationsschritte für Zettel/Vorlagen sind idempotent und laufen auch beim Laden aus IndexedDB. Neue `BackupIssueCode`s erhalten Übersetzungen. |
 
 ---
 
@@ -145,7 +145,7 @@ Die Funktion greift beim Anlegen über eine Position (2.1), wenn der Zettel im M
    - **Bewusste Ausnahme** von „keine Pop-ups ohne Not“ (Wunsch des Nutzers). Er erscheint nur einmal.
    - **Reihenfolge der Erst-Start-Hinweise:** Speicher-Hinweis (4.8) → Anleitung (5.3) → Installations-Banner (erst wenn beide Popups erledigt sind).
 9. **Eindeutige Zettel-Namen:**
-   - Vergleich: getrimmt, ohne Unterscheidung von Groß-/Kleinschreibung (`localeCompare` mit `sensitivity: 'base'`), über aktive **und** archivierte Zettel. Soft-gelöschte Zettel zählen nicht.
+   - Vergleich: getrimmt, ohne Unterscheidung von Groß-/Kleinschreibung (`titleKey`: `trim().toLocaleLowerCase()`; Umlaute bleiben verschieden, „Bär“ ≠ „Bar“), über aktive **und** archivierte Zettel. Soft-gelöschte Zettel zählen nicht.
    - Im Anlegen- bzw. Umbenennen-Dialog: ruhiger Inline-Hinweis „Es gibt schon einen Zettel mit diesem Namen.“; Anlegen/Speichern ist gesperrt.
    - **Automatisch entstehende Namen** werden eindeutig gemacht mit „ (2)“, „ (3)“ usw. Das betrifft Duplizieren (ersetzt das bisherige „ (Kopie)“), „Neuer Zettel aus Vorlage“, Undo eines Löschens (falls der Name inzwischen vergeben ist) und den Import (4.10). Hilfsfunktion `uniqueTitle(title, existing)` als reine, getestete Funktion.
    - Vorlagen sind nicht betroffen.

@@ -6,7 +6,7 @@ import {
   type TimeboxMode,
   type TodoList,
 } from '../model';
-import { FadenDb } from '../storage';
+import { FadenDb, upgradeList, upgradeLists } from '../storage';
 import { withTimeboxMode } from '../time';
 import { CommandHistory, History } from './history';
 
@@ -76,10 +76,13 @@ export class ListsStore {
       const stored = await this.db.getLists();
       // Gelöschte Zettel aus einer früheren Sitzung: Ihre Frist ist vorbei (der
       // Rückgängig-Verlauf existiert nicht mehr) → jetzt endgültig entfernen.
-      // Ältere Tagespläne ohne Bezugstag: ab heute gültig.
-      const lists = stored
-        .filter((l) => !l.deletedAt)
-        .map((l) => withTimeboxMode(l, l.timeboxMode, new Date()));
+      // Ältere Tagespläne ohne Bezugstag: ab heute gültig. Daten älterer Schemata
+      // (Ende statt Dauer, doppelte Namen) werden hier angehoben.
+      const lists = upgradeLists(
+        stored
+          .filter((l) => !l.deletedAt)
+          .map((l) => withTimeboxMode(upgradeList(l), l.timeboxMode, new Date())),
+      );
       // Was schon vor dem Ende des Ladens angelegt wurde (schnelle Nutzer, langsames
       // erstes Öffnen der Datenbank), bleibt erhalten – samt Rückgängig-Verlauf.
       const storedIds = new Set(stored.map((l) => l.id));
@@ -438,7 +441,9 @@ export class ListsStore {
   private async reloadFromStorage(): Promise<void> {
     try {
       const lists = await this.db.getLists();
-      if (maxUpdated(lists) !== maxUpdated(this.all())) {
+      // Nur ein wirklich neuerer Stand (anderer Tab) ersetzt den eigenen. Ein älterer
+      // ist der eigene, noch nicht entprellt gespeicherte – er darf nichts überschreiben.
+      if (maxUpdated(lists) > maxUpdated(this.all())) {
         this.all.set(lists);
         this.persistedIds = new Set(lists.map((l) => l.id));
         // Ein anderer Tab hat geändert: alte Verläufe würden dessen Stand überschreiben.

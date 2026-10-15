@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import type { Template } from '../model';
-import { FadenDb } from '../storage';
+import { FadenDb, upgradeList } from '../storage';
 
 /** Signal-Store für Vorlagen. */
 @Injectable({ providedIn: 'root' })
@@ -11,10 +11,14 @@ export class TemplatesStore {
 
   async load(): Promise<void> {
     try {
-      const stored = await this.db.getTemplates();
+      const raw = await this.db.getTemplates();
+      const stored = raw.map(upgradeList);
+      const upgraded = stored.filter((t, i) => t !== raw[i]);
       // Vor dem Ende des Ladens gespeicherte Vorlagen nicht überschreiben.
       const ids = new Set(stored.map((t) => t.id));
       this.templates.update((early) => [...early.filter((t) => !ids.has(t.id)), ...stored]);
+      // Auf das aktuelle Schema angehobene Vorlagen gleich so speichern.
+      if (upgraded.length > 0) await this.db.putAll('templates', upgraded);
     } catch {
       // Ohne IndexedDB (z. B. Tests) bleibt die Liste leer.
     }

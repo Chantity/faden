@@ -11,27 +11,14 @@ import {
 import { extractStrand, topologicalOrder } from '../graph';
 import { withTimeboxMode } from '../time';
 
-/** Minuten zwischen zwei lokalen ISO-Zeitpunkten (oder null). */
-function durationMinutes(startAt: string | undefined, endAt: string | undefined): number | null {
-  if (!startAt || !endAt) return null;
-  const start = new Date(startAt).getTime();
-  const end = new Date(endAt).getTime();
-  if (Number.isNaN(start) || Number.isNaN(end)) return null;
-  const minutes = Math.round((end - start) / 60_000);
-  return minutes > 0 ? minutes : null;
-}
-
 /**
- * Bereitet eine Task für die Vorlage auf: Erledigt-Status entfällt, absolute
- * Zeiten (`startAt`/`endAt`) werden verworfen – falls sinnvoll, wird daraus eine
- * Schätzung abgeleitet. Tageszeiten (`dayStart`/`dayEnd`) bleiben erhalten.
+ * Bereitet eine Task für die Vorlage auf: Erledigt-Status (auch in der
+ * Checkliste) entfällt, das absolute Datum (`startAt`) wird verworfen. Dauer und
+ * Tageszeit (`dayStart`) bleiben erhalten.
  */
 function toTemplateTask(task: Task): Omit<Task, 'done' | 'doneAt'> {
-  const { done: _done, doneAt: _doneAt, startAt, endAt, ...rest } = task;
-  if (rest.estimateMinutes === undefined) {
-    const derived = durationMinutes(startAt, endAt);
-    if (derived !== null) rest.estimateMinutes = derived;
-  }
+  const { done: _done, doneAt: _doneAt, startAt: _startAt, ...rest } = task;
+  if (rest.checklist) rest.checklist = rest.checklist.map((item) => ({ ...item, done: false }));
   return rest;
 }
 

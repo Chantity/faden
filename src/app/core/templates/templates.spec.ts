@@ -14,10 +14,10 @@ function chainList(): TodoList {
   a.doneAt = '2026-03-01T08:00';
   a.estimateMinutes = 30;
   a.dayStart = '09:00';
-  a.dayEnd = '09:30';
+  a.checklist = [{ id: 'x', text: 'Milch', done: true }];
   const b = createTask('Ausführen', 'b');
   b.startAt = '2026-03-12T10:00';
-  b.endAt = '2026-03-12T10:45';
+  b.estimateMinutes = 45;
   const c = createTask('Nachbereiten', 'c');
   const d = createTask('Einkaufen', 'd');
   list.tasks = [a, b, c, d];
@@ -29,7 +29,7 @@ function chainList(): TodoList {
 }
 
 describe('listToTemplate / strandToTemplate', () => {
-  it('verwirft Erledigt-Status und absolute Zeiten, leitet Schätzung ab', () => {
+  it('verwirft Erledigt-Status (auch in Checklisten) und das Datum, behält Dauer und Tageszeit', () => {
     const template = listToTemplate(chainList());
     expect(template.tasks).toHaveLength(4);
 
@@ -38,11 +38,10 @@ describe('listToTemplate / strandToTemplate', () => {
     expect(a?.['doneAt']).toBeUndefined();
     expect(a?.['estimateMinutes']).toBe(30);
     expect(a?.['dayStart']).toBe('09:00');
-    expect(a?.['dayEnd']).toBe('09:30');
+    expect(a?.['checklist']).toEqual([{ id: 'x', text: 'Milch', done: false }]);
 
     const b = template.tasks.find((t) => t.id === 'b') as Record<string, unknown> | undefined;
     expect(b?.['startAt']).toBeUndefined();
-    expect(b?.['endAt']).toBeUndefined();
     expect(b?.['estimateMinutes']).toBe(45);
   });
 

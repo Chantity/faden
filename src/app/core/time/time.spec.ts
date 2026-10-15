@@ -82,13 +82,13 @@ describe('formatDayLabel', () => {
 });
 
 describe('validateDayTimes', () => {
-  it('erlaubt nur Bis > Von', () => {
-    expect(validateDayTimes('09:00', '10:00').ok).toBe(true);
+  it('erlaubt Start + Dauer bis höchstens 24:00', () => {
+    expect(validateDayTimes('09:00', 60).ok).toBe(true);
     expect(validateDayTimes('09:00', undefined).ok).toBe(true);
     expect(validateDayTimes(undefined, undefined).ok).toBe(true);
-    expect(validateDayTimes('10:00', '09:00')).toEqual({ ok: false, message: 'order' });
-    expect(validateDayTimes('09:00', '09:00')).toEqual({ ok: false, message: 'order' });
-    expect(validateDayTimes('25:00', '10:00')).toEqual({ ok: false, message: 'invalid' });
+    expect(validateDayTimes('23:00', 60).ok).toBe(true);
+    expect(validateDayTimes('23:30', 60)).toEqual({ ok: false, message: 'order' });
+    expect(validateDayTimes('25:00', 10)).toEqual({ ok: false, message: 'invalid' });
   });
 });
 
@@ -111,9 +111,9 @@ describe('estimateSums', () => {
 
 describe('timeStatus – schedule', () => {
   const list = scheduleList([
-    task({ id: 'run', title: 'Läuft', startAt: '2026-03-12T09:30', endAt: '2026-03-12T10:30' }),
-    task({ id: 'late', title: 'Verpasst', startAt: '2026-03-12T08:00', endAt: '2026-03-12T09:00' }),
-    task({ id: 'next', title: 'Später', startAt: '2026-03-12T11:00', endAt: '2026-03-12T12:00' }),
+    task({ id: 'run', title: 'Läuft', startAt: '2026-03-12T09:30', estimateMinutes: 60 }),
+    task({ id: 'late', title: 'Verpasst', startAt: '2026-03-12T08:00', estimateMinutes: 60 }),
+    task({ id: 'next', title: 'Später', startAt: '2026-03-12T11:00', estimateMinutes: 60 }),
     task({ id: 'done', title: 'Erledigt', startAt: '2026-03-12T08:00', done: true }),
   ]);
 
@@ -127,12 +127,12 @@ describe('timeStatus – schedule', () => {
   it('Grenzfälle: genau Start = läuft, genau Ende = nicht abgehakt', () => {
     const startAt = new Date(2026, 2, 12, 10, 0);
     const atStart = scheduleList([
-      task({ id: 'x', title: 'X', startAt: '2026-03-12T10:00', endAt: '2026-03-12T11:00' }),
+      task({ id: 'x', title: 'X', startAt: '2026-03-12T10:00', estimateMinutes: 60 }),
     ]);
     expect(timeStatus(atStart, atStart.tasks[0]!, startAt)).toBe('running');
 
     const atEnd = scheduleList([
-      task({ id: 'y', title: 'Y', startAt: '2026-03-12T09:00', endAt: '2026-03-12T10:00' }),
+      task({ id: 'y', title: 'Y', startAt: '2026-03-12T09:00', estimateMinutes: 60 }),
     ]);
     expect(timeStatus(atEnd, atEnd.tasks[0]!, startAt)).toBe('late');
   });
@@ -140,15 +140,15 @@ describe('timeStatus – schedule', () => {
   it('über Mitternacht', () => {
     const now = new Date(2026, 2, 13, 0, 30); // nach Mitternacht
     const list2 = scheduleList([
-      task({ id: 'n', title: 'Nacht', startAt: '2026-03-12T23:00', endAt: '2026-03-13T01:00' }),
+      task({ id: 'n', title: 'Nacht', startAt: '2026-03-12T23:00', estimateMinutes: 120 }),
     ]);
     expect(timeStatus(list2, list2.tasks[0]!, now)).toBe('running');
   });
 
   it('ermittelt das früheste „Als Nächstes"', () => {
     const list3 = scheduleList([
-      task({ id: 'a', title: 'A', startAt: '2026-03-12T13:00', endAt: '2026-03-12T14:00' }),
-      task({ id: 'b', title: 'B', startAt: '2026-03-12T11:30', endAt: '2026-03-12T12:00' }),
+      task({ id: 'a', title: 'A', startAt: '2026-03-12T13:00', estimateMinutes: 60 }),
+      task({ id: 'b', title: 'B', startAt: '2026-03-12T11:30', estimateMinutes: 30 }),
     ]);
     expect(earliestNextTask(list3, TODAY)?.id).toBe('b');
   });
@@ -164,9 +164,9 @@ describe('timeStatus – dayPlan', () => {
   it('Bezugstag heute: normale Ableitung', () => {
     const list = dayPlanList(
       [
-        task({ id: 'r', title: 'Läuft', dayStart: '09:30', dayEnd: '10:30' }),
-        task({ id: 'l', title: 'Verpasst', dayStart: '08:00', dayEnd: '09:00' }),
-        task({ id: 'n', title: 'Später', dayStart: '11:00', dayEnd: '12:00' }),
+        task({ id: 'r', title: 'Läuft', dayStart: '09:30', estimateMinutes: 60 }),
+        task({ id: 'l', title: 'Verpasst', dayStart: '08:00', estimateMinutes: 60 }),
+        task({ id: 'n', title: 'Später', dayStart: '11:00', estimateMinutes: 60 }),
       ],
       '2026-03-12',
     );
@@ -178,7 +178,7 @@ describe('timeStatus – dayPlan', () => {
 
   it('Bezugstag in der Vergangenheit: alles offen = nicht abgehakt', () => {
     const list = dayPlanList(
-      [task({ id: 'a', title: 'A', dayStart: '09:00', dayEnd: '10:00' })],
+      [task({ id: 'a', title: 'A', dayStart: '09:00', estimateMinutes: 60 })],
       '2026-03-10',
     );
     expect(referenceRelation(list, TODAY)).toBe('past');
@@ -187,7 +187,7 @@ describe('timeStatus – dayPlan', () => {
 
   it('Bezugstag in der Zukunft: geplant', () => {
     const list = dayPlanList(
-      [task({ id: 'a', title: 'A', dayStart: '09:00', dayEnd: '10:00' })],
+      [task({ id: 'a', title: 'A', dayStart: '09:00', estimateMinutes: 60 })],
       '2026-03-20',
     );
     expect(referenceRelation(list, TODAY)).toBe('future');
@@ -201,7 +201,7 @@ describe('timeStatus – dayPlan', () => {
 
   it('formatPlannedRange zeigt die Spanne', () => {
     const list = dayPlanList(
-      [task({ id: 'a', title: 'A', dayStart: '13:00', dayEnd: '13:30' })],
+      [task({ id: 'a', title: 'A', dayStart: '13:00', estimateMinutes: 30 })],
       '2026-03-12',
     );
     expect(formatPlannedRange(list, list.tasks[0]!)).toBe('13:00–13:30');
@@ -211,29 +211,29 @@ describe('timeStatus – dayPlan', () => {
 describe('shiftPlan', () => {
   it('verschiebt schedule-Zeiten um einen Tag', () => {
     const list = scheduleList([
-      task({ id: 'a', title: 'A', startAt: '2026-03-12T09:00', endAt: '2026-03-12T10:00' }),
+      task({ id: 'a', title: 'A', startAt: '2026-03-12T09:00', estimateMinutes: 60 }),
     ]);
     const shifted = shiftPlan(list, 24 * 60 * 60_000);
     expect(shifted.tasks[0]!.startAt).toBe('2026-03-13T09:00');
-    expect(shifted.tasks[0]!.endAt).toBe('2026-03-13T10:00');
+    expect(shifted.tasks[0]!.estimateMinutes).toBe(60);
   });
 
   it('verschiebt dayPlan-Zeiten um Minuten', () => {
     const list = dayPlanList(
-      [task({ id: 'a', title: 'A', dayStart: '09:00', dayEnd: '10:00' })],
+      [task({ id: 'a', title: 'A', dayStart: '09:00', estimateMinutes: 60 })],
       '2026-03-12',
     );
     const shifted = shiftPlan(list, 30 * 60_000);
     expect(shifted.tasks[0]!.dayStart).toBe('09:30');
-    expect(shifted.tasks[0]!.dayEnd).toBe('10:30');
+    expect(shifted.tasks[0]!.estimateMinutes).toBe(60);
   });
 });
 
 describe('stretchPlan', () => {
   it('bildet proportional auf den neuen Zeitraum ab (5-Minuten-Rundung)', () => {
     const list = scheduleList([
-      task({ id: 'a', title: 'A', startAt: '2026-03-12T08:00', endAt: '2026-03-12T09:00' }),
-      task({ id: 'b', title: 'B', startAt: '2026-03-12T09:00', endAt: '2026-03-12T10:00' }),
+      task({ id: 'a', title: 'A', startAt: '2026-03-12T08:00', estimateMinutes: 60 }),
+      task({ id: 'b', title: 'B', startAt: '2026-03-12T09:00', estimateMinutes: 60 }),
     ]);
     const stretched = stretchPlan(list, {
       oldStart: '2026-03-12T08:00',
@@ -242,13 +242,14 @@ describe('stretchPlan', () => {
       newEnd: '2026-03-12T12:00',
     });
     expect(stretched.tasks[0]!.startAt).toBe('2026-03-12T08:00');
-    expect(stretched.tasks[0]!.endAt).toBe('2026-03-12T10:00');
-    expect(stretched.tasks[1]!.endAt).toBe('2026-03-12T12:00');
+    expect(stretched.tasks[0]!.estimateMinutes).toBe(120);
+    expect(stretched.tasks[1]!.startAt).toBe('2026-03-12T10:00');
+    expect(stretched.tasks[1]!.estimateMinutes).toBe(120);
   });
 
   it('lässt den Plan unverändert, wenn der alte Zeitraum leer ist', () => {
     const list = scheduleList([
-      task({ id: 'a', title: 'A', startAt: '2026-03-12T08:00', endAt: '2026-03-12T09:00' }),
+      task({ id: 'a', title: 'A', startAt: '2026-03-12T08:00', estimateMinutes: 60 }),
     ]);
     const out = stretchPlan(list, {
       oldStart: '2026-03-12T08:00',
@@ -263,8 +264,8 @@ describe('stretchPlan', () => {
 describe('planBounds', () => {
   it('liefert frühesten Start und spätestes Ende', () => {
     const list = scheduleList([
-      task({ id: 'a', title: 'A', startAt: '2026-03-12T09:00', endAt: '2026-03-12T10:00' }),
-      task({ id: 'b', title: 'B', startAt: '2026-03-12T08:00', endAt: '2026-03-12T11:00' }),
+      task({ id: 'a', title: 'A', startAt: '2026-03-12T09:00', estimateMinutes: 60 }),
+      task({ id: 'b', title: 'B', startAt: '2026-03-12T08:00', estimateMinutes: 180 }),
     ]);
     expect(planBounds(list)).toEqual({ start: '2026-03-12T08:00', end: '2026-03-12T11:00' });
   });
@@ -273,12 +274,12 @@ describe('planBounds', () => {
 describe('transferDayTimesToList', () => {
   it('überträgt Tageszeiten auf ein Datum', () => {
     const list = dayPlanList(
-      [task({ id: 'a', title: 'A', dayStart: '09:00', dayEnd: '10:00' })],
+      [task({ id: 'a', title: 'A', dayStart: '09:00', estimateMinutes: 60 })],
       '2026-03-12',
     );
     const schedule = transferDayTimesToList(list, '2026-03-15');
     expect(schedule.tasks[0]!.startAt).toBe('2026-03-15T09:00');
-    expect(schedule.tasks[0]!.endAt).toBe('2026-03-15T10:00');
+    expect(schedule.tasks[0]!.estimateMinutes).toBe(60);
     // Tageszeiten bleiben erhalten.
     expect(schedule.tasks[0]!.dayStart).toBe('09:00');
   });
@@ -293,16 +294,16 @@ describe('proposeTimes', () => {
     ];
     const out = proposeTimes(list, { startAt: '2026-03-12T09:00' }, ['a', 'b']);
     expect(out.tasks[0]!.startAt).toBe('2026-03-12T09:00');
-    expect(out.tasks[0]!.endAt).toBe('2026-03-12T09:30');
+    expect(out.tasks[0]!.estimateMinutes).toBe(30);
     expect(out.tasks[1]!.startAt).toBe('2026-03-12T09:30');
-    expect(out.tasks[1]!.endAt).toBe('2026-03-12T09:45');
+    expect(out.tasks[1]!.estimateMinutes).toBe(15);
   });
 });
 
 describe('plannedBounds', () => {
   it('kombiniert Tageszeit mit dem Bezugstag', () => {
     const list = dayPlanList(
-      [task({ id: 'a', title: 'A', dayStart: '09:00', dayEnd: '10:00' })],
+      [task({ id: 'a', title: 'A', dayStart: '09:00', estimateMinutes: 60 })],
       '2026-03-12',
     );
     expect(plannedBounds(list, list.tasks[0]!)).toEqual({
@@ -323,7 +324,7 @@ describe('withTimeboxMode (Bezugstag)', () => {
 
   it('macht damit Zeitstatus im neuen Tagesplan sofort wirksam', () => {
     const list = withTimeboxMode(createList('Plan'), 'dayPlan', NOW);
-    list.tasks = [task({ id: 'a', title: 'A', dayStart: '09:00', dayEnd: '10:00' })];
+    list.tasks = [task({ id: 'a', title: 'A', dayStart: '09:00', estimateMinutes: 60 })];
     expect(timeStatus(list, list.tasks[0]!, NOW)).toBe('running');
   });
 

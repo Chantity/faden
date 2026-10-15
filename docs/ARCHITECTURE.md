@@ -85,7 +85,18 @@ Definiert in `core/model.ts`:
   Zeitstempel und `sortOrder`.
 - `Task` („ToDo") enthält optional Zeitfelder. **Wichtig:** Zeitfelder werden
   immer gespeichert und beim Moduswechsel **nicht** gelöscht.
+  - **Start + Dauer** (Schema 3): `estimateMinutes` ist in allen Modi die Dauer
+    (Schätzung bzw. Plan-Dauer), der Start ist `dayStart` (`HH:mm`, Tagesplan)
+    bzw. `startAt` (fester Zeitplan). Das **Ende wird berechnet**
+    (`plannedBounds`), nie gespeichert – so können Start und Dauer nie
+    widersprüchlich werden, und Verschieben ändert nur Starts.
+  - **Beschreibung:** Freitext `notes` **oder** `checklist`
+    (`{ id, text, done }[]`, höchstens 100 Punkte); gespeichert ist immer nur
+    eine der beiden Formen.
 - `Edge` („Pfeil"): `from` muss vor `to` erledigt sein.
+- **Zettel-Namen sind eindeutig** (getrimmt, ohne Groß-/Kleinschreibung,
+  `titleKey`); automatisch entstehende Namen macht `uniqueTitle` mit „ (2)“,
+  „ (3)“ … eindeutig.
 
 **Zettel = ein IndexedDB-Record.** Tasks und Pfeile liegen gemeinsam im Dokument,
 damit Schreibvorgänge atomar sind und Undo/Redo einfach bleibt.
@@ -127,9 +138,9 @@ Frameworkfrei und vollständig unit-getestet. Drei Dateien:
 
 - **`format.ts`** – `parseHhMm`/`isValidHhMm`, `formatDuration` (de/en),
   `minutesToHhMm`, `formatDayLabel` (de/en via `Intl`), `toIsoDate`/`fromIsoDate`,
-  `toDatetimeLocal`/`fromDatetimeLocal`, `roundToFiveMinutes`.
-- **`status.ts`** – `plannedBounds` (kombiniert `dayPlanReferenceDate` mit
-  `dayStart`/`dayEnd` bzw. nutzt `startAt`/`endAt`), `timeStatus`
+  `toDatetimeLocal`/`fromDatetimeLocal`, `toLocalIso`, `roundToFiveMinutes`.
+- **`status.ts`** – `plannedBounds` (Start aus `dayStart` + Bezugstag bzw.
+  `startAt`; Ende = Start + `estimateMinutes`), `timeStatus`
   (`running`/`next`/`late`/`planned`), `earliestNextTask`, `sortPlannedFirst`
   (Reihenfolge Läuft → Überfällig → Als Nächstes → Geplant), `formatPlannedRange`,
   `plannedTimeParts`, `referenceRelation`, `todayIso`.
@@ -151,10 +162,10 @@ Ebenfalls frameworkfrei und getestet. `templates.ts`:
 - `insertTemplate(list, template)` – Vorlage als neuen Strang anhängen.
 - `templatePreview(template)` – Titel in topologischer Reihenfolge.
 
-Beim Erstellen einer Vorlage entfallen `done`/`doneAt`; `startAt`/`endAt` werden
-verworfen (fehlt die Schätzung, wird sie aus der Dauer abgeleitet). `dayStart`/
-`dayEnd` bleiben erhalten. Die Vorlagen-Seite nutzt einen `TemplatesStore` mit
-CRUD und Undo-Snackbar beim Löschen.
+Beim Erstellen einer Vorlage entfallen `done`/`doneAt` (auch die Haken einer
+Checkliste) und das Datum `startAt`. Dauer und Tageszeit `dayStart` bleiben
+erhalten. Die Vorlagen-Seite nutzt einen `TemplatesStore` mit CRUD und
+Undo-Snackbar beim Löschen.
 
 ## 5. Persistenz (`core/storage`)
 
@@ -164,7 +175,16 @@ CRUD und Undo-Snackbar beim Löschen.
 - Transaktionen werden erst **nach** dem Öffnen erzeugt und dann synchron
   befüllt, um den IndexedDB-Auto-Commit nicht zu verpassen.
 - `migrate(data, fromVersion)` ist rein; `schemaVersion` wird ab Tag 1
-  mitgeführt. Höhere Versionen werden abgelehnt.
+  mitgeführt. Höhere Versionen werden abgelehnt. Aktuell: **Schema 3**.
+  - 1 → 2: `AppSettings.language` (Standard Englisch).
+  - 2 → 3: Ende → Dauer (`upgradeList`: Dauer = Ende − Start; der Plan des
+    aktiven Modus gewinnt gegen eine abweichende Schätzung; nur ein Ende →
+    Start = Ende − Dauer, Standard 15 Min) und eindeutige Zettel-Namen
+    (`upgradeLists`, der ältere Zettel behält den Namen).
+  - Die Schritte für Zettel/Vorlagen sind **idempotent** und laufen deshalb
+    nicht nur beim Backup-Import, sondern auch bei jedem Laden aus IndexedDB
+    (`ListsStore.load`, `TemplatesStore.load`); geänderte Datensätze werden
+    sofort zurückgeschrieben.
 - `backup.ts`: `createBackup` erzeugt das Export-Objekt
   `{ app, schemaVersion, exportedAt, settings, lists, templates }`;
   `validateBackup` prüft Schema, Version, Zyklen, Referenzen und lehnt
@@ -200,6 +220,11 @@ CRUD und Undo-Snackbar beim Löschen.
   ruhiges Banner.
 - **Mehrere Tabs:** `BroadcastChannel('faden')` meldet Änderungen; andere Tabs
   laden neu, wenn `updatedAt` neuer ist. Zusätzlich Neuladen bei `focus`.
+  Neu geladen wird **nur, wenn der gespeicherte Stand neuer ist** als der im
+  Speicher: Ein älterer Stand ist der eigene, noch nicht entprellt
+  geschriebene (bis 300 ms), und hat früher bei einem Fensterwechsel in dieser
+  Lücke frische Eingaben überschrieben (Datenverlust-Bug bis 1.0.0, gefunden
+  durch den Tastatur-Abnahmetest).
 
 ## 7. Oberfläche
 

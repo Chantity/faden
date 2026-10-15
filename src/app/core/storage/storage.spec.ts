@@ -1,13 +1,16 @@
 import {
+  CHECKLIST_MAX_ITEMS,
   edgeId,
   SCHEMA_VERSION,
+  TITLE_MAX_LENGTH,
+  uniqueTitle,
   type AppSettings,
   type Task,
   type Template,
   type TodoList,
 } from '../model';
 import { applyImport, createBackup, validateBackup, type BackupFile } from './backup';
-import { migrate } from './migrations';
+import { migrate, upgradeList, upgradeLists } from './migrations';
 
 const NOW = '2026-01-01T00:00:00.000Z';
 
@@ -144,5 +147,119 @@ describe('migrate', () => {
 
   it('wirft bei zukünftiger Version', () => {
     expect(() => migrate({ schemaVersion: SCHEMA_VERSION + 1 })).toThrow();
+  });
+});
+
+describe('Migration auf Schema 3 (Ende → Dauer, eindeutige Namen)', () => {
+  function oldTask(fields: Record<string, unknown>): Record<string, unknown> {
+    return { id: 't', title: 'T', done: false, ...fields };
+  }
+  function oldList(mode: string, tasks: Record<string, unknown>[]): Record<string, unknown> {
+    return { ...list('l', [], []), timeboxMode: mode, tasks };
+  }
+  function migratedTask(mode: string, fields: Record<string, unknown>): Record<string, unknown> {
+    const out = upgradeList(oldList(mode, [oldTask(fields)]));
+    return (out['tasks'] as Record<string, unknown>[])[0]!;
+  }
+
+  it('Tagesplan: Dauer = Bis − Von, Bis entfällt', () => {
+    const task = migratedTask('dayPlan', { dayStart: '09:00', dayEnd: '10:30' });
+    expect(task).toEqual(oldTask({ dayStart: '09:00', estimateMinutes: 90 }));
+  });
+
+  it('fester Zeitplan: Dauer auch über Mitternacht und mehrere Tage', () => {
+    const task = migratedTask('schedule', { startAt: '2026-03-12T23:00', endAt: '2026-03-14T01:00' });
+    expect(task).toEqual(oldTask({ startAt: '2026-03-12T23:00', estimateMinutes: 26 * 60 }));
+  });
+
+  it('der Plan des aktiven Modus gewinnt gegen eine abweichende Schätzung', () => {
+    const fields = { estimateMinutes: 10, dayStart: '09:00', dayEnd: '09:45' };
+    expect(migratedTask('dayPlan', fields)['estimateMinutes']).toBe(45);
+    // Im Modus „Zeitschätzung" bleibt die Schätzung.
+    expect(migratedTask('estimate', fields)['estimateMinutes']).toBe(10);
+  });
+
+  it('nur ein Ende: Start = Ende − Schätzung (sonst 15 Min)', () => {
+    expect(migratedTask('dayPlan', { dayEnd: '10:00', estimateMinutes: 30 })).toEqual(
+      oldTask({ dayStart: '09:30', estimateMinutes: 30 }),
+    );
+    expect(migratedTask('schedule', { endAt: '2026-03-12T10:00' })).toEqual(
+      oldTask({ startAt: '2026-03-12T09:45', estimateMinutes: 15 }),
+    );
+  });
+
+  it('ungültige Spanne (Bis ≤ Von) liefert keine Dauer', () => {
+    expect(migratedTask('dayPlan', { dayStart: '10:00', dayEnd: '09:00' })).toEqual(
+      oldTask({ dayStart: '10:00' }),
+    );
+  });
+
+  it('ist idempotent und lässt aktuelle Daten unverändert (gleiche Objekte)', () => {
+    const current = oldList('dayPlan', [oldTask({ dayStart: '09:00', estimateMinutes: 30 })]);
+    expect(upgradeList(current)).toBe(current);
+  });
+
+  it('macht doppelte Namen eindeutig; der ältere Zettel behält den Namen', () => {
+    const older = { ...list('a', [], []), title: 'Einkauf', createdAt: '2026-01-01T00:00:00.000Z' };
+    const newer = { ...list('b', [], []), title: 'einkauf ', createdAt: '2026-02-01T00:00:00.000Z' };
+    const deleted = { ...list('c', [], []), title: 'Einkauf', deletedAt: NOW };
+    const out = upgradeLists([newer, older, deleted]);
+    expect(out.map((l) => l.title)).toEqual(['einkauf (2)', 'Einkauf', 'Einkauf']);
+  });
+
+  it('migrate() hebt Backups älterer Schemata an', () => {
+    const data = {
+      schemaVersion: 2,
+      lists: [oldList('dayPlan', [oldTask({ dayStart: '09:00', dayEnd: '09:30' })])],
+      templates: [oldList('dayPlan', [oldTask({ dayStart: '08:00', dayEnd: '08:15' })])],
+    };
+    const result = migrate(data) as { lists: Record<string, unknown>[]; templates: Record<string, unknown>[] };
+    expect((result.lists[0]!['tasks'] as Task[])[0]!.estimateMinutes).toBe(30);
+    expect((result.templates[0]!['tasks'] as Task[])[0]!.estimateMinutes).toBe(15);
+  });
+});
+
+describe('uniqueTitle', () => {
+  it('lässt freie Namen unverändert und zählt sonst hoch', () => {
+    expect(uniqueTitle('Einkauf', ['Putzen'])).toBe('Einkauf');
+    expect(uniqueTitle('Einkauf', ['einkauf'])).toBe('Einkauf (2)');
+    expect(uniqueTitle('Einkauf', ['Einkauf', 'Einkauf (2)'])).toBe('Einkauf (3)');
+    expect(uniqueTitle('Einkauf (2)', ['Einkauf', 'Einkauf (2)'])).toBe('Einkauf (3)');
+  });
+
+  it('bleibt innerhalb der Titel-Höchstlänge', () => {
+    const long = 'x'.repeat(TITLE_MAX_LENGTH);
+    const result = uniqueTitle(long, [long]);
+    expect(result.length).toBe(TITLE_MAX_LENGTH);
+    expect(result.endsWith(' (2)')).toBe(true);
+  });
+});
+
+describe('validateBackup – Checkliste', () => {
+  function withChecklist(checklist: unknown): unknown {
+    const l = list('l1', ['a'], []);
+    return createBackupLike([{ ...l, tasks: [{ ...l.tasks[0]!, checklist }] }]);
+  }
+  function createBackupLike(lists: unknown[]): unknown {
+    return { app: 'faden', schemaVersion: SCHEMA_VERSION, exportedAt: NOW, settings, lists, templates: [] };
+  }
+
+  it('übernimmt gültige Checklisten', () => {
+    const result = validateBackup(withChecklist([{ id: '1', text: 'Milch', done: true }]));
+    expect(result.ok && result.value.lists[0]!.tasks[0]!.checklist).toEqual([
+      { id: '1', text: 'Milch', done: true },
+    ]);
+  });
+
+  it('lehnt leere Punkte und zu lange Listen ab', () => {
+    for (const bad of [
+      [{ id: '1', text: '  ', done: false }],
+      Array.from({ length: CHECKLIST_MAX_ITEMS + 1 }, (_, i) => ({ id: `${i}`, text: 'x', done: false })),
+      'keine Liste',
+    ]) {
+      const result = validateBackup(withChecklist(bad));
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe('checklist-invalid');
+    }
   });
 });

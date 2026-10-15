@@ -54,7 +54,29 @@ import { focusAfterRender } from '../../shared/focus';
           <p class="field__error" role="alert">{{ error() }}</p>
         }
 
-        @if (mode() === 'estimate') {
+        @if (mode() === 'dayPlan') {
+          <label class="field">
+            <span class="field__label">{{ t().editor.dayStartLabel }}</span>
+            <input
+              type="time"
+              [value]="dayStart()"
+              (input)="dayStart.set($any($event.target).value)"
+            />
+          </label>
+        }
+
+        @if (mode() === 'schedule') {
+          <label class="field">
+            <span class="field__label">{{ t().editor.startAtLabel }}</span>
+            <input
+              type="datetime-local"
+              [value]="startAt()"
+              (input)="startAt.set($any($event.target).value)"
+            />
+          </label>
+        }
+
+        @if (mode() !== 'none') {
           <div class="field">
             <span class="field__label">{{ t().editor.estimateLabel }}</span>
             <div class="chips">
@@ -74,7 +96,7 @@ import { focusAfterRender } from '../../shared/focus';
               <input
                 type="number"
                 min="1"
-                max="1440"
+                [attr.max]="maxMinutes()"
                 [value]="estimate() ?? ''"
                 (input)="onEstimateInput($event)"
               />
@@ -82,48 +104,6 @@ import { focusAfterRender } from '../../shared/focus';
             @if (estimate() !== null) {
               <p class="muted">{{ formattedEstimate() }}</p>
             }
-          </div>
-        }
-
-        @if (mode() === 'dayPlan') {
-          <div class="field-row">
-            <label class="field">
-              <span class="field__label">{{ t().editor.dayStartLabel }}</span>
-              <input
-                type="time"
-                [value]="dayStart()"
-                (input)="dayStart.set($any($event.target).value)"
-              />
-            </label>
-            <label class="field">
-              <span class="field__label">{{ t().editor.dayEndLabel }}</span>
-              <input
-                type="time"
-                [value]="dayEnd()"
-                (input)="dayEnd.set($any($event.target).value)"
-              />
-            </label>
-          </div>
-        }
-
-        @if (mode() === 'schedule') {
-          <div class="field-row">
-            <label class="field">
-              <span class="field__label">{{ t().editor.startAtLabel }}</span>
-              <input
-                type="datetime-local"
-                [value]="startAt()"
-                (input)="startAt.set($any($event.target).value)"
-              />
-            </label>
-            <label class="field">
-              <span class="field__label">{{ t().editor.endAtLabel }}</span>
-              <input
-                type="datetime-local"
-                [value]="endAt()"
-                (input)="endAt.set($any($event.target).value)"
-              />
-            </label>
           </div>
         }
 
@@ -366,13 +346,13 @@ export class TaskEditor {
 
   protected readonly estimate = signal<number | null>(null);
   protected readonly dayStart = signal('');
-  protected readonly dayEnd = signal('');
   protected readonly startAt = signal('');
-  protected readonly endAt = signal('');
 
   protected readonly estimateChips = [5, 10, 15, 30, 45, 60, 90];
 
   protected readonly mode = computed(() => this.list()?.timeboxMode ?? 'none');
+  /** Im festen Zeitplan darf ein ToDo mehrere Tage dauern (bis 14 Tage). */
+  protected readonly maxMinutes = computed(() => (this.mode() === 'schedule' ? 14 * 1440 : 1440));
 
   protected readonly formattedEstimate = computed(() => {
     const minutes = this.estimate();
@@ -427,9 +407,7 @@ export class TaskEditor {
     this.notes.set(task.notes ?? '');
     this.estimate.set(task.estimateMinutes ?? null);
     this.dayStart.set(task.dayStart ?? '');
-    this.dayEnd.set(task.dayEnd ?? '');
     this.startAt.set(toDatetimeLocal(task.startAt));
-    this.endAt.set(toDatetimeLocal(task.endAt));
     this.error.set('');
     this.dialogRef().nativeElement.showModal();
     focusAfterRender(this.injector, () => this.titleInput());
@@ -456,36 +434,25 @@ export class TaskEditor {
     const notes = this.notes().trim();
 
     let timeFields: Partial<Task> = {};
-    if (list.timeboxMode === 'estimate') {
-      const minutes = this.estimate();
-      if (minutes !== null && (minutes < 1 || minutes > 1440)) {
+    if (list.timeboxMode !== 'none') {
+      const minutes = this.estimate() ?? undefined;
+      if (minutes !== undefined && (minutes < 1 || minutes > this.maxMinutes())) {
         this.error.set(this.t().editor.errorTimeInvalid);
         return;
       }
-      timeFields = { estimateMinutes: minutes ?? undefined };
-    } else if (list.timeboxMode === 'dayPlan') {
-      const check = validateDayTimes(this.dayStart(), this.dayEnd());
-      if (!check.ok) {
-        this.error.set(
-          check.message === 'order' ? this.t().editor.errorTimeOrder : this.t().editor.errorTimeInvalid,
-        );
-        return;
+      timeFields = { estimateMinutes: minutes };
+      if (list.timeboxMode === 'dayPlan') {
+        const check = validateDayTimes(this.dayStart(), minutes);
+        if (!check.ok) {
+          this.error.set(
+            check.message === 'order' ? this.t().editor.errorTimeOrder : this.t().editor.errorTimeInvalid,
+          );
+          return;
+        }
+        timeFields.dayStart = this.dayStart() || undefined;
+      } else if (list.timeboxMode === 'schedule') {
+        timeFields.startAt = fromDatetimeLocal(this.startAt());
       }
-      timeFields = {
-        dayStart: this.dayStart() || undefined,
-        dayEnd: this.dayEnd() || undefined,
-      };
-    } else if (list.timeboxMode === 'schedule') {
-      const start = this.startAt();
-      const end = this.endAt();
-      if (start && end && new Date(end) <= new Date(start)) {
-        this.error.set(this.t().editor.errorTimeOrder);
-        return;
-      }
-      timeFields = {
-        startAt: start ? fromDatetimeLocal(start) : undefined,
-        endAt: end ? fromDatetimeLocal(end) : undefined,
-      };
     }
 
     this.store.editList(list.id, (l) => ({

@@ -1,6 +1,6 @@
 // Ableitung des Zeitstatus. Nie speichern, immer berechnen.
 import type { Task, TodoList, TimeboxMode } from '../model';
-import { parseHhMm, toIsoDate } from './format';
+import { parseHhMm, toIsoDate, toLocalIso } from './format';
 
 /**
  * Abgeleiteter Zeitstatus:
@@ -26,8 +26,9 @@ function toMs(value: string): number {
 
 /**
  * Liefert die geplanten Start-/End-Zeiten eines ToDos je Zeitmodus als
- * absolute Zeitstempel (lokal). Im Modus 'dayPlan' werden `dayStart`/`dayEnd`
- * mit dem Bezugstag zu einem Timestamp ergänzt.
+ * absolute Zeitstempel (lokal). Im Modus 'dayPlan' wird `dayStart` mit dem
+ * Bezugstag zu einem Timestamp ergänzt. Das Ende ist immer Start + Dauer
+ * (`estimateMinutes`); ohne Dauer gibt es kein Ende.
  */
 export function plannedBounds(
   list: TodoList,
@@ -37,26 +38,25 @@ export function plannedBounds(
   const bounds: PlannedBounds = {};
   if (list.timeboxMode === 'dayPlan') {
     const ref = referenceDate ?? list.dayPlanReferenceDate;
-    if (!ref) return bounds;
     const startMinutes = parseHhMm(task.dayStart);
-    const endMinutes = parseHhMm(task.dayEnd);
-    if (startMinutes !== null) bounds.start = combineDayAndMinutes(ref, startMinutes);
-    if (endMinutes !== null) bounds.end = combineDayAndMinutes(ref, endMinutes);
+    if (!ref || startMinutes === null) return bounds;
+    bounds.start = combineDayAndMinutes(ref, startMinutes);
   } else if (list.timeboxMode === 'schedule') {
-    if (task.startAt) bounds.start = task.startAt;
-    if (task.endAt) bounds.end = task.endAt;
+    if (!task.startAt) return bounds;
+    bounds.start = task.startAt;
+  } else {
+    return bounds;
+  }
+  const minutes = task.estimateMinutes;
+  if (typeof minutes === 'number' && Number.isFinite(minutes) && minutes > 0) {
+    bounds.end = toLocalIso(new Date(new Date(bounds.start).getTime() + minutes * 60_000));
   }
   return bounds;
 }
 
 function combineDayAndMinutes(day: string, minutes: number): string {
   const date = new Date(`${day}T00:00:00`);
-  const withMinutes = new Date(date.getTime() + minutes * 60_000);
-  const m = String(withMinutes.getMonth() + 1).padStart(2, '0');
-  const d = String(withMinutes.getDate()).padStart(2, '0');
-  const h = String(withMinutes.getHours()).padStart(2, '0');
-  const min = String(withMinutes.getMinutes()).padStart(2, '0');
-  return `${withMinutes.getFullYear()}-${m}-${d}T${h}:${min}`;
+  return toLocalIso(new Date(date.getTime() + minutes * 60_000));
 }
 
 /**

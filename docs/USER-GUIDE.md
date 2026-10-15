@@ -189,11 +189,16 @@ notifications** – Faden just does the maths.
   custom). The list shows totals: open, total, done and “3 without estimate”.
   If the list has several independent strands, the **Flow** shows the open
   subtotal above each strand.
-- **Day plan** – from/to times of day without a date. Todos are “Now, until …”,
+- **Day plan** – a start time of day (without a date) and a duration per todo;
+  a todo has to end by midnight. Todos are “Now, until …”,
   “Next at …” or “Not checked off” (then with **“Check off afterwards”**).
   The times apply to the day on which you switched the day plan on. Once that
   day is over, the app offers to “Set to today”.
-- **Fixed schedule** – date + time, also across several days.
+- **Fixed schedule** – start date + time and a duration per todo; a todo may
+  also run over midnight or several days.
+
+The duration is the same field in all modes: an estimate you entered stays the
+duration when you switch to a day plan or a fixed schedule, and vice versa.
 
 In **Day plan** or **Fixed schedule** mode, the list menu (⋯) has the entry
 **“Edit schedule”**:
@@ -204,8 +209,8 @@ In **Day plan** or **Fixed schedule** mode, the list menu (⋯) has the entry
   times are moved proportionally.
 - **Propose times from estimates** – open todos are placed one after another
   from a start time (todos without an estimate count as 15 min).
-- **Transfer times of day onto a date** (day plan only) – copies from/to as
-  date + time.
+- **Transfer times of day onto a date** (day plan only) – copies the start
+  times as date + time; the durations stay.
 
 If you switch a list from **Day plan** to **Fixed schedule**, the app asks
 right away whether the times of day should be transferred onto a date (you can
@@ -491,12 +496,17 @@ Benachrichtigungen** – Faden rechnet nur mit.
   Der Zettel zeigt Summen: offen, gesamt, erledigt und „3 ohne Schätzung".
   Hat der Zettel mehrere unabhängige Stränge, steht im **Ablauf** über jedem
   Strang dessen offene Teilsumme.
-- **Tagesplan** – Von-/Bis-Uhrzeit ohne Datum. ToDos sind „Läuft gerade", „Als
+- **Tagesplan** – je ToDo eine Start-Uhrzeit (ohne Datum) und eine Dauer; ein
+  ToDo muss spätestens um 24:00 enden. ToDos sind „Läuft gerade", „Als
   Nächstes" oder „Nicht abgehakt" (dann mit **„Nachträglich abhaken"**).
   Die Uhrzeiten gelten für den Tag, an dem du den Tagesplan eingeschaltet
   hast. Ist dieser Tag vorbei, bietet die App an, den Plan „Auf heute zu
   setzen".
-- **Fester Zeitplan** – Datum + Uhrzeit, auch über mehrere Tage.
+- **Fester Zeitplan** – je ToDo Start (Datum + Uhrzeit) und Dauer; ein ToDo
+  darf auch über Mitternacht oder mehrere Tage gehen.
+
+Die Dauer ist in allen Modi dasselbe Feld: Eine Schätzung bleibt die Dauer,
+wenn du zum Tagesplan oder festen Zeitplan wechselst, und umgekehrt.
 
 Im Modus **Tagesplan** oder **Fester Zeitplan** findest du im Zettel-Menü (⋯)
 den Eintrag **„Zeitplan bearbeiten"**:
@@ -507,8 +517,8 @@ den Eintrag **„Zeitplan bearbeiten"**:
   übrigen Zeiten werden proportional mitgezogen.
 - **Zeiten aus Schätzungen vorschlagen** – offene ToDos werden ab einer Startzeit
   nacheinander abgelegt (ToDos ohne Schätzung zählen 15 Min).
-- **Tageszeiten auf ein Datum übertragen** (nur Tagesplan) – kopiert Von/Bis als
-  Datum + Uhrzeit.
+- **Tageszeiten auf ein Datum übertragen** (nur Tagesplan) – kopiert die
+  Start-Uhrzeiten als Datum + Uhrzeit; die Dauern bleiben.
 
 Wechselst du einen Zettel vom **Tagesplan** zum **Festen Zeitplan**, fragt die
 App direkt, ob die Uhrzeiten auf ein Datum übertragen werden sollen (du kannst

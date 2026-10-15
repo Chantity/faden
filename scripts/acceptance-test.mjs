@@ -26,6 +26,11 @@ const profile = mkdtempSync(join(tmpdir(), 'faden-accept-'));
 const browser = await launchBrowser(findBrowser(), profile);
 const { test, finish } = createRunner();
 let page = await browser.newPage();
+// Einmalige Erst-Start-Hinweise sind nicht Gegenstand dieser Tests: Ihre Merker
+// vorab setzen, damit sie nicht mitten in einem Tab-Durchlauf auftauchen.
+await page.send('Page.addScriptToEvaluateOnNewDocument', {
+  source: `try { localStorage.setItem('faden.installBannerDismissed', '1'); } catch {}`,
+});
 
 async function viewport(width, height) {
   await page.send('Emulation.setDeviceMetricsOverride', {
@@ -45,6 +50,7 @@ const APP_READY = `document.querySelector('app-root h1') !== null`;
  * jedem erreichten Ziel, dass ein Fokusrahmen sichtbar ist.
  */
 async function tabTo(predicate, label, max = 60) {
+  const visited = [];
   for (let i = 0; i < max; i++) {
     await page.press('Tab');
     const state = await page.eval(`(() => {
@@ -58,8 +64,13 @@ async function tabTo(predicate, label, max = 60) {
     })()`);
     assert(state.ring, `Kein sichtbarer Fokusrahmen auf ${state.what}`);
     if (state.match) return i + 1;
+    visited.push(state.what ?? 'body');
   }
-  throw new Error(`Per Tab nicht erreichbar: ${label}`);
+  const titles = await page.eval(availableTitles);
+  throw new Error(
+    `Per Tab nicht erreichbar: ${label}. Jetzt dran: ${JSON.stringify(titles)}. ` +
+      `Fokus besuchte: ${[...new Set(visited)].join(' | ')}`,
+  );
 }
 
 const activeText = `(document.activeElement.textContent || '').trim()`;
@@ -93,8 +104,11 @@ await test('1 Geschirrspüler-Szenario nur mit Tastatur', async () => {
   await page.press('Escape');
   await page.waitFor(`${availableTitles}.join() === 'Geschirrspüler einräumen'`, 'Erstes ToDo da');
 
-  // Vorarbeiten: „V" = Erst noch etwas anderes nötig …, dann Enter-Kette
-  if (await page.eval(`document.activeElement === document.body`)) {
+  // Vorarbeiten: „V" = Erst noch etwas anderes nötig …, dann Enter-Kette.
+  // Wie ein Mensch: erst drücken, wenn der Fokus sichtbar auf der Karte liegt
+  // (er springt nach dem Rendern dorthin), sonst selbst hintabben.
+  const onCard = `!!document.activeElement?.closest('[data-task-id]')`;
+  if (!(await page.waitFor(onCard, 'Fokus auf der Karte', 1000).then(() => true, () => false))) {
     await tabTo(`document.activeElement.closest('[data-task-id]')`, 'Karte „Jetzt dran"');
   }
   await page.press('v');
@@ -220,6 +234,13 @@ const CHECK_PAGE = `(() => {
   const fontSize = parseFloat(getComputedStyle(document.body).fontSize);
   if (fontSize < 17) problems.push('Basis-Schrift ' + fontSize + ' px < 17 px');
 
+  const floating = (node) => {
+    for (let n = node; n && n !== document.body; n = n.parentElement) {
+      const position = getComputedStyle(n).position;
+      if (position === 'fixed' || position === 'sticky') return true;
+    }
+    return false;
+  };
   const canvas = document.querySelector('.flow__canvas');
   const canvasScale = canvas ? new DOMMatrix(getComputedStyle(canvas).transform).a : 1;
   const selector = 'a[href], button, summary, select, textarea, input:not([type=hidden]), [role=button], [tabindex]:not([tabindex="-1"])';
@@ -251,6 +272,9 @@ const CHECK_PAGE = `(() => {
     // Trifft die Mitte einen Vorfahren, ist das Element nur aus einem
     // scrollbaren Bereich (z. B. Dialog im Querformat) herausgescrollt.
     if (hit && hit !== target && hit.contains(target) && !target.contains(hit)) continue;
+    // Liegt die Mitte unter einem schwebenden Element (FAB, Hinweisband), ist das
+    // Ziel nur darunter gescrollt und durch Weiterscrollen erreichbar.
+    if (hit && !target.contains(hit) && floating(hit)) continue;
     const covered = !hit || !(hit === target || target.contains(hit) || el.contains(hit));
     if (w < need - 0.5 || h < need - 0.5 || covered) {
       const name = (el.getAttribute('aria-label') || el.textContent || el.name || '').trim().slice(0, 30);

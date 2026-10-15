@@ -27,7 +27,7 @@ describe('PlanEditor', () => {
   it('verschiebt alle geplanten Zeiten (shift)', async () => {
     const task = createTask('A', 'a');
     task.startAt = '2026-03-12T10:00';
-    task.endAt = '2026-03-12T10:30';
+    task.estimateMinutes = 30;
     const list = scheduleList(task);
     const store = TestBed.inject(ListsStore);
     store.addExisting(list);
@@ -44,7 +44,7 @@ describe('PlanEditor', () => {
 
     const updated = store.getList(list.id)?.tasks.find((t) => t.id === 'a');
     expect(updated?.startAt).toBe('2026-03-12T10:30');
-    expect(updated?.endAt).toBe('2026-03-12T11:00');
+    expect(updated?.estimateMinutes).toBe(30);
   });
 
   it('schlägt Zeiten aus Schätzungen vor (propose)', async () => {
@@ -72,7 +72,7 @@ describe('PlanEditor', () => {
 
     const updated = store.getList(list.id)?.tasks.find((t) => t.id === 'a');
     expect(updated?.startAt).toBe('2026-03-12T09:00');
-    expect(updated?.endAt).toBe('2026-03-12T09:30');
+    expect(updated?.estimateMinutes).toBe(30);
   });
 
   it('überträgt Tageszeiten auf ein Datum (convert)', async () => {
@@ -80,7 +80,7 @@ describe('PlanEditor', () => {
     list.dayPlanReferenceDate = '2026-03-01';
     const task = createTask('A', 'a');
     task.dayStart = '10:00';
-    task.dayEnd = '10:30';
+    task.estimateMinutes = 30;
     list.tasks = [task];
     const store = TestBed.inject(ListsStore);
     store.addExisting(list);
@@ -101,13 +101,13 @@ describe('PlanEditor', () => {
 
     const updated = store.getList(list.id)?.tasks.find((t) => t.id === 'a');
     expect(updated?.startAt).toBe('2026-03-12T10:00');
-    expect(updated?.endAt).toBe('2026-03-12T10:30');
+    expect(updated?.estimateMinutes).toBe(30);
   });
 
   it('bietet nach dem Moduswechsel nur das Übertragen an, Datum = Bezugstag', async () => {
     const task = createTask('A', 'a');
     task.dayStart = '09:00';
-    task.dayEnd = '10:00';
+    task.estimateMinutes = 60;
     const list = { ...scheduleList(task), dayPlanReferenceDate: '2026-03-10' };
     const store = TestBed.inject(ListsStore);
     store.addExisting(list);
@@ -125,7 +125,7 @@ describe('PlanEditor', () => {
     await fixture.whenStable();
     const after = store.getList(list.id)!.tasks[0]!;
     expect(after.startAt).toBe('2026-03-10T09:00');
-    expect(after.endAt).toBe('2026-03-10T10:00');
+    expect(after.estimateMinutes).toBe(60);
     expect(after.dayStart).toBe('09:00');
   });
 });
