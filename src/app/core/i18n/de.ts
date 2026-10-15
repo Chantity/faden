@@ -2,6 +2,7 @@
 // Eine zweite Sprachdatei (en.ts) muss exakt diesen Aufbau erfüllen – der
 // Compiler erzwingt das über `satisfies Translations` (siehe types.ts).
 import type { TimeboxMode } from '../model';
+import type { ConflictStrategy } from '../storage/backup';
 
 export const de = {
   app: {
@@ -101,6 +102,24 @@ export const de = {
     replaceConfirm: 'Alles ersetzen? Deine aktuellen Daten werden vorher als Sicherung heruntergeladen.',
     invalid: 'Keine gültige Faden-Sicherungsdatei.',
     importSuccess: 'Sicherung eingespielt.',
+    conflictsHeading: (n: number): string =>
+      n === 1 ? 'Diesen Zettel gibt es schon:' : `Diese ${n} Zettel gibt es schon:`,
+    conflictChoice: 'Was soll mit ihnen passieren?',
+    strategies: {
+      suffix: 'Zusätzlich importieren, als „Name (2)“',
+      overwrite: 'Meine Zettel überschreiben',
+      skip: 'Nicht importieren',
+      newer: 'Nur überschreiben, wenn der importierte neuer ist',
+    } satisfies Record<ConflictStrategy, string>,
+    conflictBackupHint: 'Vor dem Überschreiben wird eine Sicherung deiner Daten heruntergeladen.',
+    importApply: 'Importieren',
+    back: 'Zurück',
+    importResult: (imported: number, skipped: number, overwritten: number): string =>
+      [
+        `${imported} importiert`,
+        ...(skipped > 0 ? [`${skipped} übersprungen`] : []),
+        ...(overwritten > 0 ? [`${overwritten} überschrieben`] : []),
+      ].join(', ') + '.',
   },
 
   backupErrors: {

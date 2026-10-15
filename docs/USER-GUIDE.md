@@ -358,6 +358,13 @@ app at any time under Settings → Install.
   **never updates by itself**; your installed version stays as it is.
 - **Backup**: export as the file `faden-backup-YYYY-MM-DD.json`.
   Import either **“Merge”** or **“Replace everything”** (with backup).
+- **Same names when merging**: if the backup contains lists whose names you
+  already have (upper/lower case doesn't matter), Faden shows them and asks
+  **once for all of them**: *import as well* as “Name (2)”, *overwrite my
+  lists* (content is replaced, the list keeps its place), *don't import*, or
+  *overwrite only if the imported one is newer*. Before overwriting, a backup
+  of your data is downloaded. Afterwards a note says e.g. “5 imported,
+  2 skipped, 1 overwritten”.
 - **Reminder**: if the last backup is more than 30 days old and there is data,
   a dismissable notice bar with **“Create backup”** appears on the list
   overview **once a week**.
@@ -736,6 +743,14 @@ du trotzdem jederzeit unter Einstellungen → Installieren.
   Version bleibt, wie sie ist.
 - **Backup**: Export als Datei `faden-backup-JJJJ-MM-TT.json`.
   Import entweder **„Zusammenführen"** oder **„Alles ersetzen"** (mit Sicherung).
+- **Gleiche Namen beim Zusammenführen**: Enthält die Sicherung Zettel, deren
+  Namen du schon hast (Groß-/Kleinschreibung egal), zeigt Faden sie an und
+  fragt **einmal für alle**: *zusätzlich importieren* als „Name (2)“, *meine
+  Zettel überschreiben* (Inhalt wird ersetzt, der Zettel bleibt an seinem
+  Platz), *nicht importieren* oder *nur überschreiben, wenn der importierte
+  neuer ist*. Vor dem Überschreiben wird eine Sicherung deiner Daten
+  heruntergeladen. Danach steht z. B. „5 importiert, 2 übersprungen,
+  1 überschrieben“.
 - **Erinnerung**: Liegt die letzte Sicherung mehr als 30 Tage zurück und sind
   Daten vorhanden, erscheint auf der Zettel-Übersicht **einmal pro Woche** ein
   wegklickbares Hinweisband mit **„Sicherung erstellen"**.

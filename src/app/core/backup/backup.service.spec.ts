@@ -117,6 +117,23 @@ describe('BackupService', () => {
     expect(lists.allItems().map((l) => l.title)).toEqual(['Neu']);
   });
 
+  it('sichert vor dem Überschreiben gleichnamiger Zettel, nicht aber bei „(2) anhängen"', async () => {
+    const lists = TestBed.inject(ListsStore);
+    lists.addExisting(createList('Einkauf', 'none'));
+    const backup = TestBed.inject(BackupService);
+    const auto = vi.spyOn(backup, 'autoBackup').mockResolvedValue();
+    const json = backupJson([{ ...createList('einkauf', 'none'), tasks: [createTask('Milch', 'm')] }]);
+
+    const suffixed = await backup.importFile(file(json), 'merge', 'suffix');
+    expect(auto).not.toHaveBeenCalled();
+    expect(suffixed.counts).toEqual({ imported: 1, skipped: 0, overwritten: 0 });
+
+    const overwritten = await backup.importFile(file(json), 'merge', 'overwrite');
+    expect(auto).toHaveBeenCalledTimes(1);
+    expect(overwritten.counts).toEqual({ imported: 0, skipped: 0, overwritten: 1 });
+    expect(lists.allItems().find((l) => l.title === 'einkauf')?.tasks.map((t) => t.title)).toEqual(['Milch']);
+  });
+
   it('lehnt fehlerhaftes JSON ab', async () => {
     const outcome = await TestBed.inject(BackupService).importFile(file('kein json'), 'merge');
     expect(outcome.ok).toBe(false);

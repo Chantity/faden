@@ -5,7 +5,10 @@ import {
   validateBackup,
   FadenDb,
   type BackupFile,
+  findConflicts,
   type BackupIssue,
+  type ConflictStrategy,
+  type ImportCounts,
   type ImportMode,
 } from '../storage';
 import { ListsStore } from '../state/lists.store';
@@ -15,6 +18,7 @@ import { TemplatesStore } from '../state/templates.store';
 export interface ImportOutcome {
   ok: boolean;
   errors: BackupIssue[];
+  counts?: ImportCounts;
 }
 
 const REMINDER_KEY = 'backupReminderDismissedAt';
@@ -77,8 +81,11 @@ export class BackupService {
     }
   }
 
-  /** Liest und validiert eine Datei; wendet sie bei `mode` an. */
-  async importFile(file: File, mode: ImportMode): Promise<ImportOutcome> {
+  /**
+   * Liest und validiert eine Datei; wendet sie bei `mode` an. Gleichnamige
+   * Zettel behandelt `strategy` (nur beim Zusammenführen).
+   */
+  async importFile(file: File, mode: ImportMode, strategy: ConflictStrategy = 'suffix'): Promise<ImportOutcome> {
     let raw: unknown;
     try {
       raw = JSON.parse(await file.text());
@@ -88,15 +95,17 @@ export class BackupService {
     const validation = validateBackup(raw);
     if (!validation.ok) return { ok: false, errors: validation.errors };
 
-    if (mode === 'replace') await this.autoBackup();
+    const local = this.lists.allItems();
+    // Vor allem, was lokale Zettel ersetzt, eine Sicherung herunterladen.
+    const replacesLocal =
+      mode === 'replace' ||
+      ((strategy === 'overwrite' || strategy === 'newer') && findConflicts(local, validation.value.lists).length > 0);
+    if (replacesLocal) await this.autoBackup();
 
-    const result = applyImport(validation.value, {
-      lists: this.lists.allItems(),
-      templates: this.templates.templates(),
-    }, mode);
+    const result = applyImport(validation.value, { lists: local, templates: this.templates.templates() }, mode, strategy);
     await this.lists.replaceAll(result.lists);
     await this.templates.replaceAll(result.templates);
-    return { ok: true, errors: [] };
+    return { ok: true, errors: [], counts: result.counts };
   }
 
   /** Ob jetzt das wöchentliche Backup-Hinweisband gezeigt werden soll. */

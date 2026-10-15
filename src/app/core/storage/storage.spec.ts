@@ -9,7 +9,14 @@ import {
   type Template,
   type TodoList,
 } from '../model';
-import { applyImport, createBackup, validateBackup, type BackupFile } from './backup';
+import {
+  applyImport,
+  createBackup,
+  findConflicts,
+  resolveConflicts,
+  validateBackup,
+  type BackupFile,
+} from './backup';
 import { migrate, upgradeList, upgradeLists } from './migrations';
 import manualTestData from '../../../../docs/manual-test-data.json';
 
@@ -129,6 +136,70 @@ describe('applyImport', () => {
     // Inhalt des kollidierenden Zettels bleibt erhalten.
     const imported = result.lists.find((l) => l.tasks.some((t) => t.id === 'x'));
     expect(imported).toBeDefined();
+  });
+});
+
+describe('resolveConflicts', () => {
+  const named = (id: string, title: string, updatedAt = NOW, sortOrder = 0): TodoList => ({
+    ...list(id, [`${id}-t`], []),
+    title,
+    updatedAt,
+    sortOrder,
+  });
+  const local = [named('l1', 'Einkauf', '2026-02-01T00:00:00.000Z', 0), named('l2', 'Bad', NOW, 1)];
+  const incoming = [
+    named('i1', 'einkauf ', '2026-03-01T00:00:00.000Z'), // neuer, nur andere Schreibweise
+    named('l2', 'Bad', NOW), // gleicher Stand, gleiche ID
+    named('i3', 'Garten'),
+  ];
+
+  it('findet Konflikte ohne Groß-/Kleinschreibung und Leerzeichen', () => {
+    expect(findConflicts(local, incoming)).toEqual(['einkauf ', 'Bad']);
+  });
+
+  it('suffix: alle dazu, eindeutige Namen und IDs', () => {
+    const { lists, counts } = resolveConflicts(local, incoming, 'suffix');
+    expect(lists.map((l) => l.title)).toEqual(['Einkauf', 'Bad', 'einkauf (2)', 'Bad (2)', 'Garten']);
+    expect(new Set(lists.map((l) => l.id)).size).toBe(5);
+    expect(counts).toEqual({ imported: 3, skipped: 0, overwritten: 0 });
+  });
+
+  it('overwrite: Inhalt ersetzt, ID und Position des lokalen Zettels bleiben', () => {
+    const { lists, counts } = resolveConflicts(local, incoming, 'overwrite');
+    expect(lists).toHaveLength(3);
+    expect(lists[0]).toMatchObject({ id: 'l1', sortOrder: 0, title: 'einkauf ' });
+    expect(lists[0]!.tasks[0]!.id).toBe('i1-t');
+    expect(lists[1]).toMatchObject({ id: 'l2', sortOrder: 1 });
+    expect(lists[2]).toMatchObject({ id: 'i3', title: 'Garten', sortOrder: 2 });
+    expect(counts).toEqual({ imported: 1, skipped: 0, overwritten: 2 });
+  });
+
+  it('skip: gleichnamige werden übersprungen, lokale bleiben unverändert', () => {
+    const { lists, counts } = resolveConflicts(local, incoming, 'skip');
+    expect(lists.slice(0, 2)).toEqual(local);
+    expect(lists.map((l) => l.title)).toEqual(['Einkauf', 'Bad', 'Garten']);
+    expect(counts).toEqual({ imported: 1, skipped: 2, overwritten: 0 });
+  });
+
+  it('newer: ersetzt nur bei neuerem updatedAt; Gleichstand wird übersprungen', () => {
+    const { lists, counts } = resolveConflicts(local, incoming, 'newer');
+    expect(lists[0]!.tasks[0]!.id).toBe('i1-t');
+    expect(lists[1]).toEqual(local[1]);
+    expect(counts).toEqual({ imported: 1, skipped: 1, overwritten: 1 });
+  });
+
+  it('ersetzt einen lokalen Zettel höchstens einmal', () => {
+    const twice = [named('a', 'Einkauf', '2026-05-01T00:00:00.000Z'), named('b', 'EINKAUF', '2026-06-01T00:00:00.000Z')];
+    const { lists, counts } = resolveConflicts(local, twice, 'overwrite');
+    expect(lists.map((l) => l.title)).toEqual(['Einkauf', 'Bad', 'EINKAUF (2)']);
+    expect(counts).toEqual({ imported: 1, skipped: 0, overwritten: 1 });
+  });
+
+  it('Roundtrip: eigenes Backup mit „Nicht importieren" zusammenführen ändert nichts', () => {
+    const backup = createBackup(settings, local, [], NOW);
+    const result = applyImport(JSON.parse(JSON.stringify(backup)), { lists: local, templates: [] }, 'merge', 'skip');
+    expect(result.lists).toEqual(local);
+    expect(result.counts).toEqual({ imported: 0, skipped: 2, overwritten: 0 });
   });
 });
 

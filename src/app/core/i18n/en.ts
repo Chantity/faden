@@ -1,6 +1,7 @@
 // Englische Oberflächentexte – Standardsprache der App.
 // Muss den Aufbau von de.ts exakt erfüllen (siehe `satisfies Translations`).
 import type { TimeboxMode } from '../model';
+import type { ConflictStrategy } from '../storage/backup';
 import type { Translations } from './types';
 
 export const en = {
@@ -102,6 +103,24 @@ export const en = {
       'Replace everything? Your current data will be downloaded as a backup first.',
     invalid: 'Not a valid Faden backup file.',
     importSuccess: 'Backup restored.',
+    conflictsHeading: (n: number): string =>
+      n === 1 ? 'This list already exists:' : `These ${n} lists already exist:`,
+    conflictChoice: 'What should happen to them?',
+    strategies: {
+      suffix: 'Import as well, as “Name (2)”',
+      overwrite: 'Overwrite my lists',
+      skip: 'Don’t import',
+      newer: 'Overwrite only if the imported one is newer',
+    } satisfies Record<ConflictStrategy, string>,
+    conflictBackupHint: 'Before overwriting, a backup of your data is downloaded.',
+    importApply: 'Import',
+    back: 'Back',
+    importResult: (imported: number, skipped: number, overwritten: number): string =>
+      [
+        `${imported} imported`,
+        ...(skipped > 0 ? [`${skipped} skipped`] : []),
+        ...(overwritten > 0 ? [`${overwritten} overwritten`] : []),
+      ].join(', ') + '.',
   },
 
   backupErrors: {

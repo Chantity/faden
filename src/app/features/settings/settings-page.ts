@@ -13,7 +13,8 @@ import { PageTitleService } from '../../core/i18n/page-title';
 import { SUPPORTED_LOCALES, type Locale } from '../../core/model';
 import { BackupService } from '../../core/backup/backup.service';
 import { PwaService, type OfflineState } from '../../core/pwa/pwa.service';
-import { validateBackup, type BackupIssue } from '../../core/storage';
+import { findConflicts, validateBackup, type BackupIssue, type ConflictStrategy } from '../../core/storage';
+import { ListsStore } from '../../core/state/lists.store';
 import { describeBackupIssue } from '../../core/i18n/backup-error';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
@@ -166,11 +167,43 @@ import { formatBytes } from '../../core/time';
               <li>{{ error }}</li>
             }
           </ul>
+        } @else if (choosingStrategy()) {
+          <p>{{ t().backup.conflictsHeading(conflicts().length) }}</p>
+          <ul class="conflicts">
+            @for (title of conflicts(); track $index) {
+              <li>{{ title }}</li>
+            }
+          </ul>
+          <fieldset class="strategies">
+            <legend class="field__label">{{ t().backup.conflictChoice }}</legend>
+            @for (option of strategyOptions; track option) {
+              <label class="radio">
+                <input
+                  type="radio"
+                  name="strategy"
+                  [checked]="strategy() === option"
+                  (change)="strategy.set(option)"
+                />
+                {{ t().backup.strategies[option] }}
+              </label>
+            }
+          </fieldset>
+          @if (strategy() === 'overwrite' || strategy() === 'newer') {
+            <p class="muted">{{ t().backup.conflictBackupHint }}</p>
+          }
+          <div class="actions">
+            <button type="button" class="btn btn--primary" (click)="doImport('merge')">
+              {{ t().backup.importApply }}
+            </button>
+            <button type="button" class="btn" (click)="choosingStrategy.set(false)">
+              {{ t().backup.back }}
+            </button>
+          </div>
         } @else {
           <p class="muted">{{ t().backup.importHint }}</p>
           <p class="muted">{{ t().backup.replaceConfirm }}</p>
           <div class="actions">
-            <button type="button" class="btn" (click)="doImport('merge')">
+            <button type="button" class="btn" (click)="merge()">
               {{ t().backup.merge }}
             </button>
             <button type="button" class="btn" (click)="doImport('replace')">
@@ -195,6 +228,27 @@ import { formatBytes } from '../../core/time';
     .block {
       padding: var(--space-4) var(--space-5);
       margin-bottom: var(--space-4);
+    }
+
+    .conflicts {
+      margin: 0;
+      max-height: 10rem;
+      overflow-y: auto;
+    }
+
+    .strategies {
+      display: flex;
+      flex-direction: column;
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .radio {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: var(--touch-min);
     }
 
     .block h2 {
@@ -349,6 +403,13 @@ export class SettingsPage {
     this.importErrors().map((issue) => describeBackupIssue(this.t(), issue)),
   );
 
+  /** Gleichnamige Zettel der gewählten Datei und die eine Wahl für alle. */
+  protected readonly conflicts = signal<string[]>([]);
+  protected readonly choosingStrategy = signal(false);
+  protected readonly strategy = signal<ConflictStrategy>('suffix');
+  protected readonly strategyOptions: readonly ConflictStrategy[] = ['suffix', 'overwrite', 'skip', 'newer'];
+
+  private readonly lists = inject(ListsStore);
   private readonly backup = inject(BackupService);
   private readonly snackbar = inject(SnackbarService);
   private readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
@@ -419,15 +480,29 @@ export class SettingsPage {
     }
     const validation = validateBackup(raw);
     this.importErrors.set(validation.ok ? [] : validation.errors);
+    this.conflicts.set(validation.ok ? findConflicts(this.lists.allItems(), validation.value.lists) : []);
+    this.choosingStrategy.set(false);
+    this.strategy.set('suffix');
     this.openImport();
+  }
+
+  /** Zusammenführen: Gibt es gleichnamige Zettel, erst fragen, was mit ihnen passiert. */
+  protected merge(): void {
+    if (this.conflicts().length > 0) this.choosingStrategy.set(true);
+    else void this.doImport('merge');
   }
 
   protected async doImport(mode: 'merge' | 'replace'): Promise<void> {
     const file = this.pendingFile;
     if (!file) return;
-    const outcome = await this.backup.importFile(file, mode);
+    const outcome = await this.backup.importFile(file, mode, this.strategy());
     if (outcome.ok) {
-      this.snackbar.show(this.t().backup.importSuccess);
+      const counts = outcome.counts;
+      this.snackbar.show(
+        mode === 'merge' && counts
+          ? this.t().backup.importResult(counts.imported, counts.skipped, counts.overwritten)
+          : this.t().backup.importSuccess,
+      );
       this.pendingFile = null;
       this.closeImport();
     } else {

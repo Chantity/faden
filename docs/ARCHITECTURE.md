@@ -204,7 +204,15 @@ Undo-Snackbar beim Löschen.
   `{ app, schemaVersion, exportedAt, settings, lists, templates }`;
   `validateBackup` prüft Schema, Version, Zyklen, Referenzen und lehnt
   ungültige Daten **komplett** ab (kein Teilimport); `applyImport` unterstützt
-  **Zusammenführen** (neue IDs bei Kollision) und **Ersetzen**.
+  **Zusammenführen** und **Ersetzen**. Beim Zusammenführen entscheidet
+  `resolveConflicts(local, incoming, strategy)` über gleichnamige Zettel
+  (`findConflicts`, Vergleich wie `titleKey`): `suffix` („Name (2)“),
+  `overwrite` (ID und Position bleiben), `skip` oder `newer` (nach `updatedAt`,
+  Gleichstand = überspringen); neue Zettel bekommen bei ID-Kollision eine neue
+  ID und immer einen eindeutigen Namen. Die Funktion ist bewusst unabhängig von
+  der Oberfläche, damit ein späterer Sync sie wiederverwenden kann. Der
+  Backup-Service lädt vor `overwrite`/`newer` mit Konflikten automatisch eine
+  Sicherung herunter.
 - **Backup-Service (`core/backup/backup.service.ts`, Phase 3.10):** Export
   (Download `faden-backup-YYYY-MM-DD.json`, schreibt `lastBackupAt`), Teilen
   (`navigator.share` mit Datei, falls verfügbar), Import (validieren →

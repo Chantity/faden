@@ -7,6 +7,8 @@ import {
   SCHEMA_VERSION,
   TIMEBOX_MODES,
   TITLE_MAX_LENGTH,
+  titleKey,
+  uniqueTitle,
   type AppSettings,
   type Edge,
   type Task,
@@ -361,33 +363,93 @@ export function validateBackup(input: unknown): ValidationResult {
 
 export type ImportMode = 'merge' | 'replace';
 
+/**
+ * Was mit einem importierten Zettel passiert, dessen Name lokal schon existiert:
+ * `suffix` = als „Name (2)" dazu, `overwrite` = lokalen Inhalt ersetzen,
+ * `skip` = nicht importieren, `newer` = ersetzen nur bei neuerem `updatedAt`.
+ */
+export type ConflictStrategy = 'suffix' | 'overwrite' | 'skip' | 'newer';
+
+export interface ImportCounts {
+  imported: number;
+  skipped: number;
+  overwritten: number;
+}
+
 export interface ImportResult {
   lists: TodoList[];
   templates: Template[];
+  counts: ImportCounts;
+}
+
+/** Namen der importierten Zettel, die es lokal schon gibt (Vergleich wie `titleKey`). */
+export function findConflicts(local: readonly TodoList[], incoming: readonly TodoList[]): string[] {
+  const taken = new Set(local.map((l) => titleKey(l.title)));
+  return incoming.filter((l) => taken.has(titleKey(l.title))).map((l) => l.title);
+}
+
+/**
+ * Führt importierte Zettel mit lokalen zusammen. Bewusst unabhängig von der
+ * Import-Oberfläche, damit ein späterer Sync sie wiederverwenden kann.
+ * Überschreiben behält ID und Position des lokalen Zettels. Neue Zettel bekommen
+ * bei ID-Kollision eine neue ID und stets einen eindeutigen Namen.
+ */
+export function resolveConflicts(
+  local: readonly TodoList[],
+  incoming: readonly TodoList[],
+  strategy: ConflictStrategy,
+): { lists: TodoList[]; counts: ImportCounts } {
+  const lists = [...local];
+  const counts: ImportCounts = { imported: 0, skipped: 0, overwritten: 0 };
+  const usedIds = new Set(local.map((l) => l.id));
+  const byKey = new Map(local.map((l, index) => [titleKey(l.title), index]));
+  const claimed = new Set<number>();
+  let sortOrder = local.reduce((max, l) => Math.max(max, l.sortOrder), -1) + 1;
+
+  for (const list of incoming) {
+    const match = byKey.get(titleKey(list.title));
+    // Ein lokaler Zettel wird höchstens einmal ersetzt; weitere Gleichnamige kommen dazu.
+    if (match !== undefined && !claimed.has(match) && strategy !== 'suffix') {
+      const current = lists[match] as TodoList;
+      const newer = Date.parse(list.updatedAt) > Date.parse(current.updatedAt);
+      if (strategy === 'skip' || (strategy === 'newer' && !newer)) {
+        counts.skipped++;
+        continue;
+      }
+      lists[match] = { ...list, id: current.id, sortOrder: current.sortOrder };
+      claimed.add(match);
+      counts.overwritten++;
+      continue;
+    }
+    const id = usedIds.has(list.id) ? crypto.randomUUID() : list.id;
+    usedIds.add(id);
+    const title = uniqueTitle(list.title, lists.map((l) => l.title));
+    lists.push({ ...list, id, title, sortOrder: sortOrder++ });
+    counts.imported++;
+  }
+  return { lists, counts };
 }
 
 /**
  * Führt ein validiertes Backup mit vorhandenen Daten zusammen.
- * `merge`: neue IDs bei Kollisionen, bestehende Daten bleiben.
+ * `merge`: Zettel über `resolveConflicts`, bestehende Daten bleiben.
  * `replace`: vorhandene Daten werden vollständig ersetzt.
  */
 export function applyImport(
   backup: BackupFile,
   existing: { lists: readonly TodoList[]; templates: readonly Template[] },
   mode: ImportMode,
+  strategy: ConflictStrategy = 'suffix',
 ): ImportResult {
   if (mode === 'replace') {
-    return { lists: backup.lists, templates: backup.templates };
+    return {
+      lists: backup.lists,
+      templates: backup.templates,
+      counts: { imported: backup.lists.length, skipped: 0, overwritten: 0 },
+    };
   }
 
-  const usedListIds = new Set(existing.lists.map((l) => l.id));
-  const mergedLists: TodoList[] = [...existing.lists];
-  const baseSort = existing.lists.reduce((max, l) => Math.max(max, l.sortOrder), -1) + 1;
-  backup.lists.forEach((list, index) => {
-    const id = usedListIds.has(list.id) ? crypto.randomUUID() : list.id;
-    usedListIds.add(id);
-    mergedLists.push({ ...list, id, sortOrder: baseSort + index });
-  });
+  const { lists: mergedLists, counts } = resolveConflicts(existing.lists, backup.lists, strategy);
 
   const usedTemplateIds = new Set(existing.templates.map((t) => t.id));
   const mergedTemplates: Template[] = [...existing.templates];
@@ -397,5 +459,5 @@ export function applyImport(
     mergedTemplates.push({ ...template, id });
   }
 
-  return { lists: mergedLists, templates: mergedTemplates };
+  return { lists: mergedLists, templates: mergedTemplates, counts };
 }

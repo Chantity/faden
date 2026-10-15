@@ -37,6 +37,7 @@ auf eine Bildschirmgröße einschränken.
 | 16 | **ToDo-Sheet zum Anlegen:** Jeder Anlege-Weg öffnet das volle Sheet (Titel, Beschreibung, Zeit); Enter legt sofort an, in „Jetzt dran“ als Enter-Kette; mehrzeiliges Einfügen ergibt eine Kette. | Unit-Tests `graph.spec` (`insertAt`, `nextInChain`), `task-editor.spec` (Anlegen); `test:acceptance` Test 1 (Kette per Tastatur im Sheet) und Tests 8 (Sheet responsiv) | ✔ |
 | 17 | **Checkliste:** Beschreibung als Text oder Checkliste umschaltbar ohne Inhaltsverlust (Haken entfallen beim Wechsel zu Text); Punkte direkt auf der Karte in „Jetzt dran“ abhakbar. | Unit-Tests `checklist.spec`, `task-editor.spec`, `focus-view.spec`; `test:acceptance` Tests 8 | ✔ |
 | 18 | **Zeitplanung mit Start + Dauer:** Zeit im Sheet als Zusammenfassungszeile (beim Anlegen im Tagesplan/festen Zeitplan aufgeklappt); Pause am Pfeil nur bei > 0; Verschieben für Zettel oder Strang mit Vorschau, im Tagesplan nie über 0:00/24:00; relatives Einfügen vor dem ersten, nach dem letzten und dazwischen (beide Optionen, Verzweigungen), nur im eigenen Strang, ein Undo-Schritt; „+1 Tag“ behält die Uhrzeit über die Zeitumstellung. | Unit-Tests `time.spec` (`pauseBetween`, `relativeContext`, `placeRelative`, `shiftPlan` mit Bereich und Zeitumstellung, `shiftLeavesDay`), `task-editor.spec` (Zeit), `plan-editor.spec`, `flow-view.spec`; `test:acceptance` Tests 8 (Ablauf und Sheet im Tagesplan) | ✔ |
+| 19 | **Konflikte beim Zusammenführen:** Gleichnamige Zettel (ohne Groß-/Kleinschreibung) werden angezeigt; eine Wahl für alle: als „Name (2)“, überschreiben (ID und Position bleiben, vorher Sicherung), nicht importieren, nur neuere (Gleichstand = überspringen); Ergebnis „n importiert, n übersprungen, n überschrieben“. | Unit-Tests `storage.spec` (`findConflicts`, `resolveConflicts` alle vier Strategien, Roundtrip), `backup.service.spec` (Sicherung vor dem Überschreiben), `settings-page.spec` (Konflikt-Dialog) | ✔ |
 
 ## Manuelle Testdaten
 
@@ -62,9 +63,9 @@ damit Auto-Archiv (⑦) und eindeutige Namen (⑨) greifen.
 
 Was jeweils zu tun ist, steht in den Notizen der ToDos. Neue Features ergänzen
 hier ihren Zettel; der Unit-Test in `storage.spec` stellt sicher, dass die Datei
-ein gültiges Backup im aktuellen Schema bleibt. Wird dieselbe Datei zweimal
-zusammengeführt, entstehen gleichnamige Zettel – das ist der Ausgangsfall für
-die Import-Konflikte aus Phase 5.
+ein gültiges Backup im aktuellen Schema bleibt. Wird dieselbe Datei ein zweites
+Mal zusammengeführt, sind alle Zettel gleichnamig – so lässt sich der
+Konflikt-Dialog mit allen vier Wahlen ausprobieren.
 
 ## Offen (nur manuell möglich)
 
