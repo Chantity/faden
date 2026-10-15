@@ -77,7 +77,9 @@ die Import-Konflikte aus Phase 5.
 - **Pfeile im Diagramm** (SVG-Linien): Ihre Trefferfläche ist die Linie selbst;
   dieselben Aktionen gibt es barrierefrei im Bearbeiten-Sheet.
 - **Karten im Diagramm bei Zoom < 100 %**: Sie werden mit dem Zoom kleiner; bei
-  100 % werden sie mitgeprüft.
+  100 % werden sie mitgeprüft. Damit das sicher passiert, zoomt der Test den
+  Tagesplan-Ablauf auf mindestens 100 % (`fullZoom`) – der große Testzettel ist
+  auf allen Größen verkleinert und hätte die Karten sonst nie gemessen.
 - Elemente in geschlossenen Menüs/Aufklappern und hinter offenen Dialogen.
 - Elemente, die gerade unter einem **schwebenden** Element liegen (`position:
   fixed`/`sticky`, z. B. der runde „+ Neuer Zettel“-Button): Sie sind durch

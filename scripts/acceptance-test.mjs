@@ -308,7 +308,8 @@ const PAGES = [
   { name: 'Übersicht', hash: '#/' },
   { name: 'Jetzt dran', hash: '#/zettel/wohnung', view: 'focus' },
   { name: 'Ablauf', hash: '#/zettel/wohnung', view: 'flow' },
-  { name: 'Ablauf Tagesplan (Pause am Pfeil)', hash: '#/zettel/bad', view: 'flow' },
+  // fullZoom: Diagramm-Karten werden nur bei ≥ 100 % gemessen – hier sicher messen.
+  { name: 'Ablauf Tagesplan (Pause am Pfeil)', hash: '#/zettel/bad', view: 'flow', fullZoom: true },
   { name: 'Vorlagen', hash: '#/vorlagen' },
   { name: 'Einstellungen', hash: '#/einstellungen' },
 ];
@@ -326,6 +327,13 @@ async function openPage(p) {
     );
   }
   await new Promise((r) => setTimeout(r, 150));
+  if (p.fullZoom) {
+    const zoom = `new DOMMatrix(getComputedStyle(document.querySelector('.flow__canvas')).transform).a`;
+    for (let i = 0; i < 10 && (await page.eval(`${zoom} < 1`)); i++) {
+      await page.eval(`document.querySelector('.flow__zoom button').click()`);
+    }
+    assert(await page.eval(`${zoom} >= 1`), `${p.name}: Zoom ≥ 100 % nicht erreicht`);
+  }
 }
 
 await test('8a Testdaten anlegen', async () => {

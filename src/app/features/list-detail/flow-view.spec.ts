@@ -42,6 +42,36 @@ describe('FlowView', () => {
     expect(root.querySelectorAll('.node').length).toBe(2);
   });
 
+  it('passt beim Zettelwechsel neu ein, statt den Zoom des vorigen Zettels zu behalten', async () => {
+    const store = TestBed.inject(ListsStore);
+    const first = chainList();
+    const second = branchList();
+    store.addExisting(first);
+    store.addExisting(second);
+    const fixture = TestBed.createComponent(FlowView);
+    fixture.componentRef.setInput('list', first);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    // jsdom hat kein Layout: der Rahmen ist groß genug für 100 %.
+    const wrap = root.querySelector('.flow__wrap')!;
+    Object.defineProperty(wrap, 'clientWidth', { value: 2000 });
+    Object.defineProperty(wrap, 'clientHeight', { value: 2000 });
+    const zoomOut = root.querySelectorAll<HTMLButtonElement>('.flow__zoom button')[1]!;
+    zoomOut.click();
+    zoomOut.click();
+    await fixture.whenStable();
+    const transform = () => (root.querySelector('.flow__canvas') as HTMLElement).style.transform;
+    expect(transform()).not.toContain('scale(1)');
+
+    fixture.componentRef.setInput('list', { ...first, tasks: [...first.tasks] }); // gleiche ID: kein Zurücksetzen
+    await fixture.whenStable();
+    expect(transform()).not.toContain('scale(1)');
+
+    fixture.componentRef.setInput('list', second);
+    await fixture.whenStable();
+    expect(transform()).toContain('scale(1)');
+  });
+
   it('zeigt die Pause am Pfeil nur, wenn sie > 0 ist, und nennt sie im Pfeil-Label', async () => {
     const list = { ...chainList(), timeboxMode: 'dayPlan' as const, dayPlanReferenceDate: '2026-03-12' };
     list.tasks = [

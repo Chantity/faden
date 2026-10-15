@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   Injector,
@@ -693,7 +694,12 @@ export class FlowView {
   private pinchStart: { distance: number; scale: number } | null = null;
 
   constructor() {
-    afterNextRender(() => this.fit());
+    // Auch beim Zettelwechsel (Seitenleiste) neu einpassen – nicht bei jeder Änderung.
+    const listId = computed(() => this.list().id);
+    effect(() => {
+      listId();
+      afterNextRender(() => this.fit(), { injector: this.injector });
+    });
   }
 
   protected taskById(id: string): Task | undefined {
