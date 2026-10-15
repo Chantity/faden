@@ -1,8 +1,8 @@
 import { inject, Injectable, signal } from '@angular/core';
-import type { Template } from '../model';
-import { FadenDb, upgradeList } from '../storage';
+import { titleKey, uniqueTitle, type Template } from '../model';
+import { FadenDb, upgradeList, upgradeLists } from '../storage';
 
-/** Signal-Store für Vorlagen. */
+/** Signal-Store für Vorlagen. Namen sind eindeutig wie bei Zetteln. */
 @Injectable({ providedIn: 'root' })
 export class TemplatesStore {
   private readonly db = inject(FadenDb);
@@ -12,7 +12,8 @@ export class TemplatesStore {
   async load(): Promise<void> {
     try {
       const raw = await this.db.getTemplates();
-      const stored = raw.map(upgradeList);
+      // Schema anheben und doppelte Namen (aus älteren Versionen) eindeutig machen.
+      const stored = upgradeLists(raw.map(upgradeList));
       const upgraded = stored.filter((t, i) => t !== raw[i]);
       // Vor dem Ende des Ladens gespeicherte Vorlagen nicht überschreiben.
       const ids = new Set(stored.map((t) => t.id));
@@ -25,19 +26,32 @@ export class TemplatesStore {
   }
 
   async replaceAll(templates: readonly Template[]): Promise<void> {
-    this.templates.set([...templates]);
+    const unique = upgradeLists([...templates]);
+    this.templates.set(unique);
     try {
       await this.db.clear('templates');
-      await this.db.putAll('templates', templates);
+      await this.db.putAll('templates', unique);
     } catch {
       // Ohne IndexedDB (Tests) nur im Speicher ersetzen.
     }
   }
 
-  /** Fügt eine neue Vorlage hinzu (oben einsortiert). */
-  async add(template: Template): Promise<void> {
-    this.templates.update((list) => [template, ...list]);
-    await this.persist(template);
+  /** Eindeutiger Name: bei Bedarf „Name (2)“, „Name (3)“ … */
+  uniqueTitle(title: string, exceptId?: string): string {
+    return uniqueTitle(title, this.others(exceptId).map((t) => t.title));
+  }
+
+  isTitleTaken(title: string, exceptId?: string): boolean {
+    const key = titleKey(title);
+    return this.others(exceptId).some((t) => titleKey(t.title) === key);
+  }
+
+  /** Fügt eine neue Vorlage hinzu (oben einsortiert) und liefert sie mit ihrem eindeutigen Namen. */
+  add(template: Template): Template {
+    const added = { ...template, title: this.uniqueTitle(template.title) };
+    this.templates.update((list) => [added, ...list]);
+    void this.persist(added);
+    return added;
   }
 
   async rename(id: string, title: string): Promise<void> {
@@ -60,10 +74,15 @@ export class TemplatesStore {
     return template;
   }
 
-  /** Stellt eine zuvor entfernte Vorlage wieder her. */
+  /** Stellt eine zuvor entfernte Vorlage wieder her (inzwischen vergebener Name → „(2)“). */
   async restore(template: Template): Promise<void> {
-    this.templates.update((list) => [template, ...list.filter((t) => t.id !== template.id)]);
-    await this.persist(template);
+    const restored = { ...template, title: this.uniqueTitle(template.title, template.id) };
+    this.templates.update((list) => [restored, ...list.filter((t) => t.id !== template.id)]);
+    await this.persist(restored);
+  }
+
+  private others(exceptId?: string): Template[] {
+    return this.templates().filter((t) => t.id !== exceptId);
   }
 
   private async persist(template: Template): Promise<void> {

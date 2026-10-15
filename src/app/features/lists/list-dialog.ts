@@ -40,15 +40,13 @@ import { focusAfterRender } from '../../shared/focus';
             [maxlength]="maxTitle"
             [ngModel]="title()"
             (ngModelChange)="onTitleChange($event)"
+            (keydown.enter)="touched.set(true)"
+            aria-describedby="list-title-hint"
             required
           />
         </label>
 
-        @if (error()) {
-          <p class="field__error" role="alert">{{ error() }}</p>
-        } @else if (taken()) {
-          <p class="field__hint" role="status">{{ t().listDialog.titleTaken }}</p>
-        }
+        <p class="field__hint" id="list-title-hint" role="status">{{ hint() }}</p>
 
         @if (!editing() && templates().length > 0) {
           <label class="field">
@@ -88,7 +86,7 @@ import { focusAfterRender } from '../../shared/focus';
 
         <div class="sheet__actions">
           <button type="button" class="btn" (click)="close()">{{ t().common.cancel }}</button>
-          <button type="submit" class="btn btn--primary" [disabled]="taken()">
+          <button type="submit" class="btn btn--primary" [disabled]="empty() || taken()">
             {{ editing() ? t().common.save : t().listDialog.create }}
           </button>
         </div>
@@ -137,16 +135,6 @@ import { focusAfterRender } from '../../shared/focus';
       background: var(--color-bg);
       color: var(--color-text);
       font: inherit;
-    }
-
-    .field__error {
-      color: var(--color-danger);
-      margin: 0;
-    }
-
-    .field__hint {
-      color: var(--color-warn);
-      margin: 0;
     }
 
     .modes {
@@ -213,16 +201,22 @@ export class ListDialog {
   protected readonly title = signal('');
   protected readonly timeboxMode = signal<TimeboxMode>('none');
   protected readonly editing = signal(false);
-  protected readonly error = signal('');
   protected readonly templateId = signal<string | null>(null);
+  /** Schon getippt (oder Enter gedrückt): erst dann meldet ein leeres Feld etwas. */
+  protected readonly touched = signal(false);
 
   private readonly editingId = signal<string | null>(null);
   private restoreFocusTo: HTMLElement | null = null;
 
-  /** Zettel-Namen sind eindeutig: ein vergebener Name sperrt das Speichern. */
+  /** Namen sind nie leer und bei Zetteln eindeutig: beides sperrt das Speichern. */
+  protected readonly empty = computed(() => this.title().trim() === '');
   protected readonly taken = computed(
-    () => this.title().trim() !== '' && this.store.isTitleTaken(this.title(), this.editingId() ?? undefined),
+    () => !this.empty() && this.store.isTitleTaken(this.title(), this.editingId() ?? undefined),
   );
+  protected readonly hint = computed(() => {
+    if (this.taken()) return this.t().listDialog.titleTaken;
+    return this.empty() && this.touched() ? this.t().errors.titleRequired : '';
+  });
 
   readonly saved = output<ListDialogResult>();
 
@@ -233,7 +227,7 @@ export class ListDialog {
     this.title.set('');
     this.timeboxMode.set('none');
     this.templateId.set(null);
-    this.error.set('');
+    this.touched.set(false);
     const first = fromTemplate ? this.templates()[0] : undefined;
     if (first) this.onTemplateChange(first.id);
     this.open(first ? 'template' : 'title');
@@ -245,7 +239,7 @@ export class ListDialog {
     this.title.set(list.title);
     this.timeboxMode.set(list.timeboxMode);
     this.templateId.set(null);
-    this.error.set('');
+    this.touched.set(false);
     this.open('title');
   }
 
@@ -255,7 +249,7 @@ export class ListDialog {
 
   protected onTitleChange(value: string): void {
     this.title.set(value);
-    if (this.error()) this.error.set('');
+    this.touched.set(true);
   }
 
   /** Vorlage gewählt: Titel (falls noch leer bzw. von der vorigen Vorlage) und Modus übernehmen. */
@@ -269,23 +263,13 @@ export class ListDialog {
       this.title.set(suggested(next));
     }
     this.timeboxMode.set(next.timeboxMode);
-    if (this.error()) this.error.set('');
   }
 
   protected submit(): void {
-    const title = this.title().trim();
-    if (title.length === 0) {
-      this.error.set(this.i18n.t().errors.titleRequired);
-      return;
-    }
-    if (title.length > TITLE_MAX_LENGTH) {
-      this.error.set(this.i18n.t().errors.titleTooLong(TITLE_MAX_LENGTH));
-      return;
-    }
-    if (this.taken()) return;
+    if (this.empty() || this.taken()) return; // Länge begrenzt schon maxlength
     this.saved.emit({
       id: this.editingId(),
-      title,
+      title: this.title().trim(),
       timeboxMode: this.timeboxMode(),
       templateId: this.editing() ? null : this.templateId(),
     });

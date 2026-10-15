@@ -81,11 +81,13 @@ function withoutEmpty(task: Task): Task {
             [attr.maxlength]="maxTitle"
             [placeholder]="placeholder()"
             [value]="title()"
-            (input)="title.set($any($event.target).value)"
+            (input)="title.set($any($event.target).value); touched.set(true)"
             (keydown.enter)="onTitleEnter($event)"
             (paste)="onTitlePaste($event)"
+            aria-describedby="task-title-hint"
           />
         </label>
+        <p class="field__hint" id="task-title-hint" role="status">{{ titleHint() }}</p>
         @if (creating()?.chain) {
           <p class="muted sheet__hint">{{ t().editor.chainHint }}</p>
         }
@@ -331,7 +333,10 @@ function withoutEmpty(task: Task): Task {
 
         <div class="sheet__actions">
           <button type="button" class="btn" (click)="close()">{{ t().common.cancel }}</button>
-          <button type="submit" class="btn btn--primary">{{ submitLabel() }}</button>
+          <!-- In einer Kette beendet „Fertig“ mit leerem Feld die Kette und bleibt daher aktiv. -->
+          <button type="submit" class="btn btn--primary" [disabled]="titleEmpty() && !creating()?.chain">
+            {{ submitLabel() }}
+          </button>
         </div>
       </form>
     </dialog>
@@ -553,6 +558,12 @@ export class TaskEditor {
   protected readonly kind = signal<DescKind>('text');
   protected readonly checklist = signal<ChecklistItem[]>([]);
   protected readonly error = signal('');
+  /** Titel schon bearbeitet oder Enter gedrückt: erst dann meldet ein leerer Titel etwas. */
+  protected readonly touched = signal(false);
+  protected readonly titleEmpty = computed(() => this.title().trim() === '');
+  protected readonly titleHint = computed(() =>
+    this.titleEmpty() && this.touched() ? this.t().errors.titleRequired : '',
+  );
 
   protected readonly heading = computed(() => {
     const creating = this.creating();
@@ -765,7 +776,7 @@ export class TaskEditor {
     if (!list || !id) return;
     const title = this.title().trim();
     if (title.length === 0) {
-      this.error.set(this.t().errors.titleRequired);
+      this.touched.set(true);
       return;
     }
     const time = this.timeFields(list);
@@ -780,6 +791,7 @@ export class TaskEditor {
 
   /** Enter im Titel: beim Anlegen sofort anlegen (in einer Kette gleich das nächste). */
   protected onTitleEnter(event: Event): void {
+    this.touched.set(true); // leer: Hinweis zeigen (der Knopf ist dann gesperrt)
     if (!this.creating()) return; // Bearbeiten: normales Absenden des Formulars
     event.preventDefault();
     this.commitCreate(true);
@@ -807,7 +819,7 @@ export class TaskEditor {
     if (!title) {
       // „Fertig" mit leerem Feld beendet die Kette einfach.
       if (creating.chain && !next) this.close();
-      else this.error.set(this.t().errors.titleRequired);
+      else this.touched.set(true);
       return;
     }
     const time = this.timeFields(list);
@@ -894,6 +906,7 @@ export class TaskEditor {
     this.pause.set(0);
     this.alternative.set(false);
     this.error.set('');
+    this.touched.set(false);
   }
 
   private show(): void {

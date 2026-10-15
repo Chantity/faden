@@ -153,8 +153,8 @@ export class ListsPage {
 
   protected saveAsTemplate(list: TodoList): void {
     const template = listToTemplate(list);
-    void this.templatesStore.add(template);
-    this.snackbar.show(this.t().templates.savedSnack(template.title));
+    const saved = this.templatesStore.add(template);
+    this.snackbar.show(this.t().templates.savedSnack(saved.title));
   }
 
   protected readonly closeMenu = closeMenu;

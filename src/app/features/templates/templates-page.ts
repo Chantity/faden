@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   inject,
   Injector,
@@ -67,18 +68,23 @@ import { focusAfterRender } from '../../shared/focus';
       <form class="sheet__form" (ngSubmit)="submitRename()">
         <h2>{{ t().common.rename }}</h2>
         <label class="field">
-          <span class="field__label">{{ t().templates.preview }}</span>
+          <span class="field__label">{{ t().templates.nameLabel }}</span>
           <input
             #renameInput
             type="text"
             [value]="renameValue()"
             [attr.maxlength]="maxTitle"
-            (input)="renameValue.set($any($event.target).value)"
+            (input)="renameValue.set($any($event.target).value); renameTouched.set(true)"
+            (keydown.enter)="renameTouched.set(true)"
+            aria-describedby="template-name-hint"
           />
         </label>
+        <p class="field__hint" id="template-name-hint" role="status">{{ renameHint() }}</p>
         <div class="sheet__actions">
           <button type="button" class="btn" (click)="closeRename()">{{ t().common.cancel }}</button>
-          <button type="submit" class="btn btn--primary">{{ t().common.save }}</button>
+          <button type="submit" class="btn btn--primary" [disabled]="renameEmpty() || renameTaken()">
+            {{ t().common.save }}
+          </button>
         </div>
       </form>
     </dialog>
@@ -191,7 +197,18 @@ export class TemplatesPage {
   protected readonly maxTitle = TITLE_MAX_LENGTH;
 
   protected readonly renameValue = signal('');
-  private renamingId: string | null = null;
+  protected readonly renameTouched = signal(false);
+  private readonly renamingId = signal<string | null>(null);
+
+  /** Wie bei Zetteln: Namen sind nie leer und eindeutig; beides sperrt „Speichern“. */
+  protected readonly renameEmpty = computed(() => this.renameValue().trim() === '');
+  protected readonly renameTaken = computed(
+    () => !this.renameEmpty() && this.store.isTitleTaken(this.renameValue(), this.renamingId() ?? undefined),
+  );
+  protected readonly renameHint = computed(() => {
+    if (this.renameTaken()) return this.t().templates.titleTaken;
+    return this.renameEmpty() && this.renameTouched() ? this.t().errors.titleRequired : '';
+  });
   private restoreFocusTo: HTMLElement | null = null;
 
   constructor() {
@@ -208,8 +225,9 @@ export class TemplatesPage {
   }
 
   protected startRename(template: Template): void {
-    this.renamingId = template.id;
+    this.renamingId.set(template.id);
     this.renameValue.set(template.title);
+    this.renameTouched.set(false);
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     this.dialogRef().nativeElement.showModal();
     focusAfterRender(this.injector, () => this.renameInput());
@@ -220,9 +238,9 @@ export class TemplatesPage {
   }
 
   protected submitRename(): void {
-    const id = this.renamingId;
-    const title = this.renameValue().trim();
-    if (id && title.length > 0) void this.store.rename(id, title);
+    const id = this.renamingId();
+    if (!id || this.renameEmpty() || this.renameTaken()) return;
+    void this.store.rename(id, this.renameValue().trim());
     this.closeRename();
   }
 
@@ -236,7 +254,7 @@ export class TemplatesPage {
   }
 
   protected onClosed(): void {
-    this.renamingId = null;
+    this.renamingId.set(null);
     this.restoreFocusTo?.focus();
     this.restoreFocusTo = null;
   }

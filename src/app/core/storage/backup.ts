@@ -456,7 +456,9 @@ export function applyImport(
   for (const template of backup.templates) {
     const id = usedTemplateIds.has(template.id) ? crypto.randomUUID() : template.id;
     usedTemplateIds.add(id);
-    mergedTemplates.push({ ...template, id });
+    // Vorlagen-Namen sind eindeutig: Gleichnamige kommen als „Name (2)“ dazu.
+    const title = uniqueTitle(template.title, mergedTemplates.map((t) => t.title));
+    mergedTemplates.push({ ...template, id, title });
   }
 
   return { lists: mergedLists, templates: mergedTemplates, counts };

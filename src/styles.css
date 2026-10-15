@@ -328,6 +328,17 @@ summary:not(.icon-btn) {
   box-sizing: border-box;
 }
 
+/* Ruhiger Hinweis direkt unter einem Namensfeld („leer“ / „schon vergeben“). */
+.field__hint {
+  color: var(--color-warn);
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-size: 0.95rem;
+}
+
+.field__hint:empty {
+  display: none;
+}
+
 /* --- Dialoge (Grundform; ältere Komponenten setzen dieselben Werte selbst) --- */
 
 dialog.sheet {

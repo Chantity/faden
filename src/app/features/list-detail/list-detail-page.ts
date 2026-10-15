@@ -341,8 +341,8 @@ export class ListDetailPage {
 
   protected saveAsTemplate(current: TodoList): void {
     const template = listToTemplate(current);
-    void this.templates.add(template);
-    this.snackbar.show(this.t().templates.savedSnack(template.title));
+    const saved = this.templates.add(template);
+    this.snackbar.show(this.t().templates.savedSnack(saved.title));
   }
 
   protected onListSaved(event: { id: string | null; title: string; timeboxMode: TimeboxMode }): void {

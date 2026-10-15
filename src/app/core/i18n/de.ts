@@ -85,6 +85,8 @@ export const de = {
     insertApply: 'Einfügen',
     insertedSnack: (title: string): string => `Vorlage „${title}" eingefügt.`,
     incomplete: 'Dieser Strang hat noch keine ToDos.',
+    nameLabel: 'Name der Vorlage',
+    titleTaken: 'Es gibt schon eine Vorlage mit diesem Namen.',
   },
 
   backup: {

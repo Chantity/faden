@@ -85,6 +85,8 @@ export const en = {
     insertedSnack: (title: string): string => `Template “${title}” inserted.`,
     insert: 'Insert template into list',
     incomplete: 'This strand has no todos yet.',
+    nameLabel: 'Template name',
+    titleTaken: 'There is already a template with this name.',
   },
 
   backup: {
