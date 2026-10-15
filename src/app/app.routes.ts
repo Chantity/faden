@@ -27,5 +27,10 @@ export const routes: Routes = [
     path: 'einstellungen/fortgeschritten',
     loadComponent: () => import('./features/settings/advanced-page').then((m) => m.AdvancedPage),
   },
+  {
+    path: 'einstellungen/fortgeschritten/farbschema/:id',
+    loadComponent: () =>
+      import('./features/settings/scheme-editor-page').then((m) => m.SchemeEditorPage),
+  },
   { path: '**', redirectTo: '' },
 ];

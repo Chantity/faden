@@ -5,6 +5,7 @@ import type { TimeboxMode } from '../model';
 import type { ConflictStrategy } from '../storage/backup';
 import type { ShortcutScope } from '../keymap';
 import type { CompletedListsAction, SimpleFeature } from '../preferences';
+import type { SchemeRole } from '../color-scheme';
 
 export const de = {
   app: {
@@ -44,6 +45,7 @@ export const de = {
     templates: 'Vorlagen',
     settings: 'Einstellungen',
     advanced: 'Für Fortgeschrittene',
+    scheme: 'Farbschema',
     about: 'Über',
   },
 
@@ -398,6 +400,48 @@ export const de = {
 
   schemes: {
     defaultName: 'Salbei',
+    heading: 'Farbschema',
+    hint: 'Ändert nur die Akzentfarben – Hell und Dunkel bleiben, wie sie sind. Das Standardschema lässt sich nicht ändern, aber duplizieren.',
+    defaultBadge: 'Standard',
+    edit: 'Bearbeiten',
+    editLabel: (name: string): string => `„${name}“ bearbeiten`,
+    duplicate: 'Duplizieren',
+    duplicateLabel: (name: string): string => `„${name}“ duplizieren`,
+    delete: 'Löschen',
+    deleteLabel: (name: string): string => `„${name}“ löschen`,
+    deleted: (name: string): string => `Farbschema „${name}“ gelöscht.`,
+    newScheme: 'Neues Schema',
+    editorTitle: 'Farbschema bearbeiten',
+    nameLabel: 'Name',
+    nameTaken: 'Diesen Namen gibt es schon.',
+    roles: {
+      primary: 'Hauptfarbe',
+      control: 'Auswahl',
+      focus: 'Fokusrahmen',
+    } satisfies Record<SchemeRole, string>,
+    roleHints: {
+      primary: 'Wichtige Knöpfe, aktive Auswahl, Haken',
+      control: 'Radio-Kreise und Kästchen',
+      focus: 'Rahmen um das Element, das du gerade per Tastatur bedienst',
+    } satisfies Record<SchemeRole, string>,
+    modes: { light: 'Hell', dark: 'Dunkel' } satisfies Record<'light' | 'dark', string>,
+    colorLabel: (role: string, mode: string): string => `${role}, ${mode}`,
+    hexLabel: (role: string, mode: string): string => `${role}, ${mode}, als Hex-Wert`,
+    invalidHex: 'Bitte als #rrggbb eingeben, z. B. #4a6b57.',
+    browserDefault: 'Browser-Standard',
+    preview: 'Vorschau',
+    previewPrimary: 'Speichern',
+    previewButton: 'Abbrechen',
+    previewOption: 'Ausgewählt',
+    previewCheck: 'Erledigt',
+    previewBadge: 'Zeitschätzung',
+    previewFocus: 'Mit Fokus',
+    issue: (mode: string, kind: 'primary' | 'onPrimary'): string =>
+      kind === 'primary'
+        ? `${mode}: Die Hauptfarbe hebt sich kaum von der Fläche ab.`
+        : `${mode}: Schrift auf der Hauptfarbe ist schwer lesbar.`,
+    saved: (name: string): string => `„${name}“ gespeichert und aktiv.`,
+    notFound: 'Dieses Farbschema gibt es nicht (mehr).',
   },
 
   listDialog: {

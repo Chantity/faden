@@ -187,6 +187,16 @@ export class SettingsStore {
     await this.save();
   }
 
+  /** Rückgängig für `deleteScheme`: an alter Stelle zurück, ggf. wieder aktiv. */
+  async restoreScheme(scheme: ColorScheme, index: number, active: boolean): Promise<void> {
+    this.settings.update((s) => {
+      const list = [...(s.colorSchemes ?? [])];
+      list.splice(index, 0, scheme);
+      return { ...s, colorSchemes: list, ...(active ? { activeScheme: scheme.id } : {}) };
+    });
+    await this.save();
+  }
+
   async setActiveScheme(id: string): Promise<void> {
     this.settings.update(({ activeScheme: _old, ...s }) => (id === DEFAULT_SCHEME_ID ? s : { ...s, activeScheme: id }));
     await this.save();

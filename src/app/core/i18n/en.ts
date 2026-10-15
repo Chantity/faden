@@ -4,6 +4,7 @@ import type { TimeboxMode } from '../model';
 import type { ConflictStrategy } from '../storage/backup';
 import type { ShortcutScope } from '../keymap';
 import type { CompletedListsAction, SimpleFeature } from '../preferences';
+import type { SchemeRole } from '../color-scheme';
 import type { Translations } from './types';
 
 export const en = {
@@ -44,6 +45,7 @@ export const en = {
     templates: 'Templates',
     settings: 'Settings',
     advanced: 'Advanced',
+    scheme: 'Color scheme',
     about: 'About',
   },
 
@@ -398,6 +400,48 @@ export const en = {
 
   schemes: {
     defaultName: 'Sage',
+    heading: 'Color scheme',
+    hint: 'Changes only the accent colors – light and dark stay as they are. The default scheme can’t be changed, but it can be duplicated.',
+    defaultBadge: 'Default',
+    edit: 'Edit',
+    editLabel: (name: string): string => `Edit “${name}”`,
+    duplicate: 'Duplicate',
+    duplicateLabel: (name: string): string => `Duplicate “${name}”`,
+    delete: 'Delete',
+    deleteLabel: (name: string): string => `Delete “${name}”`,
+    deleted: (name: string): string => `Color scheme “${name}” deleted.`,
+    newScheme: 'New scheme',
+    editorTitle: 'Edit color scheme',
+    nameLabel: 'Name',
+    nameTaken: 'This name is already taken.',
+    roles: {
+      primary: 'Main color',
+      control: 'Selection',
+      focus: 'Focus ring',
+    } satisfies Record<SchemeRole, string>,
+    roleHints: {
+      primary: 'Important buttons, active choices, check marks',
+      control: 'Radio circles and checkboxes',
+      focus: 'Ring around the element you are using with the keyboard',
+    } satisfies Record<SchemeRole, string>,
+    modes: { light: 'Light', dark: 'Dark' } satisfies Record<'light' | 'dark', string>,
+    colorLabel: (role: string, mode: string): string => `${role}, ${mode}`,
+    hexLabel: (role: string, mode: string): string => `${role}, ${mode}, as hex value`,
+    invalidHex: 'Please enter it as #rrggbb, e.g. #4a6b57.',
+    browserDefault: 'Browser default',
+    preview: 'Preview',
+    previewPrimary: 'Save',
+    previewButton: 'Cancel',
+    previewOption: 'Selected',
+    previewCheck: 'Done',
+    previewBadge: 'Time estimate',
+    previewFocus: 'Focused',
+    issue: (mode: string, kind: 'primary' | 'onPrimary'): string =>
+      kind === 'primary'
+        ? `${mode}: the main color barely stands out from the surface.`
+        : `${mode}: text on the main color is hard to read.`,
+    saved: (name: string): string => `“${name}” saved and active.`,
+    notFound: 'This color scheme doesn’t exist (anymore).',
   },
 
   listDialog: {

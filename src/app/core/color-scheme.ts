@@ -11,6 +11,9 @@ export interface SchemeColor {
   dark: string;
 }
 
+export type SchemeRole = 'primary' | 'control' | 'focus';
+export const SCHEME_ROLES: readonly SchemeRole[] = ['primary', 'control', 'focus'];
+
 export interface ColorScheme {
   id: string;
   name: string;

@@ -102,11 +102,8 @@ await test('1 Geschirrspüler-Szenario nur mit Tastatur', async () => {
   await page.press('Enter');
   await page.waitFor(`location.hash.startsWith('#/zettel/')`, 'Zettel geöffnet');
 
-  // Erstes ToDo
-  await page.waitFor(`document.querySelector('.empty .btn--large')`, 'Leerer Zettel');
-  await tabTo(`document.activeElement.matches('.empty .btn--large')`, 'Erstes ToDo anlegen');
-  await page.press('Enter');
-  await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Titelfeld im Sheet fokussiert');
+  // Erstes ToDo: ein leerer Zettel öffnet „Neues ToDo“ von selbst.
+  await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Sheet öffnet von selbst, Titel fokussiert');
   await page.type('Geschirrspüler einräumen');
   await page.press('Enter');
   await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)}) && document.activeElement.value === ''`, 'nächstes leeres Sheet');
@@ -228,6 +225,20 @@ async function seed() {
       createdAt: now,
     },
   ];
+  // Wie bei einer neuen Installation im einfachen Modus, mit einem eigenen Farbschema.
+  const settings = {
+    theme: 'system',
+    language: 'en',
+    schemaVersion: 3,
+    simpleMode: { enabled: true },
+    colorSchemes: [{
+      id: 'meer',
+      name: 'Meer',
+      primary: { light: '#2f5d7c', dark: '#8db8d6' },
+      control: { light: '#2f5d7c', dark: '#8db8d6' },
+      focus: { light: '#24485f', dark: '#a9cbe3' },
+    }],
+  };
   await page.goto(BASE);
   await page.waitFor(APP_READY, 'App rendert');
   await page.eval(`new Promise((resolve, reject) => {
@@ -235,9 +246,10 @@ async function seed() {
     req.onerror = () => reject(req.error);
     req.onsuccess = () => {
       const db = req.result;
-      const tx = db.transaction(['lists', 'templates'], 'readwrite');
+      const tx = db.transaction(['lists', 'templates', 'settings'], 'readwrite');
       for (const l of ${JSON.stringify(lists)}) tx.objectStore('lists').put(l);
       for (const t of ${JSON.stringify(templates)}) tx.objectStore('templates').put(t);
+      tx.objectStore('settings').put({ key: 'app', value: ${JSON.stringify(settings)} });
       tx.oncomplete = () => { db.close(); resolve(true); };
       tx.onerror = () => reject(tx.error);
     };
@@ -349,6 +361,7 @@ const PAGES = [
   { name: 'Einstellungen', hash: '#/einstellungen' },
   { name: 'Über', hash: '#/ueber' },
   { name: 'Für Fortgeschrittene', hash: '#/einstellungen/fortgeschritten' },
+  { name: 'Farbschema-Editor', hash: '#/einstellungen/fortgeschritten/farbschema/meer' },
 ];
 
 async function openPage(p) {
@@ -376,7 +389,7 @@ async function openPage(p) {
 await test('8a Testdaten anlegen', async () => {
   await viewport(1280, 800);
   await seed();
-  return '2 Zettel (Verzweigung, 2 Stränge, Schätzungen; Tagesplan mit Pause), 1 archiviert, 1 Vorlage';
+  return '2 Zettel (Verzweigung, 2 Stränge, Schätzungen; Tagesplan mit Pause), 1 archiviert, 1 Vorlage, 1 Farbschema';
 });
 
 for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.includes(process.env.VIEWPORT))) {
@@ -529,6 +542,51 @@ await test('12 prefers-reduced-motion: keine Übergänge/Animationen', async () 
 });
 
 // ------------------------------------------- F: Erst-Start-Hinweise ---
+
+await test('S Seitenleiste mit vielen Zetteln scrollt für sich (PC 1280)', async () => {
+  await viewport(1280, 800);
+  const extra = Array.from({ length: 40 }, (_, i) => ({
+    id: `viel-${i}`,
+    title: `Zettel ${i + 1}`,
+    timeboxMode: 'none',
+    tasks: [],
+    edges: [],
+    archived: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    sortOrder: 100 + i,
+  }));
+  const idb = (body) => page.eval(`new Promise((resolve, reject) => {
+    const req = indexedDB.open('faden');
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
+      const db = req.result;
+      const tx = db.transaction(['lists'], 'readwrite');
+      const store = tx.objectStore('lists');
+      ${body}
+      tx.oncomplete = () => { db.close(); resolve(true); };
+      tx.onerror = () => reject(tx.error);
+    };
+  })`);
+  await idb(`for (const l of ${JSON.stringify(extra)}) store.put(l);`);
+  try {
+    await page.goto(BASE + '#/zettel/wohnung');
+    await page.reload();
+    await page.waitFor(`document.querySelectorAll('.side__link').length > 40`, 'Seitenleiste voll');
+    const m = await page.eval(`(() => {
+      const list = document.querySelector('.side__list');
+      const side = document.querySelector('app-lists-sidebar').getBoundingClientRect();
+      return { scrolls: list.scrollHeight > list.clientHeight, bottom: side.bottom, height: innerHeight,
+        page: document.documentElement.scrollHeight, main: document.querySelector('.detail-main').getBoundingClientRect().bottom + scrollY };
+    })()`);
+    assert(m.scrolls, 'Zettel-Liste scrollt nicht für sich');
+    assert(m.bottom <= m.height + 1, `Seitenleiste ragt unter den Bildschirm (${m.bottom} > ${m.height})`);
+    assert(m.page <= Math.max(m.height, m.main + 64) + 1, `Seite wächst mit der Seitenleiste (${m.page} px)`);
+    return `41 Zettel: Liste scrollt in sich, Seite ${m.page} px bei ${m.height} px Fensterhöhe`;
+  } finally {
+    await idb(`for (const l of ${JSON.stringify(extra)}) store.delete(l.id);`);
+  }
+});
 
 await test('F Erst-Start: Speicher-Hinweis → Anleitung, nur Tastatur, Handy 360', async () => {
   page = await browser.newPage(); // ohne vorab gesetzte Merker

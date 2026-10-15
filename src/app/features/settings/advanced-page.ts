@@ -23,6 +23,7 @@ import {
   type ShortcutScope,
 } from '../../core/keymap';
 import { shortcutLabel } from '../../shared/shortcut-label';
+import { SchemeSection } from './scheme-section';
 import { COMPLETED_LISTS_ACTIONS, NOTE_KINDS, SIMPLE_FEATURES } from '../../core/preferences';
 
 const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
@@ -31,7 +32,7 @@ const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
 @Component({
   selector: 'app-advanced-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, SchemeSection],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <a class="back" routerLink="/einstellungen">← {{ t().titles.settings }}</a>
@@ -104,6 +105,8 @@ const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
         </div>
       </fieldset>
     </section>
+
+    <app-scheme-section />
 
     <section class="card block" aria-labelledby="shortcuts-heading">
       <h2 id="shortcuts-heading">{{ t().advanced.shortcutsHeading }}</h2>

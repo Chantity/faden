@@ -15,6 +15,10 @@
   dialog you pick one prerequisite and one follow-up instead of several. Switch
   it off under **Settings**, or choose under **Settings → Advanced** exactly what
   stays visible. Existing installs keep everything as it was.
+- **Color schemes:** under **Settings → Advanced**, duplicate the default
+  scheme “Sage” and pick your own main, selection and focus colors – for light
+  and dark, with a live preview and a hint when contrast gets too low. Light and
+  dark mode stay as they are.
 - **Shift from here:** in the flow, the ⋯ menu of a todo with times can shift
   just that todo and everything after it – the todos before it stay put.
 - **Finished lists:** choose under **Settings → Advanced** whether finished
@@ -90,6 +94,10 @@
   Nachfolger statt mehrerer. Ausschalten unter **Einstellungen**, oder unter
   **Einstellungen → Für Fortgeschrittene** genau wählen, was sichtbar bleibt.
   Bestehende Installationen behalten alles wie bisher.
+- **Farbschemata:** Unter **Einstellungen → Für Fortgeschrittene** das
+  Standardschema „Salbei“ duplizieren und eigene Haupt-, Auswahl- und
+  Fokusfarben wählen – für hell und dunkel, mit Vorschau und einem Hinweis, wenn
+  der Kontrast zu gering wird. Hell und Dunkel bleiben, wie sie sind.
 - **Ab hier verschieben:** Im Ablauf kann das ⋯-Menü eines ToDos mit Uhrzeit
   nur dieses ToDo und alles danach verschieben – die Vorarbeiten bleiben stehen.
 - **Erledigte Zettel:** Unter **Einstellungen → Für Fortgeschrittene** lässt
