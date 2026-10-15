@@ -1,16 +1,19 @@
 import type { Task, TodoList } from '../model';
 import { buildAdjacency } from './validation';
 
-/** Alle mittelbaren und unmittelbaren Vorgänger von `taskId` (transitiv). */
-function ancestorIds(list: TodoList, taskId: string): Set<string> {
-  const inc = buildAdjacency(list.edges).inc;
+/**
+ * Alle mittelbaren und unmittelbaren Vorgänger (`'inc'`) bzw. Nachfolger
+ * (`'out'`) von `taskId` (transitiv).
+ */
+export function reachableIds(list: TodoList, taskId: string, direction: 'inc' | 'out' = 'inc'): Set<string> {
+  const adjacent = buildAdjacency(list.edges)[direction];
   const seen = new Set<string>();
-  const stack = [...(inc.get(taskId) ?? [])];
+  const stack = [...(adjacent.get(taskId) ?? [])];
   while (stack.length > 0) {
     const current = stack.pop() as string;
     if (seen.has(current)) continue;
     seen.add(current);
-    for (const next of inc.get(current) ?? []) stack.push(next);
+    for (const next of adjacent.get(current) ?? []) stack.push(next);
   }
   return seen;
 }
@@ -45,7 +48,7 @@ export function openPredecessors(list: TodoList, taskId: string): Task[] {
  */
 export function openAncestors(list: TodoList, taskId: string): Task[] {
   const byId = taskMap(list);
-  return [...ancestorIds(list, taskId)]
+  return [...reachableIds(list, taskId)]
     .map((id) => byId.get(id))
     .filter((t): t is Task => t !== undefined && !t.done);
 }

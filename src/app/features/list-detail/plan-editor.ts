@@ -9,14 +9,18 @@ import {
 } from '@angular/core';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import type { TodoList } from '../../core/model';
-import { topologicalOrder } from '../../core/graph';
+import { extractStrand, topologicalOrder } from '../../core/graph';
 import {
+  formatDayLabel,
   fromDatetimeLocal,
   planBounds,
   proposeTimes,
+  shiftLeavesDay,
   shiftPlan,
   stretchPlan,
+  taskSpan,
   toDatetimeLocal,
+  toLocalIso,
   todayIso,
   transferDayTimesToList,
 } from '../../core/time';
@@ -42,7 +46,7 @@ const UNIT_MS: Record<ShiftUnit, number> = {
   template: `
     <dialog #dlg class="sheet" (close)="onClosed()">
       <div class="sheet__form">
-        <h2>{{ t().time.editPlanTitle }}</h2>
+        <h2>{{ strandOnly() ? t().time.shiftStrandHeading : t().time.editPlanTitle }}</h2>
 
         @if (error()) {
           <p class="field__error" role="alert">{{ error() }}</p>
@@ -50,7 +54,17 @@ const UNIT_MS: Record<ShiftUnit, number> = {
 
         @if (!convertOnly()) {
           <fieldset class="section">
-            <legend class="field__label">{{ t().time.shiftHeading }}</legend>
+            <legend class="field__label">{{ strandOnly() ? t().time.scopeLabel : t().time.shiftHeading }}</legend>
+            @if (strandOnly()) {
+              <label class="radio">
+                <input type="radio" name="scope" [checked]="scope() === 'strand'" (change)="scope.set('strand')" />
+                {{ t().time.scopeStrand }}
+              </label>
+              <label class="radio">
+                <input type="radio" name="scope" [checked]="scope() === 'list'" (change)="scope.set('list')" />
+                {{ t().time.scopeList }}
+              </label>
+            }
             <div class="row">
               <input
                 type="number"
@@ -69,8 +83,13 @@ const UNIT_MS: Record<ShiftUnit, number> = {
                 {{ t().time.shiftApply }}
               </button>
             </div>
+            @if (shiftPreview(); as preview) {
+              <p class="hint muted" aria-live="polite">{{ preview }}</p>
+            }
           </fieldset>
 
+          <!-- Strecken und Vorschlagen wirken immer auf den ganzen Zettel. -->
+          @if (!strandOnly()) {
           @if (mode() === 'schedule') {
             <fieldset class="section">
               <legend class="field__label">{{ t().time.stretchHeading }}</legend>
@@ -123,10 +142,10 @@ const UNIT_MS: Record<ShiftUnit, number> = {
               </button>
             </div>
           </fieldset>
-
+          }
         }
 
-        @if (mode() === 'dayPlan' || convertOnly()) {
+        @if ((mode() === 'dayPlan' && !strandOnly()) || convertOnly()) {
           <fieldset class="section">
             <legend class="field__label">{{ t().time.convertHeading }}</legend>
             @if (convertOnly()) {
@@ -222,6 +241,13 @@ const UNIT_MS: Record<ShiftUnit, number> = {
       width: 6rem;
     }
 
+    .radio {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: var(--touch-min);
+    }
+
     .field__error {
       color: var(--color-danger);
       margin: 0;
@@ -264,6 +290,44 @@ export class PlanEditor {
   /** Nur „Tageszeiten übertragen" zeigen (Angebot nach Moduswechsel). */
   protected readonly convertOnly = signal(false);
 
+  /** Gesetzt = „Strang verschieben …" aus dem Karten-Menü: nur Verschieben, mit Bereich. */
+  private readonly strandIds = signal<ReadonlySet<string> | null>(null);
+  protected readonly strandOnly = computed(() => this.strandIds() !== null);
+  protected readonly scope = signal<'strand' | 'list'>('list');
+
+  private scopeIds(): ReadonlySet<string> | undefined {
+    return this.scope() === 'strand' ? (this.strandIds() ?? undefined) : undefined;
+  }
+
+  private deltaMs(): number {
+    return this.shiftAmount() * UNIT_MS[this.shiftUnit()];
+  }
+
+  /** Erste und letzte Zeit des Bereichs nach dem Verschieben. */
+  protected readonly shiftPreview = computed(() => {
+    const id = this.listId();
+    const list = id ? this.store.getList(id) : undefined;
+    if (!list) return '';
+    const ids = this.scopeIds();
+    const shifted = shiftPlan(list, this.deltaMs(), ids);
+    let first = Infinity;
+    let last = -Infinity;
+    for (const task of shifted.tasks) {
+      const span = (!ids || ids.has(task.id)) && taskSpan(shifted, task);
+      if (!span) continue;
+      first = Math.min(first, span.start);
+      last = Math.max(last, span.end);
+    }
+    if (first === Infinity) return '';
+    return this.t().time.shiftPreview(this.formatAt(list, first), this.formatAt(list, last));
+  });
+
+  private formatAt(list: TodoList, ms: number): string {
+    const date = new Date(ms);
+    const time = toLocalIso(date).slice(11);
+    return list.timeboxMode === 'schedule' ? `${formatDayLabel(date, this.i18n.locale())} ${time}` : time;
+  }
+
   private restoreFocusTo: HTMLElement | null = null;
 
   /** Bietet nach dem Wechsel Tagesplan → fester Zeitplan das Übertragen an. */
@@ -273,8 +337,17 @@ export class PlanEditor {
     this.convertDate.set(list.dayPlanReferenceDate ?? todayIso(this.nowStore.now()));
   }
 
+  /** „Strang verschieben …": Verschieben für den Strang von `taskId` (oder den ganzen Zettel). */
+  openStrand(list: TodoList, taskId: string): void {
+    this.open(list);
+    this.strandIds.set(new Set(extractStrand(list, taskId).tasks.map((task) => task.id)));
+    this.scope.set('strand');
+  }
+
   open(list: TodoList): void {
     this.convertOnly.set(false);
+    this.strandIds.set(null);
+    this.scope.set('list');
     this.listId.set(list.id);
     this.error.set('');
     this.shiftAmount.set(30);
@@ -305,9 +378,14 @@ export class PlanEditor {
 
   protected applyShift(): void {
     const id = this.listId();
-    if (!id) return;
-    const deltaMs = this.shiftAmount() * UNIT_MS[this.shiftUnit()];
-    this.store.editList(id, (list) => shiftPlan(list, deltaMs));
+    const list = id ? this.store.getList(id) : undefined;
+    if (!id || !list) return;
+    const ids = this.scopeIds();
+    if (shiftLeavesDay(list, this.deltaMs(), ids)) {
+      this.error.set(this.t().time.errorShiftDay);
+      return;
+    }
+    this.store.editList(id, (current) => shiftPlan(current, this.deltaMs(), ids));
     this.close();
   }
 

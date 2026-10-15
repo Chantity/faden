@@ -208,6 +208,20 @@ export const en = {
     checklistAdd: 'Add item',
     checklistCut: 'Some lines were too long or there were too many – they were shortened.',
     checklistProgress: (done: number, total: number): string => `${done} of ${total} checked`,
+    timeLabel: 'Time',
+    timeNone: 'No time',
+    pauseAfterLabel: 'Break after',
+    pauseBeforeLabel: 'Break before',
+    placementLabel: 'And the other to-dos?',
+    placeBefore: 'Schedule it before',
+    keepStart: 'Keep the start time',
+    shiftLater: 'Push everything after it later',
+    shiftEarlier: 'Pull everything before it earlier',
+    enterAbsolute: 'Enter the time directly',
+    enterRelative: 'Enter relative to neighbours',
+    startsAt: (time: string): string => `Starts at ${time}.`,
+    previewShift: (n: number, duration: string, later: boolean, title: string, time: string): string =>
+      `${n === 1 ? '1 to-do moves' : `${n} to-dos move`} ${duration} ${later ? 'later' : 'earlier'} (“${title}” then at ${time}).`,
   },
 
   flow: {
@@ -230,6 +244,9 @@ export const en = {
     check: 'Mark done',
     uncheck: 'Remove checkmark',
     menuLabel: (title: string): string => `Actions for ${title}`,
+    moveStrand: 'Shift strand …',
+    pause: (duration: string): string => `Break ${duration}`,
+    insertBetweenPause: (duration: string): string => `Insert in between (break ${duration})`,
   },
 
   shortcuts: {
@@ -298,6 +315,12 @@ export const en = {
     unitHours: 'hours',
     unitDays: 'days',
     shiftApply: 'Shift',
+    shiftStrandHeading: 'Shift strand',
+    scopeLabel: 'What to shift?',
+    scopeStrand: 'Only this strand',
+    scopeList: 'The whole list',
+    shiftPreview: (first: string, last: string): string => `Afterwards: ${first} to ${last}`,
+    errorShiftDay: 'In a day plan everything has to stay between 0:00 and 24:00. For more, use the fixed schedule.',
     stretchHeading: 'Stretch to a period',
     stretchStart: 'New start',
     stretchEnd: 'New end',
@@ -307,7 +330,7 @@ export const en = {
     proposeApply: 'Propose',
     convertHeading: 'Transfer times of day onto a date',
     convertHint:
-      'The times of day (from/to) are kept and additionally copied as date + time.',
+      'The start times are kept and additionally copied as date + time; durations stay.',
     convertDate: 'Date',
     convertApply: 'Transfer',
     convertSkip: 'Don’t transfer',

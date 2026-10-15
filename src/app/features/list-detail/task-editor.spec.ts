@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { TaskEditor } from './task-editor';
 import { ListsStore } from '../../core/state/lists.store';
 import { FadenDb } from '../../core/storage';
-import { createList, createTask, type TodoList } from '../../core/model';
+import { createList, createTask, edgeId, type TodoList } from '../../core/model';
 
 function estimateList(): TodoList {
   const list = createList('Schätzung', 'estimate');
@@ -198,5 +198,94 @@ describe('TaskEditor – Anlegen und Checkliste', () => {
     radio('Text').click();
     await fixture.whenStable();
     expect((root.querySelector('textarea') as HTMLTextAreaElement).value).toBe('- Milch\n- Brot\n');
+  });
+
+  describe('Zeit', () => {
+    // A 09:00–09:30 → B 09:45–10:15 (Tagesplan).
+    const dayPlan = () => {
+      const list = createList('Morgen', 'dayPlan');
+      list.dayPlanReferenceDate = '2026-03-12';
+      list.tasks = [
+        { ...createTask('A', 'a'), dayStart: '09:00', estimateMinutes: 30 },
+        { ...createTask('B', 'b'), dayStart: '09:45', estimateMinutes: 30 },
+      ];
+      list.edges = [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }];
+      return list;
+    };
+
+    const setNumber = async (root: HTMLElement, selector: string, value: string, fixture: { whenStable(): Promise<unknown> }) => {
+      const input = root.querySelector(selector) as HTMLInputElement;
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+    };
+
+    it('Zeit ist eine Zusammenfassungszeile: beim Bearbeiten zu, beim Anlegen im Tagesplan offen', async () => {
+      const list = dayPlan();
+      const { fixture, root } = setup(list);
+      fixture.componentInstance.open(list.id, 'a');
+      await fixture.whenStable();
+      const details = () => root.querySelector('details.time') as HTMLDetailsElement;
+      expect(details().open).toBe(false);
+      expect(details().querySelector('summary')!.textContent).toContain('09:00 · 30 min');
+
+      fixture.componentInstance.close();
+      fixture.componentInstance.create(list.id, { kind: 'after', anchor: 'b' });
+      await fixture.whenStable();
+      expect(details().open).toBe(true);
+      expect(details().querySelector('summary')!.textContent).toContain('No time');
+    });
+
+    it('dazwischen einfügen: Start aus der alten Pause, Nachfolger rücken – ein Undo-Schritt', async () => {
+      const list = dayPlan();
+      const { fixture, root, type, submit, store } = setup(list);
+      fixture.componentInstance.create(list.id, { kind: 'between', edgeId: edgeId('a', 'b') });
+      await fixture.whenStable();
+
+      await type('Neu');
+      await setNumber(root, '.time input[type=number]:not([name=pause])', '20', fixture);
+      await setNumber(root, 'input[name=pause]', '10', fixture);
+      expect(root.querySelector('.time')!.textContent).toContain('“B” then at 10:15');
+      await submit();
+
+      const tasks = store.getList(list.id)!.tasks;
+      expect(tasks.find((t) => t.title === 'Neu')).toMatchObject({ dayStart: '09:45', estimateMinutes: 20 });
+      expect(tasks.find((t) => t.id === 'b')!.dayStart).toBe('10:15');
+
+      store.undo(list.id);
+      expect(store.getList(list.id)!.tasks.map((t) => t.dayStart)).toEqual(['09:00', '09:45']);
+    });
+
+    it('„Uhrzeit direkt eingeben" wechselt zur absoluten Eingabe ohne Verschieben', async () => {
+      const list = dayPlan();
+      const { fixture, root, type, submit, store } = setup(list);
+      fixture.componentInstance.create(list.id, { kind: 'between', edgeId: edgeId('a', 'b') });
+      await fixture.whenStable();
+      expect(root.querySelector('input[type=time]')).toBeNull();
+
+      [...root.querySelectorAll<HTMLButtonElement>('.time__switch')][0]!.click();
+      await fixture.whenStable();
+      await type('Neu');
+      await setNumber(root, 'input[type=time]', '11:00', fixture);
+      await submit();
+
+      const tasks = store.getList(list.id)!.tasks;
+      expect(tasks.find((t) => t.title === 'Neu')!.dayStart).toBe('11:00');
+      expect(tasks.find((t) => t.id === 'b')!.dayStart).toBe('09:45');
+    });
+
+    it('im Tagesplan nicht über Mitternacht: Fehler statt Umbruch', async () => {
+      const list = dayPlan();
+      list.tasks[1]!.dayStart = '23:30';
+      const { fixture, root, type, submit, store } = setup(list);
+      fixture.componentInstance.create(list.id, { kind: 'between', edgeId: edgeId('a', 'b') });
+      await fixture.whenStable();
+      await type('Neu');
+      await setNumber(root, '.time input[type=number]:not([name=pause])', '30', fixture);
+      await submit();
+
+      expect(root.querySelector('[role=alert]')).toBeTruthy();
+      expect(store.getList(list.id)!.tasks).toHaveLength(2);
+    });
   });
 });

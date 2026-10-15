@@ -142,6 +142,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
             (edit)="openEditor($event)"
             (create)="openCreate($event)"
             (connectRequest)="openConnect($event)"
+            (shiftStrand)="planEditor.openStrand(current, $event)"
           />
         }
       } @else {

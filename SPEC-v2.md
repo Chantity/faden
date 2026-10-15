@@ -83,7 +83,7 @@ Alle Rechnungen sind reine Funktionen in `src/app/core/time/` und vollständig u
 - Pause = Start(danach) − Ende(davor).
 - Sie wird klein und gedämpft am Pfeil angezeigt („Pause 15 Min“), **nur wenn** beide ToDos eine Startzeit haben und die Pause **> 0** ist.
 - **Entscheidung:** Ist die Pause 0, steht kein Label am Pfeil; das hält das Diagramm ruhig. Bei negativer Pause (Überlappung) ebenfalls nicht; dafür gibt es die bestehenden weichen Hinweise.
-- Wie die „+“-Knöpfe wird sie bei Zoom < 100 % ausgeblendet.
+- Wie die „+“-Knöpfe wird sie beim Herauszoomen ausgeblendet (unter 60 %, dort erscheint auch der Hinweis „Für ‚+‘ heranzoomen“).
 - Screenreader: Die Pause wird Teil des Pfeil-Labels.
 
 ### 3.4 Einfügen mit relativen Zeiten
@@ -117,7 +117,8 @@ Die Funktion greift beim Anlegen über eine Position (2.1), wenn der Zettel im M
 - **Zeit** ist **eine Zusammenfassungszeile**, etwa „14:30 · 30 Min · Pause davor 10 Min“ oder „Keine Zeit“. Erst ein Antippen klappt die Felder auf (`<details>` bzw. ein Knopf mit `aria-expanded`). Im Modus `dayPlan`/`schedule` ist sie beim Anlegen **aufgeklappt**, weil dort fast immer eine Zeit gewünscht ist (Wunsch des Nutzers).
 - Relative Eingabe (3.4): zwei Felder. Die Verschiebe-Optionen erscheinen **nur, wenn tatsächlich etwas verschoben würde**, zusammen mit einer Vorschauzeile, etwa „Danach rücken 3 ToDos um 40 Min nach hinten (‚Spülen‘ dann 15:10)“.
 - Keine neuen Knöpfe in Kopfzeilen. Neue Aktionen leben in bestehenden ⋯-Menüs oder im Sheet.
-- Pausen-Labels nur bei > 0 und Zoom ≥ 100 %.
+- Pausen-Labels nur bei > 0 und nur, wenn die „+“ sichtbar sind.
+- **Umsetzungsentscheidungen (Phase 4):** Im Tagesplan lehnen Verschieben und relatives Einfügen alles ab, was über 0:00/24:00 hinausginge (Hinweis statt stillem Umbruch der Uhrzeit). „Verschieben um Tage“ im festen Zeitplan rechnet in Uhrzeit-Feldern, damit 09:00 über die Zeitumstellung 09:00 bleibt. Ohne Dauer bekommt ein relativ eingefügtes ToDo keine Zeit.
 
 ---
 

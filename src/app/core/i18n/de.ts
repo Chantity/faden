@@ -207,6 +207,20 @@ export const de = {
     checklistAdd: 'Punkt hinzufügen',
     checklistCut: 'Einige Zeilen waren zu lang oder es waren zu viele – sie wurden gekürzt.',
     checklistProgress: (done: number, total: number): string => `${done} von ${total} abgehakt`,
+    timeLabel: 'Zeit',
+    timeNone: 'Keine Zeit',
+    pauseAfterLabel: 'Pause danach',
+    pauseBeforeLabel: 'Pause davor',
+    placementLabel: 'Und die anderen ToDos?',
+    placeBefore: 'Davor einplanen',
+    keepStart: 'Startzeit beibehalten',
+    shiftLater: 'Danach alles nach hinten schieben',
+    shiftEarlier: 'Davor alles nach vorne schieben',
+    enterAbsolute: 'Uhrzeit direkt eingeben',
+    enterRelative: 'Relativ eingeben',
+    startsAt: (time: string): string => `Beginnt um ${time}.`,
+    previewShift: (n: number, duration: string, later: boolean, title: string, time: string): string =>
+      `${later ? 'Danach' : 'Davor'} ${n === 1 ? 'rückt 1 ToDo' : `rücken ${n} ToDos`} um ${duration} nach ${later ? 'hinten' : 'vorne'} („${title}“ dann ${time}).`,
   },
 
   flow: {
@@ -229,6 +243,9 @@ export const de = {
     check: 'Abhaken',
     uncheck: 'Häkchen entfernen',
     menuLabel: (title: string): string => `Aktionen für ${title}`,
+    moveStrand: 'Strang verschieben …',
+    pause: (duration: string): string => `Pause ${duration}`,
+    insertBetweenPause: (duration: string): string => `Dazwischen einfügen (Pause ${duration})`,
   },
 
   shortcuts: {
@@ -295,6 +312,12 @@ export const de = {
     unitHours: 'Stunden',
     unitDays: 'Tage',
     shiftApply: 'Verschieben',
+    shiftStrandHeading: 'Strang verschieben',
+    scopeLabel: 'Was verschieben?',
+    scopeStrand: 'Nur diesen Strang',
+    scopeList: 'Den ganzen Zettel',
+    shiftPreview: (first: string, last: string): string => `Danach: ${first} bis ${last}`,
+    errorShiftDay: 'Im Tagesplan muss alles zwischen 0:00 und 24:00 bleiben. Für mehr gibt es den festen Zeitplan.',
     stretchHeading: 'Auf Zeitraum strecken',
     stretchStart: 'Neuer Start',
     stretchEnd: 'Neues Ende',
@@ -304,7 +327,7 @@ export const de = {
     proposeApply: 'Vorschlagen',
     convertHeading: 'Tageszeiten auf ein Datum übertragen',
     convertHint:
-      'Die Uhrzeiten (Von/Bis) bleiben erhalten und werden zusätzlich als Datum + Uhrzeit übernommen.',
+      'Die Startzeiten bleiben erhalten und werden zusätzlich als Datum + Uhrzeit übernommen; die Dauer bleibt.',
     convertDate: 'Datum',
     convertApply: 'Übertragen',
     convertSkip: 'Nicht übertragen',

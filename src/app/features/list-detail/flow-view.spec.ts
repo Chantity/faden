@@ -42,6 +42,47 @@ describe('FlowView', () => {
     expect(root.querySelectorAll('.node').length).toBe(2);
   });
 
+  it('zeigt die Pause am Pfeil nur, wenn sie > 0 ist, und nennt sie im Pfeil-Label', async () => {
+    const list = { ...chainList(), timeboxMode: 'dayPlan' as const, dayPlanReferenceDate: '2026-03-12' };
+    list.tasks = [
+      { ...list.tasks[0]!, dayStart: '09:00', estimateMinutes: 30 },
+      { ...list.tasks[1]!, dayStart: '09:45' },
+    ];
+    TestBed.inject(ListsStore).addExisting(list);
+    const fixture = TestBed.createComponent(FlowView);
+    fixture.componentRef.setInput('list', list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.edge-pause')?.textContent?.trim()).toBe('Break 15 min');
+    expect(root.querySelector('.plus--edge')?.getAttribute('aria-label')).toContain('15 min');
+
+    fixture.componentRef.setInput('list', { ...list, tasks: [list.tasks[0]!, { ...list.tasks[1]!, dayStart: '09:30' }] });
+    await fixture.whenStable();
+    expect(root.querySelector('.edge-pause')).toBeNull();
+  });
+
+  it('„Strang verschieben …" im Karten-Menü nur mit Uhrzeiten', async () => {
+    const list = chainList();
+    TestBed.inject(ListsStore).addExisting(list);
+    const fixture = TestBed.createComponent(FlowView);
+    fixture.componentRef.setInput('list', list);
+    const shifted: string[] = [];
+    fixture.componentInstance.shiftStrand.subscribe((id) => shifted.push(id));
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const menuItem = () => [...root.querySelectorAll<HTMLButtonElement>('.popover button')].find((b) => b.textContent?.includes('Shift strand'));
+
+    root.querySelector<HTMLButtonElement>('[data-task-id="b"] .node__menu-btn')!.click();
+    await fixture.whenStable();
+    expect(menuItem()).toBeUndefined();
+
+    fixture.componentRef.setInput('list', { ...list, timeboxMode: 'schedule' });
+    root.querySelector<HTMLButtonElement>('[data-task-id="b"] .node__menu-btn')!.click();
+    await fixture.whenStable();
+    menuItem()!.click();
+    expect(shifted).toEqual(['b']);
+  });
+
   it('zeigt genau einen „+“ zwischen zwei verbundenen ToDos', async () => {
     const list = chainList();
     TestBed.inject(ListsStore).addExisting(list);

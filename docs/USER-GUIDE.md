@@ -213,7 +213,9 @@ The same sheet is used to **create** and to **edit** a todo. Tapping a card (or
   - Switching keeps the content: a checklist becomes bullet points
     (“- Milk”), and every line of a text becomes an item (a leading “-” is
     dropped). Checkmarks are not kept when switching to text.
-- **Time fields** – depending on the time planning (section 7).
+- **Time** – depending on the time planning (section 7). It is a single
+  summary line such as “14:30 · 30 min”; tap it to show the fields. When
+  creating in a day plan or fixed schedule it is already open.
 - When editing, also the lists **“Must be done before”** and
   **“Comes after”**: there you can maintain connections without any dragging.
 
@@ -250,6 +252,34 @@ In **Day plan** or **Fixed schedule** mode, the list menu (⋯) has the entry
   from a start time (todos without an estimate count as 15 min).
 - **Transfer times of day onto a date** (day plan only) – copies the start
   times as date + time; the durations stay.
+
+A preview shows the first and last time after shifting. In a day plan
+everything has to stay between 0:00 and 24:00; otherwise the app says so and
+changes nothing. To shift only **one strand**, open **⋯** on a card in the
+**Flow** and choose **“Shift strand …”** (you can still switch to the whole
+list there).
+
+**Breaks:** In the Flow, an arrow between two todos with times shows the break
+between them (“Break 15 min”) – only if there is one, and only when zoomed in
+far enough to see the “+”.
+
+**Inserting with relative times:** If you add a todo next to todos that already
+have a start time (with “+” in the Flow or in “Now”), you don't type a time of
+day. Instead:
+
+- **Before the first todo:** duration and **break after**. Choose
+  *“Schedule it before”* (the new todo ends the break before the old start) or
+  *“Keep the start time”* (the new todo starts then, and everything after it in
+  this strand moves later).
+- **After the last todo:** **break before** and duration.
+- **In between:** duration and **break after**. The old break before the next
+  todo stays in front of the new one. Choose *“Push everything after it
+  later”* or *“Pull everything before it earlier”*. At a branch, the earliest
+  next todo counts, and all next todos move by the same amount.
+
+A line below tells you when the new todo starts and who moves where. Only the
+own strand ever moves. **“Enter the time directly”** switches to the normal
+start time field; **Undo** reverts the insertion and the shifting in one step.
 
 If you switch a list from **Day plan** to **Fixed schedule**, the app asks
 right away whether the times of day should be transferred onto a date (you can
@@ -560,7 +590,9 @@ auf eine Karte (oder **E**) öffnet es zum Bearbeiten.
   - Beim Umschalten bleibt der Inhalt erhalten: Aus einer Checkliste werden
     Stichpunkte („- Milch"), aus jeder Zeile eines Textes wird ein Punkt (ein
     führendes „-" entfällt). Haken bleiben beim Wechsel zu Text nicht erhalten.
-- **Zeitfelder** – je nach Zeitplanung (Abschnitt 7).
+- **Zeit** – je nach Zeitplanung (Abschnitt 7). Sie ist eine
+  Zusammenfassungszeile wie „14:30 · 30 Min“; ein Tipp darauf zeigt die Felder.
+  Beim Anlegen im Tagesplan oder festen Zeitplan ist sie schon aufgeklappt.
 - Beim Bearbeiten außerdem die Listen **„Muss vorher erledigt sein"** und
   **„Kommt danach"**: Dort pflegst du Verbindungen ganz ohne Ziehen.
 
@@ -598,6 +630,35 @@ den Eintrag **„Zeitplan bearbeiten"**:
   nacheinander abgelegt (ToDos ohne Schätzung zählen 15 Min).
 - **Tageszeiten auf ein Datum übertragen** (nur Tagesplan) – kopiert die
   Start-Uhrzeiten als Datum + Uhrzeit; die Dauern bleiben.
+
+Eine Vorschau zeigt die erste und letzte Zeit nach dem Verschieben. Im
+Tagesplan muss alles zwischen 0:00 und 24:00 bleiben; sonst sagt die App das und
+ändert nichts. Um nur **einen Strang** zu verschieben, öffne im **Ablauf** das
+**⋯** einer Karte und wähle **„Strang verschieben …“** (dort kannst du auch auf
+den ganzen Zettel umschalten).
+
+**Pausen:** Im Ablauf zeigt ein Pfeil zwischen zwei ToDos mit Zeiten die Pause
+dazwischen („Pause 15 Min“) – nur, wenn es eine gibt, und nur, wenn so weit
+herangezoomt ist, dass die „+“ zu sehen sind.
+
+**Einfügen mit relativen Zeiten:** Fügst du ein ToDo neben ToDos ein, die schon
+eine Startzeit haben (mit „+“ im Ablauf oder in „Jetzt dran“), tippst du keine
+Uhrzeit ein, sondern:
+
+- **Vor dem ersten ToDo:** Dauer und **Pause danach**. Wähle *„Davor
+  einplanen“* (das neue ToDo endet die Pause vor dem alten Start) oder
+  *„Startzeit beibehalten“* (das neue ToDo beginnt dann, und alles danach in
+  diesem Strang rückt nach hinten).
+- **Nach dem letzten ToDo:** **Pause davor** und Dauer.
+- **Dazwischen:** Dauer und **Pause danach**. Die bisherige Pause vor dem
+  nächsten ToDo bleibt vor dem neuen. Wähle *„Danach alles nach hinten
+  schieben“* oder *„Davor alles nach vorne schieben“*. An einer Verzweigung
+  zählt das früheste nächste ToDo, und alle nächsten ToDos rücken gleich weit.
+
+Eine Zeile darunter sagt dir, wann das neue ToDo beginnt und wer wohin rückt.
+Verschoben wird immer nur im eigenen Strang. **„Uhrzeit direkt eingeben“**
+wechselt zum normalen Startzeit-Feld; **Rückgängig** nimmt Einfügen und
+Verschieben in einem Schritt zurück.
 
 Wechselst du einen Zettel vom **Tagesplan** zum **Festen Zeitplan**, fragt die
 App direkt, ob die Uhrzeiten auf ein Datum übertragen werden sollen (du kannst

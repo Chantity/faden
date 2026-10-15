@@ -51,19 +51,23 @@ export function validateDayTimes(
   return { ok: true };
 }
 
+/** Rechnet in lokalen Uhrzeit-Feldern: „+1 Tag" bleibt über die Zeitumstellung 09:00. */
 function shiftIso(value: string, deltaMs: number): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return toLocalIso(new Date(date.getTime() + deltaMs));
+  date.setMinutes(date.getMinutes() + Math.round(deltaMs / 60_000));
+  return toLocalIso(date);
 }
 
 /**
- * Verschiebt alle geplanten Startzeiten eines Zettels um `deltaMs`
- * („Alles verschieben"). Wirkt auf `startAt` sowie – sofern der Modus
- * `dayPlan` ist – auch auf `dayStart`. Die Dauern bleiben.
+ * Verschiebt die geplanten Startzeiten eines Zettels um `deltaMs`
+ * („Alles verschieben"), mit `ids` nur diese ToDos (z. B. einen Strang).
+ * Wirkt auf `startAt` sowie – sofern der Modus `dayPlan` ist – auf `dayStart`.
+ * Die Dauern bleiben; erledigte ToDos rücken mit, damit Pausen erhalten bleiben.
  */
-export function shiftPlan(list: TodoList, deltaMs: number): TodoList {
+export function shiftPlan(list: TodoList, deltaMs: number, ids?: ReadonlySet<string>): TodoList {
   const tasks = list.tasks.map((task) => {
+    if (ids && !ids.has(task.id)) return task;
     const next: Task = { ...task };
     if (list.timeboxMode === 'dayPlan') {
       const start = parseHhMm(task.dayStart);
@@ -74,6 +78,20 @@ export function shiftPlan(list: TodoList, deltaMs: number): TodoList {
     return next;
   });
   return { ...list, tasks };
+}
+
+/**
+ * Nur im Tagesplan: Würde `shiftPlan` ein ToDo vor 0:00 oder über 24:00
+ * hinausschieben? Dann würde die Uhrzeit sonst stillschweigend umbrechen.
+ */
+export function shiftLeavesDay(list: TodoList, deltaMs: number, ids?: ReadonlySet<string>): boolean {
+  if (list.timeboxMode !== 'dayPlan') return false;
+  const delta = Math.round(deltaMs / 60_000);
+  return list.tasks.some((task) => {
+    const start = parseHhMm(task.dayStart);
+    if (start === null || (ids && !ids.has(task.id))) return false;
+    return start + delta < 0 || start + delta + (task.estimateMinutes ?? 0) > 24 * 60;
+  });
 }
 
 export interface StretchInput {

@@ -31,6 +31,7 @@ import { strandToTemplate } from '../../core/templates';
 import {
   estimateSums,
   formatDuration,
+  pauseBetween,
   plannedTimeParts,
   timeStatus,
   type TimeStatus,
@@ -242,17 +243,28 @@ const MAX_SCALE = 2;
 
           @if (showPluses()) {
             @for (edge of layout().edges; track edge.id) {
+              @let pause = edgePauses().get(edge.id);
               @if (!edgePlusHidden(edge)) {
                 <button
                   type="button"
                   class="plus plus--edge"
                   [style.left.px]="edge.midX - edgePlusSize / 2"
                   [style.top.px]="edge.midY - edgePlusSize / 2"
-                  [attr.aria-label]="t().flow.insertBetween"
+                  [attr.aria-label]="pause ? t().flow.insertBetweenPause(pause) : t().flow.insertBetween"
                   (click)="menuInsertBetween(edge.id)"
                 >
                   +
                 </button>
+              }
+              @if (pause) {
+                <span
+                  class="edge-pause"
+                  aria-hidden="true"
+                  [style.left.px]="edge.midX + edgePlusSize / 2 + 6"
+                  [style.top.px]="edge.midY - 9"
+                >
+                  {{ t().flow.pause(pause) }}
+                </span>
               }
             }
           }
@@ -263,6 +275,9 @@ const MAX_SCALE = 2;
               <button type="button" (click)="menuSplit(menu.id)">{{ t().focus.menu.splitAfter }}</button>
               <button type="button" (click)="menuJoin(menu.id)">{{ t().focus.menu.join }}</button>
               <button type="button" (click)="menuConnect(menu.id)">{{ t().focus.menu.connect }}</button>
+              @if (timed()) {
+                <button type="button" (click)="menuShiftStrand(menu.id)">{{ t().flow.moveStrand }}</button>
+              }
               <button type="button" (click)="menuSaveStrand(menu.id)">
                 {{ t().templates.saveStrand }}
               </button>
@@ -311,6 +326,15 @@ const MAX_SCALE = 2;
       border: 1px solid var(--color-border);
       border-radius: var(--radius);
       padding: var(--space-1);
+    }
+
+    /* Schmal: Zoom-Leiste über statt auf dem Diagramm, damit sie kein „+" verdeckt. */
+    @media (max-width: 599px) {
+      .flow__zoom {
+        position: static;
+        width: fit-content;
+        margin: 0 0 var(--space-2) auto;
+      }
     }
 
     .flow__empty {
@@ -369,7 +393,6 @@ const MAX_SCALE = 2;
       border: 2px solid var(--color-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
     }
 
     .node.is-now {
@@ -435,6 +458,22 @@ const MAX_SCALE = 2;
       font-size: 0.7rem;
       line-height: 1;
       cursor: pointer;
+    }
+
+    /* Unsichtbare Trefferflächen: 48 px um den kleinen Kreis bzw. das ⋯. */
+    .node__toggle {
+      position: relative;
+    }
+
+    .node__toggle::after,
+    .node__menu-btn::after {
+      content: '';
+      position: absolute;
+      inset: -14px;
+    }
+
+    .node__menu-btn::after {
+      inset: -6px;
     }
 
     .node__toggle.is-on {
@@ -512,6 +551,16 @@ const MAX_SCALE = 2;
       inset: -7px;
     }
 
+    .edge-pause {
+      position: absolute;
+      z-index: 2;
+      font-size: 0.72rem;
+      line-height: 18px;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
     .flow__hint {
       margin: var(--space-2) 0;
       font-size: 0.9rem;
@@ -563,6 +612,8 @@ export class FlowView {
   readonly edit = output<string>();
   readonly create = output<CreateRequest>();
   readonly connectRequest = output<string>();
+  /** „Strang verschieben …" für den Strang dieser Karte. */
+  readonly shiftStrand = output<string>();
 
   protected readonly t = this.i18n.t;
   protected readonly now = this.nowStore.now;
@@ -607,6 +658,22 @@ export class FlowView {
       if (sums.openWithoutEstimate > 0) parts.push(t.time.withoutEstimate(sums.openWithoutEstimate));
       return [{ x: strand.x, text: parts.join(' · ') }];
     });
+  });
+
+  protected readonly timed = computed(
+    () => this.list().timeboxMode === 'dayPlan' || this.list().timeboxMode === 'schedule',
+  );
+
+  /** Pause je gezeichnetem Pfeil (formatiert), nur wenn sie > 0 ist. */
+  protected readonly edgePauses = computed(() => {
+    const pauses = new Map<string, string>();
+    if (!this.timed()) return pauses;
+    const locale = this.i18n.locale();
+    for (const edge of this.layout().edges) {
+      const minutes = pauseBetween(this.list(), edge.from, edge.to);
+      if (minutes !== null && minutes > 0) pauses.set(edge.id, formatDuration(minutes, locale));
+    }
+    return pauses;
   });
 
   protected readonly scale = signal(1);
@@ -847,6 +914,11 @@ export class FlowView {
       label: this.t().common.undo,
       run: () => this.store.undo(list.id),
     });
+  }
+
+  protected menuShiftStrand(id: string): void {
+    this.nodeMenu.set(null);
+    this.shiftStrand.emit(id);
   }
 
   protected menuSaveStrand(id: string): void {

@@ -42,7 +42,8 @@ src/app/
 │  ├─ time/                         REINE Zeit-Logik (framewerkfrei, Phase 3)
 │  │  ├─ format.ts                  Uhrzeiten/Dauern/Datum (lokalisiert)
 │  │  ├─ status.ts                  Zeitstatus, nächster Schritt, Sortierung, Spannen
-│  │  └─ plan.ts                    Validierung, Verschieben, Strecken, Vorschläge
+│  │  ├─ plan.ts                    Validierung, Verschieben, Strecken, Vorschläge
+│  │  └─ relative.ts                Pause am Pfeil, Einfügen mit relativen Zeiten
 │  ├─ templates/                    REINE Vorlagen-Logik (framewerkfrei, Phase 3)
 │  │  └─ templates.ts               Zettel/Strang → Vorlage, Vorlage → Zettel/Strang
 │  ├─ storage/                      Persistenz (IndexedDB, Migration, Backup)
@@ -66,7 +67,7 @@ src/app/
 │  │  ├─ flow-view.ts               „Ablauf" (Layout, SVG-Pfeile, Pan/Zoom, „+")
 │  │  ├─ task-editor.ts             Bearbeiten-Sheet (Titel/Notizen/Chips)
 │  │  ├─ connect-dialog.ts          Ziel-Auswahl „Mit anderem ToDo verbinden"
-│  │  ├─ plan-editor.ts             „Zeitplan bearbeiten" (verschieben/strecken/…)
+│  │  ├─ plan-editor.ts             „Zeitplan bearbeiten" / „Strang verschieben"
 │  │  └─ shortcut-help.ts           Tastenkürzel-Übersicht
 │  ├─ templates/                    Vorlagen-Seite (Phase 3, fertig)
 │  └─ settings/                     Einstellungen (Phase 1: Theme, Sprache, Version, Speicher)
@@ -138,7 +139,7 @@ Alle Funktionen sind rein und getestet (`graph.spec.ts`, 37 Tests).
 
 ## 4a. Zeit-Logik (`core/time`)
 
-Frameworkfrei und vollständig unit-getestet. Drei Dateien:
+Frameworkfrei und vollständig unit-getestet. Vier Dateien:
 
 - **`format.ts`** – `parseHhMm`/`isValidHhMm`, `formatDuration` (de/en),
   `minutesToHhMm`, `formatDayLabel` (de/en via `Intl`), `toIsoDate`/`fromIsoDate`,
@@ -148,9 +149,19 @@ Frameworkfrei und vollständig unit-getestet. Drei Dateien:
   (`running`/`next`/`late`/`planned`), `earliestNextTask`, `sortPlannedFirst`
   (Reihenfolge Läuft → Überfällig → Als Nächstes → Geplant), `formatPlannedRange`,
   `plannedTimeParts`, `referenceRelation`, `todayIso`.
-- **`plan.ts`** – `estimateSums`, `validateDayTimes`, `shiftPlan`,
-  `stretchPlan`, `planBounds`, `transferDayTimesToList`, `proposeTimes`,
-  `modeFields`.
+- **`plan.ts`** – `estimateSums`, `validateDayTimes`, `shiftPlan` (optional nur
+  für einen Bereich, z. B. einen Strang; rechnet in lokalen Uhrzeit-Feldern, damit
+  „+1 Tag“ über die Zeitumstellung dieselbe Uhrzeit behält), `shiftLeavesDay`
+  (Tagesplan: nichts über 0:00/24:00 hinaus), `stretchPlan`, `planBounds`,
+  `transferDayTimesToList`, `proposeTimes`, `modeFields`.
+- **`relative.ts`** – `taskSpan`, `pauseBetween` (Pause am Pfeil),
+  `startFields` (Zeitpunkt → `dayStart`/`startAt`), `relativeContext` und
+  `placeRelative` (Einfügen mit relativen Zeiten). `relativeContext` fügt
+  probeweise ein und liest daraus Vorgänger/Nachfolger des neuen ToDos ab – so
+  gilt dieselbe Logik für jede Einfüge-Position (davor, danach, dazwischen,
+  aufteilen, zusammenführen), und mitgerückt wird über `reachableIds` nur im
+  eigenen Strang. Das Sheet wendet Einfügen und Verschieben in **einem**
+  `editList` an (ein Undo-Schritt).
 
 Alle Funktionen sind **rein** (Eingabe → neue Struktur). Das minütliche `now`
 liefert `core/state/now.store.ts` als Signal; die reinen Funktionen bekommen `now`

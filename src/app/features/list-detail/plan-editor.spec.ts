@@ -3,7 +3,7 @@ import { PlanEditor } from './plan-editor';
 import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { FadenDb } from '../../core/storage';
-import { createList, createTask, type Task, type TodoList } from '../../core/model';
+import { createList, createTask, edgeId, type Task, type TodoList } from '../../core/model';
 
 const FIXED_NOW = new Date('2026-03-12T08:00:00');
 
@@ -127,5 +127,48 @@ describe('PlanEditor', () => {
     expect(after.startAt).toBe('2026-03-10T09:00');
     expect(after.estimateMinutes).toBe(60);
     expect(after.dayStart).toBe('09:00');
+  });
+
+  it('„Strang verschieben" verschiebt nur den Strang der Karte, mit Vorschau', async () => {
+    const a = { ...createTask('A', 'a'), startAt: '2026-03-12T10:00', estimateMinutes: 30 };
+    const b = { ...createTask('B', 'b'), startAt: '2026-03-12T11:00', estimateMinutes: 30 };
+    const other = { ...createTask('C', 'c'), startAt: '2026-03-12T12:00' };
+    const list = scheduleList(a, b, other);
+    list.edges = [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }];
+    const store = TestBed.inject(ListsStore);
+    store.addExisting(list);
+
+    const fixture = TestBed.createComponent(PlanEditor);
+    fixture.componentInstance.openStrand(list, 'b');
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('[data-action="propose"]')).toBeNull();
+    expect(root.textContent).toContain('10:30 to');
+
+    (root.querySelector('[data-action="shift"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(store.getList(list.id)!.tasks.map((t) => t.startAt)).toEqual([
+      '2026-03-12T10:30',
+      '2026-03-12T11:30',
+      '2026-03-12T12:00',
+    ]);
+  });
+
+  it('Tagesplan: Verschieben über Mitternacht wird abgelehnt', async () => {
+    const list = createList('Tag', 'dayPlan');
+    list.dayPlanReferenceDate = '2026-03-12';
+    list.tasks = [{ ...createTask('A', 'a'), dayStart: '23:45' }];
+    const store = TestBed.inject(ListsStore);
+    store.addExisting(list);
+
+    const fixture = TestBed.createComponent(PlanEditor);
+    fixture.componentInstance.open(list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    (root.querySelector('[data-action="shift"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(root.querySelector('[role=alert]')).toBeTruthy();
+    expect(store.getList(list.id)!.tasks[0]!.dayStart).toBe('23:45');
   });
 });

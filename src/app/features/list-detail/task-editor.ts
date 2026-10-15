@@ -9,6 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   CHECKLIST_MAX_ITEMS,
@@ -29,7 +30,21 @@ import {
   successors,
   type InsertPosition,
 } from '../../core/graph';
-import { formatDuration, fromDatetimeLocal, toDatetimeLocal, validateDayTimes } from '../../core/time';
+import {
+  formatDayLabel,
+  formatDuration,
+  fromDatetimeLocal,
+  placeRelative,
+  relativeContext,
+  shiftLeavesDay,
+  shiftPlan,
+  startFields,
+  taskSpan,
+  toDatetimeLocal,
+  toLocalIso,
+  validateDayTimes,
+  type RelativePlacement,
+} from '../../core/time';
 import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
@@ -51,7 +66,7 @@ function withoutEmpty(task: Task): Task {
 @Component({
   selector: 'app-task-editor',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
+  imports: [FormsModule, NgTemplateOutlet],
   template: `
     <dialog #dlg class="sheet" (close)="onClosed()">
       <form class="sheet__form" (ngSubmit)="submit()">
@@ -150,29 +165,7 @@ function withoutEmpty(task: Task): Task {
           <p class="field__error" role="alert">{{ error() }}</p>
         }
 
-        @if (mode() === 'dayPlan') {
-          <label class="field">
-            <span class="field__label">{{ t().editor.dayStartLabel }}</span>
-            <input
-              type="time"
-              [value]="dayStart()"
-              (input)="dayStart.set($any($event.target).value)"
-            />
-          </label>
-        }
-
-        @if (mode() === 'schedule') {
-          <label class="field">
-            <span class="field__label">{{ t().editor.startAtLabel }}</span>
-            <input
-              type="datetime-local"
-              [value]="startAt()"
-              (input)="startAt.set($any($event.target).value)"
-            />
-          </label>
-        }
-
-        @if (mode() !== 'none') {
+        <ng-template #durationField>
           <div class="field">
             <span class="field__label">{{ t().editor.estimateLabel }}</span>
             <div class="chips">
@@ -201,6 +194,79 @@ function withoutEmpty(task: Task): Task {
               <p class="muted">{{ formattedEstimate() }}</p>
             }
           </div>
+        </ng-template>
+
+        <ng-template #pauseField>
+          <label class="field field--inline">
+            <span class="field__label">{{ pauseLabel() }}</span>
+            <input type="number" name="pause" min="0" max="1440" [value]="pause()" (input)="onPauseInput($event)" />
+            <span>{{ t().editor.minutesSuffix }}</span>
+          </label>
+        </ng-template>
+
+        @if (mode() !== 'none') {
+          <details class="time" [open]="timeOpen()" (toggle)="timeOpen.set($any($event.target).open)">
+            <summary>
+              <span class="field__label">{{ t().editor.timeLabel }}</span>
+              <span class="muted">{{ timeSummary() }}</span>
+            </summary>
+            <div class="time__body">
+              @if (relContext(); as context) {
+                @if (useRelative()) {
+                  @if (context.kind === 'last') {
+                    <ng-container *ngTemplateOutlet="pauseField" />
+                    <ng-container *ngTemplateOutlet="durationField" />
+                  } @else {
+                    <ng-container *ngTemplateOutlet="durationField" />
+                    <ng-container *ngTemplateOutlet="pauseField" />
+                  }
+                  @if (context.kind !== 'last' && placement()) {
+                    <fieldset class="placement">
+                      <legend class="field__label">{{ t().editor.placementLabel }}</legend>
+                      <label class="radio">
+                        <input type="radio" name="placement" [checked]="!alternative()" (change)="alternative.set(false)" />
+                        {{ context.kind === 'first' ? t().editor.placeBefore : t().editor.shiftLater }}
+                      </label>
+                      <label class="radio">
+                        <input type="radio" name="placement" [checked]="alternative()" (change)="alternative.set(true)" />
+                        {{ context.kind === 'first' ? t().editor.keepStart : t().editor.shiftEarlier }}
+                      </label>
+                    </fieldset>
+                  }
+                  @if (preview(); as text) {
+                    <p class="muted" aria-live="polite">{{ text }}</p>
+                  }
+                  <button type="button" class="btn btn--ghost time__switch" (click)="relative.set(false)">
+                    {{ t().editor.enterAbsolute }}
+                  </button>
+                }
+              }
+              @if (!useRelative()) {
+                @if (mode() === 'dayPlan') {
+                  <label class="field">
+                    <span class="field__label">{{ t().editor.dayStartLabel }}</span>
+                    <input type="time" [value]="dayStart()" (input)="dayStart.set($any($event.target).value)" />
+                  </label>
+                }
+                @if (mode() === 'schedule') {
+                  <label class="field">
+                    <span class="field__label">{{ t().editor.startAtLabel }}</span>
+                    <input
+                      type="datetime-local"
+                      [value]="startAt()"
+                      (input)="startAt.set($any($event.target).value)"
+                    />
+                  </label>
+                }
+                <ng-container *ngTemplateOutlet="durationField" />
+                @if (relContext()) {
+                  <button type="button" class="btn btn--ghost time__switch" (click)="relative.set(true)">
+                    {{ t().editor.enterRelative }}
+                  </button>
+                }
+              }
+            </div>
+          </details>
         }
 
         @if (!creating()) {
@@ -369,6 +435,45 @@ function withoutEmpty(task: Task): Task {
       color: var(--color-on-primary);
     }
 
+    .time summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-1) var(--space-3);
+      min-height: var(--touch-min);
+      cursor: pointer;
+    }
+
+    .time__body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding-top: var(--space-2);
+    }
+
+    .time__body p {
+      margin: 0;
+    }
+
+    .time__switch {
+      align-self: flex-start;
+    }
+
+    .placement {
+      display: flex;
+      flex-direction: column;
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .radio {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: var(--touch-min);
+    }
+
     .links {
       display: flex;
       flex-direction: column;
@@ -480,6 +585,83 @@ export class TaskEditor {
     return minutes !== null ? formatDuration(minutes, this.i18n.locale()) : '';
   });
 
+  // --- Zeit: Zusammenfassungszeile und relative Eingabe ---------------------
+
+  protected readonly timeOpen = signal(false);
+  /** Relativ zu den Nachbarn eingeben (statt Uhrzeit direkt), sofern möglich. */
+  protected readonly relative = signal(true);
+  protected readonly pause = signal(0);
+  /** Zweite Option: „Startzeit beibehalten" bzw. „Davor alles nach vorne schieben". */
+  protected readonly alternative = signal(false);
+
+  protected readonly relContext = computed(() => {
+    const list = this.list();
+    const creating = this.creating();
+    return list && creating ? relativeContext(list, creating.position) : null;
+  });
+
+  protected readonly useRelative = computed(() => this.relative() && this.relContext() !== null);
+
+  /** Ohne Dauer gibt es nichts zu platzieren: das ToDo bekommt dann keine Zeit. */
+  protected readonly placement = computed<RelativePlacement | null>(() => {
+    const context = this.relContext();
+    const minutes = this.estimate();
+    if (!this.useRelative() || !context || minutes === null) return null;
+    return placeRelative(context, { minutes, pause: this.pause(), alternative: this.alternative() });
+  });
+
+  protected readonly pauseLabel = computed(() =>
+    this.relContext()?.kind === 'last' ? this.t().editor.pauseBeforeLabel : this.t().editor.pauseAfterLabel,
+  );
+
+  protected readonly timeSummary = computed(() => {
+    const locale = this.i18n.locale();
+    const placement = this.placement();
+    const minutes = this.estimate();
+    const parts: string[] = [];
+    if (placement) parts.push(this.formatAt(placement.start));
+    else if (!this.useRelative() && this.mode() === 'dayPlan' && this.dayStart()) parts.push(this.dayStart());
+    else if (!this.useRelative() && this.mode() === 'schedule' && fromDatetimeLocal(this.startAt())) {
+      parts.push(this.formatAt(new Date(this.startAt()).getTime()));
+    }
+    if (minutes !== null) parts.push(formatDuration(minutes, locale));
+    if (placement && this.pause() > 0) parts.push(`${this.pauseLabel()} ${formatDuration(this.pause(), locale)}`);
+    return parts.length > 0 ? parts.join(' · ') : this.t().editor.timeNone;
+  });
+
+  /** „Beginnt um …" und – falls etwas mitrückt – wer wohin rückt. */
+  protected readonly preview = computed(() => {
+    const placement = this.placement();
+    const context = this.relContext();
+    const list = this.list();
+    if (!placement || !context || !list) return '';
+    const t = this.t().editor;
+    const lines = [t.startsAt(this.formatAt(placement.start))];
+    // Beispiel ist der direkte Nachbar auf der Seite, die rückt.
+    const side = placement.shiftMs > 0 ? 'next' in context && context.next : 'prev' in context && context.prev;
+    const neighbor = side ? list.tasks.find((task) => task.id === side.id) : undefined;
+    const span = neighbor && taskSpan(list, neighbor);
+    if (placement.shiftMs !== 0 && neighbor && span) {
+      lines.push(
+        t.previewShift(
+          placement.shiftIds.length,
+          formatDuration(Math.abs(placement.shiftMs) / 60_000, this.i18n.locale()),
+          placement.shiftMs > 0,
+          neighbor.title,
+          this.formatAt(span.start + placement.shiftMs),
+        ),
+      );
+    }
+    return lines.join(' ');
+  });
+
+  /** Uhrzeit, im festen Zeitplan mit Tag. */
+  private formatAt(ms: number): string {
+    const date = new Date(ms);
+    const time = toLocalIso(date).slice(11);
+    return this.mode() === 'schedule' ? `${formatDayLabel(date, this.i18n.locale())} ${time}` : time;
+  }
+
   protected readonly list = computed<TodoList | undefined>(() => {
     const id = this.listId();
     return id ? this.store.getList(id) : undefined;
@@ -534,6 +716,7 @@ export class TaskEditor {
     this.estimate.set(task.estimateMinutes ?? null);
     this.dayStart.set(task.dayStart ?? '');
     this.startAt.set(toDatetimeLocal(task.startAt));
+    this.timeOpen.set(false);
     this.show();
   }
 
@@ -547,6 +730,8 @@ export class TaskEditor {
     this.taskId.set(null);
     this.creating.set({ position, chain });
     this.resetFields();
+    // In Tagesplan und festem Zeitplan ist fast immer eine Zeit gewünscht.
+    this.timeOpen.set(this.mode() === 'dayPlan' || this.mode() === 'schedule');
     this.show();
   }
 
@@ -628,8 +813,13 @@ export class TaskEditor {
     const time = this.timeFields(list);
     if (!time) return;
     const task: Task = withoutEmpty({ ...createTask(title), ...this.description(), ...time });
+    const placement = this.placement();
     try {
-      this.store.editList(list.id, (l) => insertAt(l, creating.position, task));
+      // Einfügen und Mitrücken in einem Schritt = ein Undo-Schritt.
+      this.store.editList(list.id, (l) => {
+        const inserted = insertAt(l, creating.position, task);
+        return placement ? shiftPlan(inserted, placement.shiftMs, new Set(placement.shiftIds)) : inserted;
+      });
     } catch (error) {
       this.error.set(describeGraphError(this.t(), list, error));
       return;
@@ -663,6 +853,20 @@ export class TaskEditor {
       return null;
     }
     const fields: Partial<Task> = { estimateMinutes: minutes };
+    if (this.useRelative()) {
+      const placement = this.placement();
+      if (!placement) return fields;
+      const start = startFields(list, placement.start);
+      if (!start || !validateDayTimes(start.dayStart, minutes).ok) {
+        this.error.set(this.t().editor.errorTimeOrder);
+        return null;
+      }
+      if (shiftLeavesDay(list, placement.shiftMs, new Set(placement.shiftIds))) {
+        this.error.set(this.t().time.errorShiftDay);
+        return null;
+      }
+      return { ...fields, ...start };
+    }
     if (list.timeboxMode === 'dayPlan') {
       const check = validateDayTimes(this.dayStart(), minutes);
       if (!check.ok) {
@@ -686,6 +890,9 @@ export class TaskEditor {
     this.estimate.set(null);
     this.dayStart.set('');
     this.startAt.set('');
+    this.relative.set(true);
+    this.pause.set(0);
+    this.alternative.set(false);
     this.error.set('');
   }
 
@@ -734,6 +941,11 @@ export class TaskEditor {
 
   protected removeItem(index: number): void {
     this.checklist.update((items) => items.filter((_, i) => i !== index));
+  }
+
+  protected onPauseInput(event: Event): void {
+    const value = Math.round(Number((event.target as HTMLInputElement).value));
+    this.pause.set(Number.isFinite(value) ? Math.min(Math.max(value, 0), 1440) : 0);
   }
 
   protected onEstimateInput(event: Event): void {

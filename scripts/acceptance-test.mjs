@@ -189,7 +189,12 @@ async function seed() {
       edges: [edge('a', 'b'), edge('a', 'c'), edge('b', 'd'), edge('c', 'd')],
     }),
     list('bad', 'Bad', 11, {
-      tasks: [task('x', 'Spiegel putzen'), task('y', 'Handtücher wechseln')],
+      timeboxMode: 'dayPlan',
+      dayPlanReferenceDate: now.slice(0, 10),
+      tasks: [
+        task('x', 'Spiegel putzen', { dayStart: '09:00', estimateMinutes: 15 }),
+        task('y', 'Handtücher wechseln', { dayStart: '09:30', estimateMinutes: 10 }),
+      ],
       edges: [edge('x', 'y')],
     }),
     list('alt', 'Archivierter Zettel', 12, {
@@ -303,6 +308,7 @@ const PAGES = [
   { name: 'Übersicht', hash: '#/' },
   { name: 'Jetzt dran', hash: '#/zettel/wohnung', view: 'focus' },
   { name: 'Ablauf', hash: '#/zettel/wohnung', view: 'flow' },
+  { name: 'Ablauf Tagesplan (Pause am Pfeil)', hash: '#/zettel/bad', view: 'flow' },
   { name: 'Vorlagen', hash: '#/vorlagen' },
   { name: 'Einstellungen', hash: '#/einstellungen' },
 ];
@@ -325,7 +331,7 @@ async function openPage(p) {
 await test('8a Testdaten anlegen', async () => {
   await viewport(1280, 800);
   await seed();
-  return '2 Zettel (Verzweigung, 2 Stränge, Schätzungen), 1 archiviert, 1 Vorlage';
+  return '2 Zettel (Verzweigung, 2 Stränge, Schätzungen; Tagesplan mit Pause), 1 archiviert, 1 Vorlage';
 });
 
 for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.includes(process.env.VIEWPORT))) {
@@ -366,6 +372,15 @@ for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.include
     await page.eval(`document.querySelector('dialog[open] .checklist-edit__add').click()`);
     await page.waitFor(`document.querySelector('dialog[open] .checklist-edit__text')`, 'Checklistenpunkt');
     for (const issue of await page.eval(CHECK_PAGE)) problems.push(`ToDo-Sheet: ${issue}`);
+    await page.press('Escape');
+
+    // ToDo-Sheet im Tagesplan: dazwischen einfügen, relative Eingabe mit Optionen
+    await openPage(PAGES[3]);
+    await page.eval(`document.querySelector('.plus--edge').click()`);
+    await page.waitFor(`document.querySelector('dialog[open] details.time[open]')`, 'Zeit aufgeklappt');
+    await page.eval(`document.querySelector('dialog[open] .time .chip--button').click()`);
+    await page.waitFor(`document.querySelector('dialog[open] .placement')`, 'Verschiebe-Optionen');
+    for (const issue of await page.eval(CHECK_PAGE)) problems.push(`ToDo-Sheet Tagesplan: ${issue}`);
     await page.press('Escape');
     await openPage(PAGES[0]);
 
