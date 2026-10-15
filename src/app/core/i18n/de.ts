@@ -246,6 +246,7 @@ export const de = {
     checklistAdd: 'Punkt hinzufügen',
     checklistCut: 'Einige Zeilen waren zu lang oder es waren zu viele – sie wurden gekürzt.',
     checklistProgress: (done: number, total: number): string => `${done} von ${total} abgehakt`,
+    checklistAllDone: 'Alles auf der Liste erledigt',
     timeLabel: 'Zeit',
     timeNone: 'Keine Zeit',
     pauseAfterLabel: 'Pause danach',

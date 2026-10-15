@@ -92,6 +92,19 @@ describe('FocusView', () => {
     expect(task.done).toBe(false);
   });
 
+  it('zeigt dezent, wenn alles auf der Liste erledigt ist – das ToDo bleibt offen', async () => {
+    const list = chainList();
+    list.tasks[0]!.checklist = [
+      { id: 'm', text: 'Milch', done: true },
+      { id: 'b', text: 'Brot', done: true },
+    ];
+    const { root } = await renderWith(list);
+    expect(root.querySelector('.task-card__checklist summary')?.textContent?.trim()).toBe(
+      'Everything on the list is done',
+    );
+    expect(root.querySelector('.task-card__done')).not.toBeNull();
+  });
+
   function tripleList(): TodoList {
     const list = createList('Test');
     list.tasks = [{ ...createTask('A', 'a'), done: true }, createTask('B', 'b'), createTask('C', 'c')];

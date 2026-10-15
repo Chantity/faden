@@ -90,7 +90,13 @@ import type { CreateRequest } from './task-editor';
                 }
                 @if (task.checklist; as items) {
                   <details class="task-card__checklist" open>
-                    <summary>{{ t().editor.checklistProgress(checkedCount(items), items.length) }}</summary>
+                    <summary>
+                      {{
+                        checkedCount(items) === items.length
+                          ? t().editor.checklistAllDone
+                          : t().editor.checklistProgress(checkedCount(items), items.length)
+                      }}
+                    </summary>
                     <ul class="checklist">
                       @for (item of items; track item.id) {
                         <li>

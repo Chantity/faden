@@ -246,6 +246,7 @@ export const en = {
     checklistAdd: 'Add item',
     checklistCut: 'Some lines were too long or there were too many – they were shortened.',
     checklistProgress: (done: number, total: number): string => `${done} of ${total} checked`,
+    checklistAllDone: 'Everything on the list is done',
     timeLabel: 'Time',
     timeNone: 'No time',
     pauseAfterLabel: 'Break after',

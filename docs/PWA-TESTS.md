@@ -59,7 +59,7 @@ Der eigene Service Worker hat keine zeitgesteuerte Logik.
 
 | Test | Datum | Ergebnis | Notizen |
 |---|---|---|---|
-| 1 Installierbarkeit | 2026-10-15 | bestanden | 18 Dateien (inkl. `guide/guide.html`), installierbar, „Offline ready" |
+| 1 Installierbarkeit | 2026-10-15 | bestanden | 42 Dateien (inkl. Anleitung mit Bildern), installierbar, „Offline ready" |
 | 2 Server aus | 2026-10-15 | bestanden | Anlegen, Abhaken, Export, Anleitung lesen – alles offline |
 | 3 Server 404 | 2026-10-15 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
 | 4a Server 500 | 2026-10-15 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
@@ -69,8 +69,8 @@ Der eigene Service Worker hat keine zeitgesteuerte Logik.
 | 8b Update vollständig | 2026-10-15 | bestanden | Umschalten erst nach vollständigem Laden |
 | 5 Hash-Route offline | 2026-10-15 | bestanden | – |
 | 6 Daten nach Neustart | 2026-10-15 | bestanden | 2 Browser-Neustarts |
-| 7 Keine externen Requests | 2026-10-15 | bestanden | 296 Requests, alle an den eigenen Host |
+| 7 Keine externen Requests | 2026-10-15 | bestanden | 395 Requests, alle an den eigenen Host |
 
-Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 1.0.0.
+Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 2.0.0.
 Nicht automatisiert: Safari/iOS (kein WebKit-Testbrowser verfügbar) und
 Lighthouse-Accessibility (Abnahmekriterium 9 in `docs/ACCEPTANCE.md`) – manuell prüfen.

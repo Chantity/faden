@@ -1,6 +1,6 @@
 # Vorbereitung v3: Ordner und Synchronisierung
 
-> **Status:** Nur ausgelotet, **nicht umsetzen.** Dieses Dokument sammelt Optionen, Abwägungen und offene Fragen für v3. Grundlage: der letzte Abschnitt von `v2-requirements.md`.
+> **Status:** Nur ausgelotet, **nicht umsetzen.** Dieses Dokument sammelt Optionen, Abwägungen und offene Fragen für v3. Grundlage: die Wünsche des Nutzers zu Ordnern und Sync aus der Planung von v2.
 > **Begriff:** „Notiz“ meint hier einen **Zettel**.
 > **Leitplanke:** Das Prinzip „einmal hosten, nie wieder“ bleibt. Faden bekommt **keinen eigenen Server**. Was eine Synchronisierung braucht, muss Faden direkt vom Gerät aus mit einem fremden Dienst erledigen, den der Nutzer selbst einrichtet. Ohne Konfiguration bleibt Faden vollständig lokal und macht keine externen Requests.
 
@@ -83,7 +83,7 @@ Gewünscht: mehrere Personen gleichzeitig, sichtbar wer welchen Zettel bzw. welc
 - Beim Pull pro Zettel:
   - Server unverändert seit `syncedVersion` → lokalen Stand pushen.
   - Lokal unverändert seit dem letzten Sync, Server neuer → Server-Stand übernehmen (Fast-Forward, keine Rückfrage).
-  - **Beide geändert** → echter Konflikt. Der Nutzer entscheidet pro Zettel oder für alle: **lokal behalten** (Server überschreiben), **Server übernehmen** (lokal überschreiben) oder **Server-Stand mit Suffix „(2)“ zusätzlich holen**. Das entspricht den Strategien von `resolveConflicts` aus v2 (Kap. 4.10 der SPEC-v2).
+  - **Beide geändert** → echter Konflikt. Der Nutzer entscheidet pro Zettel oder für alle: **lokal behalten** (Server überschreiben), **Server übernehmen** (lokal überschreiben) oder **Server-Stand mit Suffix „(2)“ zusätzlich holen**. Das entspricht den Strategien von `resolveConflicts` aus v2 (`src/app/core/storage/backup.ts`, siehe `docs/ARCHITECTURE.md`).
 - Ein reiner `updatedAt`-Vergleich (Wunsch des Nutzers) reicht für „wer ist neuer“. Ohne `syncedVersion` lässt sich aber **nicht** erkennen, ob beide Seiten geändert wurden; dann gingen Änderungen still verloren. Deshalb beides speichern.
 - Gelöschte Zettel brauchen einen „Grabstein“ (`deletedAt` bleibt bis zum nächsten erfolgreichen Sync), sonst tauchen sie beim nächsten Pull wieder auf. Das Soft-Delete aus v1 ist dafür eine gute Grundlage.
 - Ausfälle: Änderungen werden lokal in eine Warteschlange gestellt; Faden bleibt voll offline-fähig. Ein ruhiger Status in der Kopfzeile oder in den Einstellungen zeigt „Zuletzt synchronisiert: vor 5 Min“, „Offline, 3 Änderungen warten“ oder „Konflikt bei 1 Zettel“.
@@ -104,7 +104,7 @@ Gewünscht: mehrere Personen gleichzeitig, sichtbar wer welchen Zettel bzw. welc
 ---
 
 ## 3. Was v2 schon vorbereitet
-- `resolveConflicts(local, incoming, strategy)` als reine Funktion, unabhängig von der Import-Oberfläche (SPEC-v2 4.10).
+- `resolveConflicts(local, incoming, strategy)` als reine Funktion, unabhängig von der Import-Oberfläche (`docs/DESIGN-PRINCIPLES.md` A6).
 - Verlässliches `updatedAt` je Zettel; eindeutige Namen und `uniqueTitle` für das Suffix.
 - Soft-Delete mit `deletedAt` als Grundlage für Grabsteine.
 

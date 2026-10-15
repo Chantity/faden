@@ -114,6 +114,22 @@ danach“.
 - Abgeleitete Zustände („jetzt dran“, „wartet“, Fortschritt) werden **nie
   gespeichert**, immer berechnet.
 
+**Zettel und ToDos:**
+
+- **Zettel-Namen sind eindeutig** (getrimmt, ohne Groß-/Kleinschreibung, über
+  aktive und archivierte Zettel). Ein vergebener Name wird im Dialog ruhig
+  gesperrt; automatisch entstehende Namen bekommen „ (2)“, „ (3)“ …
+- **Fertige Zettel archivieren sich selbst** beim Betreten der Übersicht (mit
+  Rückgängig). Archivierte Zettel bleiben vollständig nutzbar (Inhalt ansehen,
+  duplizieren, als Vorlage).
+- **Jedes Anlegen eines ToDos öffnet dasselbe Sheet** wie das Bearbeiten; Enter
+  im Titel legt sofort an, Vorarbeiten lassen sich als Enter-Kette eintippen.
+  Ein einheitlicher Weg statt eines zusätzlichen Schnellwegs.
+- **Beschreibung: Text oder Checkliste**, gespeichert wird immer nur eine Form.
+  Umschalten verliert keinen Inhalt (nur die Haken beim Wechsel zu Text).
+  Checklisten-Punkte sind unterwegs direkt auf der Karte abhakbar und haken das
+  ToDo selbst nicht ab.
+
 **Rückgängig:**
 
 - Jede Änderung ist rückgängig machbar: **pro Zettel ein Verlauf** (≥ 100
@@ -136,9 +152,22 @@ danach“.
 - Zeiten werden als **lokale Zeit ohne Zeitzone** gespeichert.
 - Hinweise zu Zeitkonflikten (Überschneidung, vor der Vorarbeit) sind weich und
   blockieren nie.
+- **Start + Dauer:** Die Dauer ist in allen Modi dasselbe Feld; das Ende wird
+  immer berechnet, nie gespeichert. Verschieben ändert nur Starts.
+- **Relativ denken:** Neben ToDos mit Uhrzeit wird mit Dauer und Pause
+  eingefügt, nicht mit Uhrzeiten. Mitgerückt wird **nur im eigenen Strang**,
+  und Einfügen plus Verschieben ist **ein** Rückgängig-Schritt. Pausen stehen
+  am Pfeil, aber nur, wenn es eine gibt (> 0) – das Diagramm bleibt ruhig.
+- Im Tagesplan bleibt alles zwischen 0:00 und 24:00: Was darüber hinausginge,
+  wird mit Hinweis abgelehnt statt still umzubrechen. „+1 Tag“ behält die
+  Uhrzeit, auch über die Zeitumstellung.
+- **Schrittweise Aufdeckung:** Zeit ist im Sheet eine Zusammenfassungszeile;
+  Verschiebe-Optionen erscheinen nur, wenn wirklich etwas verschoben würde, mit
+  einer Vorschauzeile. Neue Aktionen leben in bestehenden Menüs, nicht in neuen
+  Knöpfen in Kopfzeilen.
 
-**Vorlagen:** speichern Struktur, Titel, Notizen, Dauern und Modus – nie den
-Erledigt-Status und nie absolute Datumsangaben.
+**Vorlagen:** speichern Struktur, Titel, Notizen, Checklisten (ohne Haken),
+Dauern und Modus – nie den Erledigt-Status und nie absolute Datumsangaben.
 
 ### A6. Daten und Datenschutz
 
@@ -155,6 +184,10 @@ Erledigt-Status und nie absolute Datumsangaben.
   ungültige Dateien werden komplett abgelehnt). Ersetzen von Daten nur mit
   vorheriger automatischer Sicherung. Erinnerung höchstens einmal pro Woche,
   wenn das letzte Backup älter als 30 Tage ist.
+- **Gleichnamige Zettel beim Zusammenführen:** eine Wahl für alle (als
+  „Name (2)“, überschreiben, nicht importieren, nur neuere). Überschreiben nur
+  mit vorheriger automatischer Sicherung. Die Logik (`resolveConflicts`) ist
+  bewusst von der Oberfläche getrennt, damit ein späterer Sync sie nutzen kann.
 - Das Speicherschema ist versioniert; Migrationen sind reine, getestete
   Funktionen. Mehrere Tabs bleiben über `BroadcastChannel` konsistent.
 
@@ -181,7 +214,9 @@ Erledigt-Status und nie absolute Datumsangaben.
 
 | Ausnahme | Gegen | Begründung |
 |---|---|---|
-| Installations-Banner beim ersten Öffnen im Browser-Tab | A2.4 „keine Pop-ups ohne Not“ | Nutzerwunsch; nicht modal, einmal ignorierbar, nur wenn Installation möglich ist. |
+| Installations-Banner beim ersten Öffnen im Browser-Tab | A2.4 „keine Pop-ups ohne Not“ | Nutzerwunsch; nicht modal, einmal ignorierbar, nur wenn Installation möglich ist; erst nach den beiden Hinweisen darunter. |
+| Modaler Hinweis zum lokalen Speicher beim ersten Start | A2.4 „keine Pop-ups ohne Not“, A4 „Bestätigungsdialoge nur, wo nötig“ | Nutzerwunsch; erklärt Speicherung ohne Cookies, schließt nur mit „Verstanden“, erscheint genau einmal. |
+| Angebot „Anleitung lesen“ beim ersten Start | A2.4 „keine Pop-ups ohne Not“ | Nutzerwunsch; direkt nach dem Speicher-Hinweis, erscheint genau einmal, „Ignorieren“ genügt. |
 
 ---
 
@@ -228,8 +263,12 @@ Erledigt-Status und nie absolute Datumsangaben.
   echten Browser: Offline, 404/500/Captive-Portal, keine Auto-Updates, Neustart,
   keine externen Requests (`docs/PWA-TESTS.md`).
 - **Abnahmetests** (`npm run test:acceptance`): Tastatur-Szenarien, Responsive
-  (360, quer, 768, 1280), Tippflächen, reduzierte Bewegung
+  (360, quer, 768, 1280), Tippflächen, reduzierte Bewegung, Erst-Start
   (`docs/ACCEPTANCE.md`).
+- **Skript-Tests** (`npm run test:scripts`, `node --test`) für die Build-Skripte
+  (Anleitungs-Konverter).
+- **Manuelle Testdaten:** `docs/manual-test-data.json` – neue Funktionen
+  bekommen dort einen eigenen Zettel (`docs/ACCEPTANCE.md`).
 - Was nur von Hand geht (Safari/iOS, Lighthouse), steht als offener Punkt in
   `docs/ACCEPTANCE.md`.
 - Ein Fehlschlag ist ein Blocker; Tests werden nicht abgeschwächt, um grün zu
@@ -243,11 +282,16 @@ Eine Änderung ist fertig, wenn:
    Tastatur und Screenreader bedacht),
 2. `npm test` grün ist und `npm run build` ohne Warnungen läuft,
 3. bei Oberflächen- oder PWA-Änderungen `npm run test:pwa` und
-   `npm run test:acceptance` grün sind,
+   `npm run test:acceptance` grün sind; bei Änderungen an Build-Skripten
+   `npm run test:scripts`,
 4. alle betroffenen Dokumente aktuell sind: `README.md`, `docs/ARCHITECTURE.md`,
    `docs/USER-GUIDE.md` (Englisch **und** Deutsch), `docs/ACCEPTANCE.md`,
    `docs/PWA-TESTS.md` und diese Datei,
-5. sie committet ist.
+5. bei sichtbaren Änderungen der Oberfläche die Bilder der Anleitung mit
+   `npm run screenshots` neu erzeugt und gesichtet sind (sie liegen bewusst im
+   Repo: GitHub zeigt die Anleitung direkt an, und nur ein bewusster Lauf ändert
+   den Precache),
+6. sie committet ist.
 
 ### B6. Doku
 
