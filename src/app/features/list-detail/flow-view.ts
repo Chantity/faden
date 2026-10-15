@@ -11,28 +11,21 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
-  addParallelAfter,
-  addParallelBefore,
-  addStandalone,
   deleteBridges,
   deleteTask,
   type DeleteMode,
   disconnect,
-  insertAfter,
-  insertBefore,
-  insertBetween,
   isAvailable,
   isBlocked,
   connectedComponents,
   layoutList,
   transitiveReduction,
+  type InsertPosition,
   type Layout,
   type LayoutEdge,
 } from '../../core/graph';
-import { createTask, type Task, type TodoList } from '../../core/model';
-import { describeGraphError } from '../../core/i18n/graph-error';
+import type { Task, TodoList } from '../../core/model';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { strandToTemplate } from '../../core/templates';
 import {
@@ -46,17 +39,7 @@ import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
-import { focusAfterRender } from '../../shared/focus';
-
-type InsertMode = 'before' | 'after' | 'between' | 'standalone';
-
-interface PendingInsert {
-  mode: InsertMode;
-  anchor: string | null;
-  edgeId: string | null;
-  x: number;
-  y: number;
-}
+import type { CreateRequest } from './task-editor';
 
 const MIN_SCALE = 0.4;
 const MAX_SCALE = 2;
@@ -64,7 +47,6 @@ const MAX_SCALE = 2;
 @Component({
   selector: 'app-flow-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
   host: {
     '(document:keydown)': 'onKeydown($event)',
     // Menüs öffnen mit stopPropagation; jeder andere Klick irgendwo schließt sie.
@@ -93,7 +75,7 @@ const MAX_SCALE = 2;
           type="button"
           class="icon-btn"
           [attr.aria-label]="t().flow.newStrand"
-          (click)="startInsert('standalone', {})"
+          (click)="insertAround('standalone')"
         >
           ✚
         </button>
@@ -209,6 +191,14 @@ const MAX_SCALE = 2;
                       ◷ {{ tl }}
                     </span>
                   }
+                  @if (task.checklist; as items) {
+                    <span
+                      class="node__time"
+                      [attr.aria-label]="t().editor.checklistProgress(checkedCount(items), items.length)"
+                    >
+                      ☑ {{ checkedCount(items) }}/{{ items.length }}
+                    </span>
+                  }
                 </div>
                 <span class="node__title" [attr.data-lines]="node.lines">{{ task.title }}</span>
                 <button
@@ -229,7 +219,7 @@ const MAX_SCALE = 2;
                     [style.left.px]="node.x + node.width / 2 - plusSize / 2"
                     [style.top.px]="node.y - plusSize - 6"
                     [attr.aria-label]="t().flow.insertBefore"
-                    (click)="startInsert('before', { anchor: node.id, x: node.x, y: node.y })"
+                    (click)="insertAround('before', node.id)"
                   >
                     +
                   </button>
@@ -241,7 +231,7 @@ const MAX_SCALE = 2;
                     [style.left.px]="node.x + node.width / 2 - plusSize / 2"
                     [style.top.px]="node.y + node.height + 4"
                     [attr.aria-label]="t().flow.insertAfter"
-                    (click)="startInsert('after', { anchor: node.id, x: node.x, y: node.y })"
+                    (click)="insertAround('after', node.id)"
                   >
                     +
                   </button>
@@ -259,36 +249,12 @@ const MAX_SCALE = 2;
                   [style.left.px]="edge.midX - edgePlusSize / 2"
                   [style.top.px]="edge.midY - edgePlusSize / 2"
                   [attr.aria-label]="t().flow.insertBetween"
-                  (click)="menuInsertBetween(edge.id, edge.midX, edge.midY)"
+                  (click)="menuInsertBetween(edge.id)"
                 >
                   +
                 </button>
               }
             }
-          }
-
-          @if (pending(); as p) {
-            <form
-              class="insert"
-              [style.left.px]="p.x"
-              [style.top.px]="p.y"
-              (ngSubmit)="submitInsert()"
-              (keydown.escape)="cancelInsert($event)"
-            >
-              <input
-                #insertInput
-                type="text"
-                [value]="draft()"
-                (input)="draft.set($any($event.target).value)"
-                [placeholder]="t().focus.addPlaceholder"
-              />
-              <div class="insert__actions">
-                <button type="submit" class="btn btn--primary">{{ t().common.add }}</button>
-                <button type="button" class="btn" (click)="cancelInsert($event)">
-                  {{ t().common.cancel }}
-                </button>
-              </div>
-            </form>
           }
 
           @if (nodeMenu(); as menu) {
@@ -313,7 +279,7 @@ const MAX_SCALE = 2;
 
           @if (edgeMenu(); as menu) {
             <div class="popover" [style.left.px]="menu.x" [style.top.px]="menu.y" role="menu">
-              <button type="button" (click)="menuInsertBetween(menu.edgeId, menu.x, menu.y)">
+              <button type="button" (click)="menuInsertBetween(menu.edgeId)">
                 {{ t().flow.insertBetween }}
               </button>
               <button type="button" class="danger" (click)="menuRemoveEdge(menu.edgeId)">
@@ -551,35 +517,6 @@ const MAX_SCALE = 2;
       font-size: 0.9rem;
     }
 
-    .insert {
-      position: absolute;
-      z-index: 6;
-      width: 240px;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      padding: var(--space-3);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .insert input {
-      min-height: var(--touch-min);
-      padding: 0 var(--space-2);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      background: var(--color-bg);
-      color: var(--color-text);
-      font: inherit;
-    }
-
-    .insert__actions {
-      display: flex;
-      gap: var(--space-2);
-    }
-
     .popover {
       position: absolute;
       z-index: 7;
@@ -621,10 +558,10 @@ export class FlowView {
   private readonly nowStore = inject(NowStore);
   private readonly templates = inject(TemplatesStore);
   private readonly wrap = viewChild<ElementRef<HTMLElement>>('wrap');
-  private readonly insertInput = viewChild<ElementRef<HTMLInputElement>>('insertInput');
 
   readonly list = input.required<TodoList>();
   readonly edit = output<string>();
+  readonly create = output<CreateRequest>();
   readonly connectRequest = output<string>();
 
   protected readonly t = this.i18n.t;
@@ -681,8 +618,6 @@ export class FlowView {
 
   protected readonly showPluses = computed(() => this.scale() >= 0.6);
 
-  protected readonly pending = signal<PendingInsert | null>(null);
-  protected readonly draft = signal('');
   protected readonly nodeMenu = signal<{ id: string; x: number; y: number } | null>(null);
   protected readonly edgeMenu = signal<{ edgeId: string; x: number; y: number } | null>(null);
 
@@ -828,51 +763,20 @@ export class FlowView {
     this.ty.set(wrap.clientHeight / 2 - (node.y + node.height / 2) * this.scale());
   }
 
-  // --- Einfügen ------------------------------------------------------------
+  // --- Einfügen (im ToDo-Sheet) --------------------------------------------
 
-  protected startInsert(mode: InsertMode, opts: { anchor?: string; x?: number; y?: number }): void {
-    const anchor = opts.anchor ?? null;
-    this.pending.set({
-      mode,
-      anchor,
-      edgeId: null,
-      x: opts.x ?? 24,
-      y: opts.y ?? 24,
-    });
-    this.draft.set('');
-    focusAfterRender(this.injector, () => this.insertInput());
+  private startInsert(position: InsertPosition): void {
+    this.closeMenus();
+    this.create.emit({ position, chain: false });
   }
 
-  protected submitInsert(): void {
-    const p = this.pending();
-    const text = this.draft().trim();
-    if (!p || !text) return;
-    const list = this.list();
-    const task = createTask(text);
-    try {
-      this.store.editList(list.id, (l) => {
-        switch (p.mode) {
-          case 'before':
-            return insertBefore(l, p.anchor as string, task);
-          case 'after':
-            return insertAfter(l, p.anchor as string, task);
-          case 'between':
-            return insertBetween(l, p.edgeId as string, task);
-          default:
-            return addStandalone(l, task);
-        }
-      });
-      this.pending.set(null);
-      this.draft.set('');
-    } catch (error) {
-      this.snackbar.show(describeGraphError(this.t(), list, error));
-    }
+  protected checkedCount(items: readonly { done: boolean }[]): number {
+    return items.filter((item) => item.done).length;
   }
 
-  protected cancelInsert(event: Event): void {
-    event.preventDefault();
-    this.pending.set(null);
-    this.draft.set('');
+  /** „+" über/unter einer Karte bzw. „Neuer eigener Strang". */
+  protected insertAround(kind: 'before' | 'after' | 'standalone', anchor?: string): void {
+    this.startInsert(kind === 'standalone' || !anchor ? { kind: 'standalone' } : { kind, anchor });
   }
 
   // --- Menüs ---------------------------------------------------------------
@@ -921,19 +825,11 @@ export class FlowView {
   }
 
   protected menuSplit(id: string): void {
-    this.nodeMenu.set(null);
-    const list = this.list();
-    const task = createTask('');
-    this.store.editList(list.id, (l) => addParallelAfter(l, id, task));
-    this.edit.emit(task.id);
+    this.startInsert({ kind: 'split', anchor: id });
   }
 
   protected menuJoin(id: string): void {
-    this.nodeMenu.set(null);
-    const list = this.list();
-    const task = createTask('');
-    this.store.editList(list.id, (l) => addParallelBefore(l, id, task));
-    this.edit.emit(task.id);
+    this.startInsert({ kind: 'join', anchor: id });
   }
 
   protected menuConnect(id: string): void {
@@ -964,11 +860,8 @@ export class FlowView {
     this.snackbar.show(this.t().templates.savedSnack(template.title));
   }
 
-  protected menuInsertBetween(edgeId: string, x: number, y: number): void {
-    this.edgeMenu.set(null);
-    this.pending.set({ mode: 'between', anchor: null, edgeId, x: x - 120, y: y + 12 });
-    this.draft.set('');
-    focusAfterRender(this.injector, () => this.insertInput());
+  protected menuInsertBetween(edgeId: string): void {
+    this.startInsert({ kind: 'between', edgeId });
   }
 
   protected menuRemoveEdge(edgeId: string): void {

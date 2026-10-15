@@ -9,9 +9,11 @@ import {
   extractStrand,
   GraphError,
   insertAfter,
+  insertAt,
   insertBefore,
   insertBetween,
   isAvailable,
+  nextInChain,
   isBlocked,
   isEarlyDone,
   isJoin,
@@ -153,6 +155,35 @@ describe('addStandalone', () => {
     const result = addStandalone(list, makeTask('m'), NOW);
     expect(result.edges).toHaveLength(0);
     expect(result.tasks.map((t) => t.id)).toEqual(['a', 'm']);
+  });
+});
+
+describe('insertAt / nextInChain', () => {
+  const branch = () => makeList([makeTask('a'), makeTask('b'), makeTask('c')], [makeEdge('a', 'b'), makeEdge('a', 'c')]);
+
+  it('verteilt auf die passende Einfüge-Operation', () => {
+    expect(pairs(insertAt(branch(), { kind: 'after', anchor: 'a' }, makeTask('m')))).toEqual(
+      ['a->m', 'm->b', 'm->c'],
+    );
+    expect(pairs(insertAt(branch(), { kind: 'before', anchor: 'b' }, makeTask('m')))).toEqual(
+      ['a->c', 'a->m', 'm->b'],
+    );
+    expect(pairs(insertAt(branch(), { kind: 'between', edgeId: edgeId('a', 'b') }, makeTask('m')))).toEqual(
+      ['a->c', 'a->m', 'm->b'],
+    );
+    expect(pairs(insertAt(branch(), { kind: 'split', anchor: 'a' }, makeTask('m')))).toEqual(
+      ['a->b', 'a->c', 'a->m'],
+    );
+    expect(pairs(insertAt(branch(), { kind: 'join', anchor: 'b' }, makeTask('m')))).toEqual(
+      ['a->b', 'a->c', 'm->b'],
+    );
+    expect(pairs(insertAt(branch(), { kind: 'standalone' }, makeTask('m')))).toEqual(['a->b', 'a->c']);
+  });
+
+  it('Kette: Vorarbeiten reihen sich davor, alles andere danach', () => {
+    expect(nextInChain({ kind: 'before', anchor: 'a' }, 'm')).toEqual({ kind: 'before', anchor: 'm' });
+    expect(nextInChain({ kind: 'standalone' }, 'm')).toEqual({ kind: 'after', anchor: 'm' });
+    expect(nextInChain({ kind: 'split', anchor: 'a' }, 'm')).toEqual({ kind: 'after', anchor: 'm' });
   });
 });
 

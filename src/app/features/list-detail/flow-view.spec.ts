@@ -3,6 +3,7 @@ import { FlowView } from './flow-view';
 import { ListsStore } from '../../core/state/lists.store';
 import { FadenDb } from '../../core/storage';
 import { createList, createTask, edgeId, type TodoList } from '../../core/model';
+import type { CreateRequest } from './task-editor';
 
 function chainList(): TodoList {
   const list = createList('Test');
@@ -53,12 +54,13 @@ describe('FlowView', () => {
     expect(root.querySelectorAll('.plus--after').length).toBe(1);
   });
 
-  it('zeigt an einer Verzweigung ein Karten-„+“ und fügt einen Knoten ein, von dem alle Nachfolger abhängen', async () => {
+  it('zeigt an einer Verzweigung ein Karten-„+“, das hinter der Verzweigung einfügen lässt', async () => {
     const list = branchList();
-    const store = TestBed.inject(ListsStore);
-    store.addExisting(list);
+    TestBed.inject(ListsStore).addExisting(list);
     const fixture = TestBed.createComponent(FlowView);
     fixture.componentRef.setInput('list', list);
+    const requests: CreateRequest[] = [];
+    fixture.componentInstance.create.subscribe((r) => requests.push(r));
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
 
@@ -68,21 +70,13 @@ describe('FlowView', () => {
     expect(root.querySelectorAll('.plus--edge').length).toBe(2);
 
     (root.querySelector('.plus--after') as HTMLButtonElement).click();
-    await fixture.whenStable();
+    (root.querySelector('.plus--edge') as HTMLButtonElement).click();
 
-    const input = root.querySelector('.insert input') as HTMLInputElement;
-    input.value = 'D';
-    input.dispatchEvent(new Event('input'));
-    await fixture.whenStable();
-    (root.querySelector('form.insert') as HTMLFormElement).dispatchEvent(
-      new Event('submit', { cancelable: true }),
-    );
-    await fixture.whenStable();
-
-    const updated = store.getList(list.id)!;
-    const d = updated.tasks.find((t) => t.title === 'D')!;
-    const pairs = updated.edges.map((e) => `${e.from}->${e.to}`).sort();
-    expect(pairs).toEqual([`a->${d.id}`, `${d.id}->b`, `${d.id}->c`].sort());
+    // Das Einfügen selbst (alle Nachfolger hängen danach am neuen ToDo) prüft graph.spec (insertAt).
+    expect(requests).toEqual([
+      { position: { kind: 'after', anchor: 'a' }, chain: false },
+      { position: { kind: 'between', edgeId: edgeId('a', 'b') }, chain: false },
+    ]);
   });
 
   it('hakt ein ToDo direkt auf der Karte ab und wieder auf', async () => {

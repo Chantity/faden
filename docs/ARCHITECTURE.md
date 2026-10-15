@@ -25,7 +25,8 @@ src/app/
 ├─ app.routes.ts                    Hash-Routen (lazy geladen)
 ├─ app-meta.ts                      App-Name + Version (einzige Namensquelle)
 ├─ core/
-│  ├─ model.ts                      Datenmodell + Konstanten
+│  ├─ model.ts                      Datenmodell + Konstanten, eindeutige Namen
+│  ├─ checklist.ts                  Beschreibung: Checkliste ↔ Text (rein)
 │  ├─ i18n/                         Oberflächentexte + reaktiver Sprachzugriff
 │  │  ├─ de.ts / en.ts              Wörterbücher (en = Standard)
 │  │  ├─ types.ts                   Translations = typeof de (Vorlage)
@@ -270,8 +271,20 @@ Undo/Redo, Menü), der Umschalter **„Jetzt dran" | „Ablauf"** (Wahl je Zette
   Engpass-Einfügung, alle bisherigen Nachfolger hängen danach vom neuen Knoten
   ab), **auf** jeder Kante, Karten- und Kanten-Menüs, Verbinden per Dialog.
   Zustände immer als **Icon + Text + Farbe**.
-- **Bearbeiten** (`task-editor`): Titel, Notizen und Vorgänger-/Nachfolger-Chips
-  mit „+ hinzufügen"/„×" – alle Verbindungen auch ohne Drag bedienbar.
+- **ToDo-Sheet** (`task-editor`) zum **Anlegen und Bearbeiten**: Titel,
+  Beschreibung (Text oder Checkliste, Umwandlung über `core/checklist.ts`),
+  Zeitfelder; beim Bearbeiten Vorgänger-/Nachfolger-Chips mit „+ hinzufügen"/„×"
+  (alle Verbindungen auch ohne Drag bedienbar).
+  - Die Ansichten legen nicht selbst an, sondern melden über `output()` eine
+    `CreateRequest` (`{ position: InsertPosition, chain }`); der Container
+    öffnet damit `TaskEditor.create()`. `insertAt` (`core/graph`) setzt die
+    Position in die passende Einfüge-Operation um.
+  - **Enter-Kette** (`chain`): Enter legt an und öffnet das Sheet sofort leer
+    für das nächste ToDo (`nextInChain`: Vorarbeiten weiter davor, sonst
+    danach). „Jetzt dran" legt immer als Kette an, der Ablauf einzeln.
+    Mehrzeilig eingefügter Text wird zu einer Kette.
+  - Nach dem Schließen landet der Fokus beim nächsten „Erledigt", falls der
+    Auslöser (z. B. die von einer neuen Vorarbeit verdrängte Karte) weg ist.
 - Beide Ansichten bekommen den Zettel über `input()` und melden Aktionen über
   `output()` (`edit`, `connectRequest`) an den Container; die Datenänderungen
   laufen ausschließlich über `ListsStore.editList()` (ein Undo-Schritt, und bei

@@ -200,6 +200,14 @@ export const en = {
     clear: 'Clear',
     errorTimeOrder: 'In a day plan the todo has to end by midnight. Use a fixed schedule for longer plans.',
     errorTimeInvalid: 'Please enter a valid time.',
+    chainHint: 'Enter adds it and opens the next one right away · “Finish” or Esc ends',
+    descText: 'Text',
+    descChecklist: 'Checklist',
+    checklistItem: (n: number): string => `Item ${n}`,
+    checklistRemove: (n: number): string => `Remove item ${n}`,
+    checklistAdd: 'Add item',
+    checklistCut: 'Some lines were too long or there were too many – they were shortened.',
+    checklistProgress: (done: number, total: number): string => `${done} of ${total} checked`,
   },
 
   flow: {

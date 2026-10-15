@@ -196,14 +196,14 @@ await test('2 Server aus: App startet, anlegen, abhaken, Export', async () => {
   await page.waitFor(`document.querySelector('.empty .btn--large')`, 'Leerer Zettel');
   listId = await page.eval(`location.hash.split('/').pop()`);
   await page.eval(`document.querySelector('.empty .btn--large').click()`);
-  await page.waitFor(`document.querySelector('form.chain input')`, 'Eingabefeld');
+  await page.waitFor(`document.querySelector('dialog[open] input[name=title]')`, 'ToDo-Sheet');
   await page.eval(`(() => {
-    const input = document.querySelector('form.chain input');
+    const input = document.querySelector('dialog[open] input[name=title]');
     input.value = ${JSON.stringify(TASK_TITLE)};
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    // „Fertig": legt die Eingabe an und schließt das Sheet.
+    document.querySelector('dialog[open] .sheet__actions .btn--primary').click();
   })()`);
-  await page.eval(`document.querySelector('.chain__actions .btn--primary')?.click()`);
   await page.waitFor(`document.querySelector('.task-card__done')`, 'ToDo angelegt');
 
   // Abhaken

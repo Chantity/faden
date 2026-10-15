@@ -199,6 +199,14 @@ export const de = {
     clear: 'Leeren',
     errorTimeOrder: 'Im Tagesplan muss das ToDo spätestens um 24:00 enden. Für längere Pläne gibt es den festen Zeitplan.',
     errorTimeInvalid: 'Bitte gib eine gültige Uhrzeit ein.',
+    chainHint: 'Enter legt an und öffnet gleich das nächste · „Fertig" oder Esc beendet',
+    descText: 'Text',
+    descChecklist: 'Checkliste',
+    checklistItem: (n: number): string => `Punkt ${n}`,
+    checklistRemove: (n: number): string => `Punkt ${n} entfernen`,
+    checklistAdd: 'Punkt hinzufügen',
+    checklistCut: 'Einige Zeilen waren zu lang oder es waren zu viele – sie wurden gekürzt.',
+    checklistProgress: (done: number, total: number): string => `${done} von ${total} abgehakt`,
   },
 
   flow: {

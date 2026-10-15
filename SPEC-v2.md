@@ -47,7 +47,7 @@ Alle Änderungen laufen über `migrate()` (`src/app/core/storage/`) als reine, g
 ### 2.2 Beschreibung als Text oder Checkliste
 
 - Im Sheet steht über der Beschreibung ein Umschalter **„Text | Checkliste“** (Segmented Control, `radiogroup`). Er ist beim Anlegen und beim Bearbeiten verfügbar.
-- **Checkliste bearbeiten:** Jeder Punkt hat ein Textfeld, einen Haken und „Entfernen“. Enter im letzten Punkt legt einen neuen an. Die Reihenfolge lässt sich mit „Nach oben/unten“ ändern; Ziehen ist nicht nötig.
+- **Checkliste bearbeiten:** Jeder Punkt hat ein Textfeld, einen Haken und „Entfernen“. Enter in einem Punkt legt direkt darunter einen neuen an. *Umgesetzt ohne „Nach oben/unten“:* Auf 360 px blieben neben drei Knöpfen nur etwa 110 px für den Text; neue Punkte entstehen dafür an der Stelle, an der man Enter drückt.
 - **Umwandeln, ohne Inhalt zu verlieren:**
   - Checkliste → Text: Jeder Punkt wird zu `- {text}\n`. **Der Haken geht verloren** (Entscheidung des Nutzers). Der Wechsel ist rückgängig machbar.
   - Text → Checkliste: Jede **nicht-leere Zeile** wird ein offener Punkt. Ein führendes `- ` oder `-` wird entfernt, Leerzeichen am Rand werden getrimmt. Zeilen über 200 Zeichen werden gekürzt, und es gibt einen Hinweis.

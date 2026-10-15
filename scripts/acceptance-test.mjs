@@ -74,6 +74,8 @@ async function tabTo(predicate, label, max = 60) {
 }
 
 const activeText = `(document.activeElement.textContent || '').trim()`;
+/** Titelfeld im offenen ToDo-Sheet (Anlegen und Bearbeiten). */
+const SHEET_TITLE = 'dialog[open] input[name=title]';
 const availableTitles = `[...document.querySelectorAll('.task-card__title')].map((e) => e.textContent.trim())`;
 
 await test('1 Geschirrspüler-Szenario nur mit Tastatur', async () => {
@@ -98,9 +100,10 @@ await test('1 Geschirrspüler-Szenario nur mit Tastatur', async () => {
   await page.waitFor(`document.querySelector('.empty .btn--large')`, 'Leerer Zettel');
   await tabTo(`document.activeElement.matches('.empty .btn--large')`, 'Erstes ToDo anlegen');
   await page.press('Enter');
-  await page.waitFor(`document.activeElement?.matches('form.chain input')`, 'Eingabefeld fokussiert');
+  await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Titelfeld im Sheet fokussiert');
   await page.type('Geschirrspüler einräumen');
   await page.press('Enter');
+  await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)}) && document.activeElement.value === ''`, 'nächstes leeres Sheet');
   await page.press('Escape');
   await page.waitFor(`${availableTitles}.join() === 'Geschirrspüler einräumen'`, 'Erstes ToDo da');
 
@@ -112,7 +115,7 @@ await test('1 Geschirrspüler-Szenario nur mit Tastatur', async () => {
     await tabTo(`document.activeElement.closest('[data-task-id]')`, 'Karte „Jetzt dran"');
   }
   await page.press('v');
-  await page.waitFor(`document.activeElement?.matches('form.chain input')`, 'Vorarbeit-Feld fokussiert');
+  await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Vorarbeit-Sheet fokussiert');
   for (const title of [
     'Geschirr einsammeln',
     'Bioabfall in die Tonne',
@@ -121,7 +124,7 @@ await test('1 Geschirrspüler-Szenario nur mit Tastatur', async () => {
   ]) {
     // Wie ein Mensch: erst tippen, wenn das (neue) leere Feld den Fokus hat.
     await page.waitFor(
-      `document.activeElement?.matches('form.chain input') && document.activeElement.value === ''`,
+      `document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)}) && document.activeElement.value === ''`,
       `leeres, fokussiertes Feld vor „${title}"`,
       3000,
     );
@@ -354,6 +357,17 @@ for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.include
       }
     }
     await page.press('Escape');
+
+    // ToDo-Sheet (Anlegen) mit Checkliste
+    await openPage(PAGES[1]);
+    await page.eval(`document.querySelector('.focus__bar button').click()`);
+    await page.waitFor(`document.querySelector('dialog[open] input[name=title]')`, 'ToDo-Sheet offen');
+    await page.eval(`[...document.querySelectorAll('dialog[open] .segmented button')].find((b) => b.textContent.trim() === 'Checklist').click()`);
+    await page.eval(`document.querySelector('dialog[open] .checklist-edit__add').click()`);
+    await page.waitFor(`document.querySelector('dialog[open] .checklist-edit__text')`, 'Checklistenpunkt');
+    for (const issue of await page.eval(CHECK_PAGE)) problems.push(`ToDo-Sheet: ${issue}`);
+    await page.press('Escape');
+    await openPage(PAGES[0]);
 
     if (vp.width < 600) {
       // Floating-Action-Button für „+"

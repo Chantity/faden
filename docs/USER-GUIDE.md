@@ -134,9 +134,10 @@ Every card in “Now” has the button
 in front of it. This is the most important move in the app:
 
 1. The todo “Load the dishwasher” is up now.
-2. “Something else has to come first …” → “Collect the dishes” → Enter.
-3. A new input field is offered right away → “Empty the organic waste into the
-   bin” → Enter.
+2. “Something else has to come first …” (or **V**) opens the todo sheet →
+   “Collect the dishes” → Enter.
+3. The sheet is offered again right away, empty → “Empty the organic waste
+   into the bin” → Enter.
 4. As often as you like. **Enter** adds one more step in front each time.
    **“Finish”** takes the last entry and ends the chain; **“Cancel”** (or
    **Esc** on a computer) stops without that last entry — handy on a phone,
@@ -144,6 +145,16 @@ in front of it. This is the most important move in the app:
 
 Result: only the *newest* prerequisite is “Now”. Once it's checked off, the
 next one moves up automatically.
+
+You don't have to fill in more than the title – Enter is enough. If you want,
+you can also add a description or (with a time planning) times in the same
+sheet. Pasting several lines into the title creates one todo per line, as a
+chain. **“✚”**, “Insert after” (**N**) and “Create successor task” work the
+same way.
+
+**Checklists on the card:** if a todo has a checklist, the card shows
+“2 of 5 checked” with the items below – you can check them off right there,
+e.g. while shopping. Checking items off doesn't check off the todo itself.
 
 #### 6.2 Done
 
@@ -158,6 +169,9 @@ together – what else has to be done as well. Collapsed below that you'll find
 the full list “Still to come …”.
 
 #### 6.4 Changing the structure (in the flow)
+
+Every “+” and every “Create … task” opens the todo sheet (section 6.5) for the
+new todo.
 
 - **“+” on an arrow**: insert something *in between*.
 - **“+” above a card** (only at the start of a strand): insert *before*.
@@ -184,14 +198,24 @@ anything. Only a click inside the menu content keeps it open.
 
 Pan with one finger (phone) or the mouse; zoom with two fingers (phone),
 **Ctrl + mouse wheel** or the visible **+/-** buttons (computer). “Fit all”
-brings the whole drawing into view.
+brings the whole drawing into view. A card with a checklist shows “☑ 2/5”.
 
-#### 6.5 Edit sheet
+#### 6.5 The todo sheet (create and edit)
 
-Tapping a card (or **E**) opens the edit sheet: title, notes, time fields
-(depending on the mode) and the lists **“Must be done before”** and
-**“Comes after”**. There you can also maintain connections without any
-dragging.
+The same sheet is used to **create** and to **edit** a todo. Tapping a card (or
+**E**) opens it for editing.
+
+- **Title** – required. When creating, **Enter** creates the todo right away.
+- **Description** – switch between **Text** and **Checklist**:
+  - *Text*: free notes.
+  - *Checklist*: one item per line with a checkbox; **Enter** in an item adds
+    a new one below, **✕** removes it. Empty items are dropped when saving.
+  - Switching keeps the content: a checklist becomes bullet points
+    (“- Milk”), and every line of a text becomes an item (a leading “-” is
+    dropped). Checkmarks are not kept when switching to text.
+- **Time fields** – depending on the time planning (section 7).
+- When editing, also the lists **“Must be done before”** and
+  **“Comes after”**: there you can maintain connections without any dragging.
 
 ### 7. Time planning (timeboxing)
 
@@ -456,8 +480,9 @@ Auf jeder Karte in „Jetzt dran" gibt es den Knopf
 davor. Das ist der wichtigste Handgriff der App:
 
 1. ToDo „Geschirrspüler einräumen" ist dran.
-2. „Erst noch etwas anderes nötig …" → „Geschirr einsammeln" → Enter.
-3. Sofort wird wieder ein Eingabefeld angeboten → „Bioabfall in die Tonne" → Enter.
+2. „Erst noch etwas anderes nötig …" (oder **V**) öffnet das ToDo-Sheet →
+   „Geschirr einsammeln" → Enter.
+3. Sofort wird das Sheet wieder leer angeboten → „Bioabfall in die Tonne" → Enter.
 4. So oft du willst. **Enter** hängt jeweils einen weiteren Schritt davor.
    **„Fertig"** übernimmt die letzte Eingabe und beendet die Kette; **„Abbrechen"**
    (oder **Esc** am Rechner) bricht ohne diese letzte Eingabe ab — praktisch auf
@@ -465,6 +490,16 @@ davor. Das ist der wichtigste Handgriff der App:
 
 Ergebnis: Nur die *neueste* Vorarbeit ist „Jetzt dran". Nach dem Abhaken rückt
 automatisch die nächste nach.
+
+Mehr als den Titel musst du nicht ausfüllen – Enter genügt. Wenn du willst,
+trägst du im selben Sheet auch eine Beschreibung oder (mit Zeitplanung) Zeiten
+ein. Fügst du mehrere Zeilen in den Titel ein, entsteht pro Zeile ein ToDo, als
+Kette. **„✚"**, „Danach einfügen" (**N**) und „Nachfolgeaufgabe erstellen"
+funktionieren genauso.
+
+**Checklisten auf der Karte:** Hat ein ToDo eine Checkliste, zeigt die Karte
+„2 von 5 abgehakt" und darunter die Punkte – du hakst sie direkt dort ab, z. B.
+beim Einkaufen. Das Abhaken von Punkten hakt das ToDo selbst nicht ab.
 
 #### 6.2 Erledigt
 
@@ -479,6 +514,9 @@ zusammenlaufen – was außerdem noch erledigt sein muss. Eingeklappt darunter
 findest du die vollständige Liste „Danach kommt noch …".
 
 #### 6.4 Struktur ändern (im Ablauf)
+
+Jedes „+" und jedes „… erstellen" öffnet das ToDo-Sheet (Abschnitt 6.5) für das
+neue ToDo.
 
 - **„+" auf einem Pfeil**: etwas *dazwischen* einfügen.
 - **„+" über einer Karte** (nur am Strang-Anfang): *davor* einfügen.
@@ -505,14 +543,26 @@ du etwas auswählen musst. Nur ein Klick im Menüinhalt lässt es offen.
 
 Verschieben mit einem Finger (Handy) oder Maus; Zoomen mit zwei Fingern
 (Handy), **Strg + Mausrad** oder den sichtbaren **+/-**-Buttons (PC). „Alles
-einpassen" bringt die ganze Zeichnung ins Bild.
+einpassen" bringt die ganze Zeichnung ins Bild. Eine Karte mit Checkliste zeigt
+„☑ 2/5".
 
-#### 6.5 Bearbeiten-Sheet
+#### 6.5 Das ToDo-Sheet (anlegen und bearbeiten)
 
-Ein Tipp auf eine Karte (oder **E**) öffnet das Bearbeiten-Sheet: Titel,
-Notizen, Zeitfelder (je nach Modus) sowie die Listen
-**„Muss vorher erledigt sein"** und **„Kommt danach"**. Dort kannst du
-Verbindungen auch ganz ohne Ziehen pflegen.
+Mit demselben Sheet **legst** du ToDos **an** und **bearbeitest** sie. Ein Tipp
+auf eine Karte (oder **E**) öffnet es zum Bearbeiten.
+
+- **Titel** – Pflicht. Beim Anlegen legt **Enter** das ToDo sofort an.
+- **Beschreibung** – umschaltbar zwischen **Text** und **Checkliste**:
+  - *Text*: freie Notizen.
+  - *Checkliste*: ein Punkt pro Zeile mit Haken; **Enter** in einem Punkt legt
+    darunter einen neuen an, **✕** entfernt ihn. Leere Punkte entfallen beim
+    Speichern.
+  - Beim Umschalten bleibt der Inhalt erhalten: Aus einer Checkliste werden
+    Stichpunkte („- Milch"), aus jeder Zeile eines Textes wird ein Punkt (ein
+    führendes „-" entfällt). Haken bleiben beim Wechsel zu Text nicht erhalten.
+- **Zeitfelder** – je nach Zeitplanung (Abschnitt 7).
+- Beim Bearbeiten außerdem die Listen **„Muss vorher erledigt sein"** und
+  **„Kommt danach"**: Dort pflegst du Verbindungen ganz ohne Ziehen.
 
 ### 7. Zeitplanung (Timeboxing)
 

@@ -34,6 +34,8 @@ auf eine Bildschirmgröße einschränken.
 | 13 | **⋯-Menüs** schließen sich überall per Klick/Tipp außerhalb und mit Esc. | `test:acceptance` Test M (Übersicht: Karte + Archiv, „Jetzt dran“, Zettel-Kopf, Ablauf); Unit-Test `menus.spec` | ✔ |
 | 14 | **Archiv:** Fertige Zettel werden beim Betreten der Übersicht archiviert (rückgängig machbar); archivierte Zettel zeigen Modus, enthaltene ToDos und ein Menü (Umbenennen, Duplizieren als frische Kopie, Als Vorlage). | Unit-Tests `lists.store.spec` (Archiv und Namen); `test:acceptance` Tests 8 (Archiv aufgeklappt) und M | ✔ |
 | 15 | **Eindeutige Zettel-Namen** (ohne Groß-/Kleinschreibung); automatisch entstehende Namen werden zu „Name (2)“ usw.; Alt-Daten werden beim Laden bereinigt. | Unit-Tests `storage.spec` (`uniqueTitle`, Migration), `lists.store.spec` | ✔ |
+| 16 | **ToDo-Sheet zum Anlegen:** Jeder Anlege-Weg öffnet das volle Sheet (Titel, Beschreibung, Zeit); Enter legt sofort an, in „Jetzt dran“ als Enter-Kette; mehrzeiliges Einfügen ergibt eine Kette. | Unit-Tests `graph.spec` (`insertAt`, `nextInChain`), `task-editor.spec` (Anlegen); `test:acceptance` Test 1 (Kette per Tastatur im Sheet) und Tests 8 (Sheet responsiv) | ✔ |
+| 17 | **Checkliste:** Beschreibung als Text oder Checkliste umschaltbar ohne Inhaltsverlust (Haken entfallen beim Wechsel zu Text); Punkte direkt auf der Karte in „Jetzt dran“ abhakbar. | Unit-Tests `checklist.spec`, `task-editor.spec`, `focus-view.spec`; `test:acceptance` Tests 8 | ✔ |
 
 ## Offen (nur manuell möglich)
 

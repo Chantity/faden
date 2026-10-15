@@ -9,25 +9,19 @@ import {
   input,
   output,
   signal,
-  viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
-  addParallelAfter,
-  addStandalone,
   availableTasks,
   blockedTasks,
   blockingTasks,
   deleteBridges,
   deleteTask,
   type DeleteMode,
-  insertAfter,
-  insertBefore,
   openPredecessors,
   successors,
   topologicalOrder,
 } from '../../core/graph';
-import { createTask, type Task, type TodoList } from '../../core/model';
+import type { ChecklistItem, Task, TodoList } from '../../core/model';
 import {
   formatDayLabel,
   fromIsoDate,
@@ -38,25 +32,16 @@ import {
   todayIso,
   type TimeStatus,
 } from '../../core/time';
-import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
-import { focusAfterRender } from '../../shared/focus';
 import { closeMenu } from '../../shared/menus';
-
-type ChainMode = 'before' | 'after' | 'split' | 'standalone';
-
-interface Chain {
-  anchor: string | null;
-  mode: ChainMode;
-}
+import type { CreateRequest } from './task-editor';
 
 @Component({
   selector: 'app-focus-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
   host: {
     '(document:keydown)': 'onKeydown($event)',
   },
@@ -64,34 +49,9 @@ interface Chain {
     @if (list().tasks.length === 0) {
       <div class="empty card">
         <h2>{{ t().focus.emptyHeading }}</h2>
-        @if (chain()) {
-          <form class="chain" (ngSubmit)="submitDraft()" (keydown.escape)="endChain($event)">
-            <label class="field">
-              <span class="field__label">{{ t().focus.newWorkLabel }}</span>
-              <input
-                #chainInput
-                type="text"
-                [value]="draft()"
-                (input)="onDraftInput($event)"
-                (keydown.enter)="submitDraft($event)"
-                [placeholder]="placeholder()"
-              />
-            </label>
-            <p class="hint muted">{{ t().focus.chainHint }}</p>
-            <div class="chain__actions">
-              <button type="button" class="btn btn--primary" (click)="finishChain()">
-                {{ t().focus.finish }}
-              </button>
-              <button type="button" class="btn" (click)="endChain($event)">
-                {{ t().common.cancel }}
-              </button>
-            </div>
-          </form>
-        } @else {
-          <button type="button" class="btn btn--primary btn--large" (click)="startStandalone()">
-            {{ t().focus.add }}
-          </button>
-        }
+        <button type="button" class="btn btn--primary btn--large" (click)="startStandalone()">
+          {{ t().focus.add }}
+        </button>
       </div>
     } @else {
       <div class="focus__bar">
@@ -119,31 +79,6 @@ interface Chain {
         </div>
       }
 
-      @if (chainIsStandalone()) {
-        <form class="chain" (ngSubmit)="submitDraft()" (keydown.escape)="endChain($event)">
-          <label class="field">
-            <span class="field__label">{{ t().focus.newTodoLabel }}</span>
-            <input
-              #chainInput
-              type="text"
-              [value]="draft()"
-              (input)="onDraftInput($event)"
-              (keydown.enter)="submitDraft($event)"
-              [placeholder]="placeholder()"
-            />
-          </label>
-          <p class="hint muted">{{ t().focus.chainHint }}</p>
-          <div class="chain__actions">
-            <button type="button" class="btn btn--primary" (click)="finishChain()">
-              {{ t().focus.finish }}
-            </button>
-            <button type="button" class="btn" (click)="endChain($event)">
-              {{ t().common.cancel }}
-            </button>
-          </div>
-        </form>
-      }
-
       @if (available().length > 0) {
         <ul class="cards">
           @for (task of available(); track task.id) {
@@ -152,6 +87,25 @@ interface Chain {
                 <h2 class="task-card__title">{{ task.title }}</h2>
                 @if (task.notes) {
                   <p class="task-card__notes muted">{{ task.notes }}</p>
+                }
+                @if (task.checklist; as items) {
+                  <details class="task-card__checklist" open>
+                    <summary>{{ t().editor.checklistProgress(checkedCount(items), items.length) }}</summary>
+                    <ul class="checklist">
+                      @for (item of items; track item.id) {
+                        <li>
+                          <label>
+                            <input
+                              type="checkbox"
+                              [checked]="item.done"
+                              (change)="toggleItem(task, item.id)"
+                            />
+                            <span [class.is-done]="item.done">{{ item.text }}</span>
+                          </label>
+                        </li>
+                      }
+                    </ul>
+                  </details>
                 }
                 @if (thenLabel(task); as then) {
                   <p class="task-card__then muted">{{ then }}</p>
@@ -215,31 +169,6 @@ interface Chain {
                   </div>
                 </details>
               </article>
-
-              @if (chainAnchorHere(task.id)) {
-                <form class="chain" (ngSubmit)="submitDraft()" (keydown.escape)="endChain($event)">
-                  <label class="field">
-                    <span class="field__label">{{ t().focus.newWorkLabel }}</span>
-                    <input
-                      #chainInput
-                      type="text"
-                      [value]="draft()"
-                      (input)="onDraftInput($event)"
-                      (keydown.enter)="submitDraft($event)"
-                      [placeholder]="placeholder()"
-                    />
-                  </label>
-                  <p class="hint muted">{{ t().focus.chainHint }}</p>
-                  <div class="chain__actions">
-                    <button type="button" class="btn btn--primary" (click)="finishChain()">
-                      {{ t().focus.finish }}
-                    </button>
-                    <button type="button" class="btn" (click)="endChain($event)">
-                      {{ t().common.cancel }}
-                    </button>
-                  </div>
-                </form>
-              }
             </li>
           }
         </ul>
@@ -366,30 +295,13 @@ interface Chain {
       margin-top: 0;
     }
 
-    .chain {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      margin-top: var(--space-3);
-      padding: var(--space-3);
-      background: var(--color-accent-soft);
-      border-radius: var(--radius);
+    .task-card__checklist {
+      margin: 0 0 var(--space-2);
     }
 
-    .chain__actions {
-      display: flex;
-      gap: var(--space-2);
-    }
-
-    .chain .field input {
-      min-height: var(--touch-min);
-      width: 100%;
-      padding: 0 var(--space-3);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      background: var(--color-bg);
-      color: var(--color-text);
-      font: inherit;
+    .task-card__checklist > summary {
+      cursor: pointer;
+      color: var(--color-text-muted);
     }
 
     .later {
@@ -434,10 +346,10 @@ export class FocusView {
   private readonly i18n = inject(I18nStore);
   private readonly nowStore = inject(NowStore);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly chainInput = viewChild<ElementRef<HTMLInputElement>>('chainInput');
 
   readonly list = input.required<TodoList>();
   readonly edit = output<string>();
+  readonly create = output<CreateRequest>();
   readonly connectRequest = output<string>();
 
   protected readonly t = this.i18n.t;
@@ -506,23 +418,6 @@ export class FocusView {
       default:
         return null;
     }
-  }
-
-  protected readonly chain = signal<Chain | null>(null);
-  protected readonly draft = signal('');
-
-  protected chainAnchorHere(taskId: string): boolean {
-    return this.chain()?.anchor === taskId;
-  }
-
-  protected chainIsStandalone(): boolean {
-    return this.chain()?.anchor === null;
-  }
-
-  protected placeholder(): string {
-    return this.chain()?.mode === 'before'
-      ? this.t().focus.newWorkPlaceholder
-      : this.t().focus.addPlaceholder;
   }
 
   protected thenLabel(task: Task): string | null {
@@ -617,100 +512,40 @@ export class FocusView {
     this.store.archive(this.list().id);
   }
 
-  // --- Ketten-Eingabe ------------------------------------------------------
+  // --- Anlegen (im ToDo-Sheet, immer als Enter-Kette) ----------------------
 
   protected startStandalone(): void {
-    this.chain.set({ anchor: null, mode: 'standalone' });
-    this.draft.set('');
-    this.focusInput();
+    this.create.emit({ position: { kind: 'standalone' }, chain: true });
   }
 
   protected startBefore(task: Task): void {
-    this.chain.set({ anchor: task.id, mode: 'before' });
-    this.draft.set('');
-    this.focusInput();
+    this.create.emit({ position: { kind: 'before', anchor: task.id }, chain: true });
   }
 
   protected startAfter(task: Task): void {
-    this.chain.set({ anchor: task.id, mode: 'after' });
-    this.draft.set('');
-    this.focusInput();
+    this.create.emit({ position: { kind: 'after', anchor: task.id }, chain: true });
   }
 
   protected startSplit(task: Task): void {
-    this.chain.set({ anchor: task.id, mode: 'split' });
-    this.draft.set('');
-    this.focusInput();
+    this.create.emit({ position: { kind: 'split', anchor: task.id }, chain: true });
   }
 
-  protected onDraftInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    if (value.includes('\n')) {
-      for (const line of value.split('\n')) {
-        if (line.trim()) this.commitOne(line);
-      }
-      this.draft.set('');
-      (event.target as HTMLInputElement).value = '';
-      return;
-    }
-    this.draft.set(value);
+  // --- Checkliste auf der Karte --------------------------------------------
+
+  protected checkedCount(items: readonly ChecklistItem[]): number {
+    return items.filter((item) => item.done).length;
   }
 
-  protected submitDraft(event?: Event): void {
-    event?.preventDefault();
-    const text = this.draft().trim();
-    if (!text) return;
-    this.commitOne(text);
-    this.draft.set('');
-    this.focusInput();
-  }
-
-  /** „Fertig": die aktuelle Eingabe übernehmen (falls vorhanden) und die Kette beenden. */
-  protected finishChain(): void {
-    const text = this.draft().trim();
-    if (text) this.commitOne(text);
-    const anchor = this.chain()?.anchor;
-    this.chain.set(null);
-    this.draft.set('');
-    this.keepFocus(anchor);
-  }
-
-  protected endChain(event: Event): void {
-    event.preventDefault();
-    const anchor = this.chain()?.anchor;
-    this.chain.set(null);
-    this.draft.set('');
-    this.keepFocus(anchor);
-  }
-
-  /** Schließt ein offenes ⋯-Menü bei Klick außerhalb (z. B. auf dem Handy). */
-  private commitOne(text: string): void {
-    const list = this.list();
-    const chain = this.chain();
-    if (!chain) return;
-    const task = createTask(text);
-    try {
-      this.store.editList(list.id, (l) => {
-        switch (chain.mode) {
-          case 'before':
-            return insertBefore(l, chain.anchor as string, task);
-          case 'after':
-            return insertAfter(l, chain.anchor as string, task);
-          case 'split':
-            return addParallelAfter(l, chain.anchor as string, task);
-          default:
-            return chain.anchor === null ? addStandalone(l, task) : insertAfter(l, chain.anchor, task);
-        }
-      });
-      const nextMode: ChainMode = chain.mode === 'before' ? 'before' : 'after';
-      this.chain.set({ anchor: task.id, mode: nextMode });
-    } catch (error) {
-      this.snackbar.show(describeGraphError(this.t(), list, error));
-    }
-  }
-
-  private focusInput(): void {
-    focusAfterRender(this.injector, () => this.chainInput());
+  /** Einen Punkt ab- oder aufhaken (ein Rückgängig-Schritt); das ToDo selbst bleibt offen. */
+  protected toggleItem(task: Task, itemId: string): void {
+    this.store.editList(this.list().id, (l) => ({
+      ...l,
+      tasks: l.tasks.map((t) =>
+        t.id === task.id && t.checklist
+          ? { ...t, checklist: t.checklist.map((i) => (i.id === itemId ? { ...i, done: !i.done } : i)) }
+          : t,
+      ),
+    }));
   }
 
   protected readonly closeMenu = closeMenu;
@@ -720,7 +555,7 @@ export class FocusView {
   protected onKeydown(event: KeyboardEvent): void {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     const target = event.target as HTMLElement | null;
-    if (target?.closest('input, textarea, select, [contenteditable]')) return;
+    if (target?.closest('input, textarea, select, [contenteditable], dialog')) return;
     const card = target?.closest('[data-task-id]') as HTMLElement | null;
     const id = card?.dataset['taskId'];
     const task = id ? this.available().find((t) => t.id === id) : this.available()[0];

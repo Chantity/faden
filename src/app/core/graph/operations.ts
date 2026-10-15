@@ -82,6 +82,38 @@ export function addStandalone(list: TodoList, newTask: Task, now?: string): Todo
   return withStructure(list, [...list.tasks, newTask], list.edges, now);
 }
 
+/** Wo ein neues ToDo hinkommt – ein Wert für alle Einfüge-Wege der Oberfläche. */
+export type InsertPosition =
+  | { kind: 'standalone' }
+  | { kind: 'before' | 'after' | 'split' | 'join'; anchor: string }
+  | { kind: 'between'; edgeId: string };
+
+/** Fügt `newTask` an `position` ein (dispatcht auf die einzelnen Operationen). */
+export function insertAt(list: TodoList, position: InsertPosition, newTask: Task): TodoList {
+  switch (position.kind) {
+    case 'standalone':
+      return addStandalone(list, newTask);
+    case 'before':
+      return insertBefore(list, position.anchor, newTask);
+    case 'after':
+      return insertAfter(list, position.anchor, newTask);
+    case 'split':
+      return addParallelAfter(list, position.anchor, newTask);
+    case 'join':
+      return addParallelBefore(list, position.anchor, newTask);
+    case 'between':
+      return insertBetween(list, position.edgeId, newTask);
+  }
+}
+
+/**
+ * Wo das nächste ToDo einer Enter-Kette hinkommt: Vorarbeiten reihen sich immer
+ * weiter davor (das neueste ist „jetzt dran"), alles andere danach.
+ */
+export function nextInChain(position: InsertPosition, createdId: string): InsertPosition {
+  return { kind: position.kind === 'before' ? 'before' : 'after', anchor: createdId };
+}
+
 /** Neuer Pfeil `from → to` mit Zyklus- und Duplikatprüfung. */
 export function connect(list: TodoList, from: string, to: string, now?: string): TodoList {
   requireTask(list, from);

@@ -355,3 +355,109 @@ summary:not(.icon-btn) {
   text-overflow: ellipsis;
   pointer-events: none;
 }
+
+/* --- ToDo-Sheet: Beschreibung als Text oder Checkliste ------------------ */
+.sheet__hint {
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-size: 0.9rem;
+}
+
+.desc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.segmented button {
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.segmented button[aria-checked='true'] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.checklist-edit {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.checklist-edit li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.checklist-edit input[type='checkbox'],
+.checklist input[type='checkbox'] {
+  width: 24px;
+  height: 24px;
+  margin: 12px;
+  flex: none;
+  accent-color: var(--color-primary);
+}
+
+/* Das Label macht den ganzen 48-px-Bereich um den Haken antippbar. */
+.checklist-edit__check {
+  display: flex;
+  flex: none;
+  cursor: pointer;
+}
+
+.checklist-edit__check input[type='checkbox'] {
+  margin: 12px;
+}
+
+.checklist-edit__text {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.checklist-edit__add {
+  align-self: flex-start;
+}
+
+/* --- Checkliste auf der Karte („Jetzt dran") ---------------------------- */
+.checklist {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+
+.checklist label {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-min);
+  cursor: pointer;
+}
+
+.checklist .is-done {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}

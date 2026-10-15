@@ -22,7 +22,7 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { ListDialog } from '../lists/list-dialog';
 import { FocusView } from './focus-view';
 import { FlowView } from './flow-view';
-import { TaskEditor } from './task-editor';
+import { TaskEditor, type CreateRequest } from './task-editor';
 import { ConnectDialog } from './connect-dialog';
 import { ShortcutHelp } from './shortcut-help';
 import { PlanEditor } from './plan-editor';
@@ -133,12 +133,14 @@ import { InsertTemplateDialog } from './insert-template-dialog';
           <app-focus-view
             [list]="current"
             (edit)="openEditor($event)"
+            (create)="openCreate($event)"
             (connectRequest)="openConnect($event)"
           />
         } @else {
           <app-flow-view
             [list]="current"
             (edit)="openEditor($event)"
+            (create)="openCreate($event)"
             (connectRequest)="openConnect($event)"
           />
         }
@@ -313,6 +315,11 @@ export class ListDetailPage {
   protected openEditor(taskId: string): void {
     const id = this.id();
     if (id) this.editor().open(id, taskId);
+  }
+
+  protected openCreate(request: CreateRequest): void {
+    const id = this.id();
+    if (id) this.editor().create(id, request.position, request.chain);
   }
 
   protected openConnect(taskId: string): void {

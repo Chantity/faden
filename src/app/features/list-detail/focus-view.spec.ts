@@ -3,6 +3,7 @@ import { FocusView } from './focus-view';
 import { ListsStore } from '../../core/state/lists.store';
 import { FadenDb } from '../../core/storage';
 import { createList, createTask, edgeId, type TodoList } from '../../core/model';
+import type { CreateRequest } from './task-editor';
 
 function chainList(): TodoList {
   const list = createList('Test');
@@ -47,86 +48,48 @@ describe('FocusView', () => {
     expect(store.getList(list.id)?.tasks.find((t) => t.id === 'a')?.done).toBe(true);
   });
 
-  it('öffnet bei „Erst noch etwas anderes nötig“ ein Eingabefeld', async () => {
-    const list = chainList();
+  async function renderWith(list: TodoList): Promise<{ root: HTMLElement; requests: CreateRequest[] }> {
     TestBed.inject(ListsStore).addExisting(list);
     const fixture = TestBed.createComponent(FocusView);
     fixture.componentRef.setInput('list', list);
+    const requests: CreateRequest[] = [];
+    fixture.componentInstance.create.subscribe((r) => requests.push(r));
     await fixture.whenStable();
-    const root = fixture.nativeElement as HTMLElement;
+    return { root: fixture.nativeElement as HTMLElement, requests };
+  }
 
+  it('„Erst noch etwas anderes nötig …" öffnet das Sheet für eine Vorarbeit (Enter-Kette)', async () => {
+    const { root, requests } = await renderWith(chainList());
     (root.querySelector('.task-card__need') as HTMLButtonElement).click();
-    await fixture.whenStable();
-
-    expect(root.querySelector('.chain input')).toBeTruthy();
+    expect(requests).toEqual([{ position: { kind: 'before', anchor: 'a' }, chain: true }]);
   });
 
-  it('bricht die Ketten-Eingabe über den Abbrechen-Button ab (ohne Esc)', async () => {
-    const list = chainList();
-    TestBed.inject(ListsStore).addExisting(list);
-    const fixture = TestBed.createComponent(FocusView);
-    fixture.componentRef.setInput('list', list);
-    await fixture.whenStable();
-    const root = fixture.nativeElement as HTMLElement;
-
-    (root.querySelector('.task-card__need') as HTMLButtonElement).click();
-    await fixture.whenStable();
-    const cancel = root.querySelector('.chain__actions button:not(.btn--primary)') as HTMLButtonElement;
-    cancel.click();
-    await fixture.whenStable();
-
-    expect(root.querySelector('.chain input')).toBeNull();
+  it('der leere Zettel und „✚" legen ein eigenes ToDo an', async () => {
+    const empty = await renderWith(createList('Leer'));
+    (empty.root.querySelector('.empty .btn--primary') as HTMLButtonElement).click();
+    expect(empty.requests).toEqual([{ position: { kind: 'standalone' }, chain: true }]);
   });
 
-  it('legt über das leere Eingabefeld ein ToDo an (Submit)', async () => {
-    const list = createList('Leer');
-    const store = TestBed.inject(ListsStore);
-    store.addExisting(list);
-    const fixture = TestBed.createComponent(FocusView);
-    fixture.componentRef.setInput('list', list);
-    await fixture.whenStable();
-    const root = fixture.nativeElement as HTMLElement;
-
-    (root.querySelector('.empty .btn--primary') as HTMLButtonElement).click();
-    await fixture.whenStable();
-
-    const input = root.querySelector('.chain input') as HTMLInputElement;
-    input.value = 'Neues ToDo';
-    input.dispatchEvent(new Event('input'));
-    await fixture.whenStable();
-
-    const form = root.querySelector('form.chain') as HTMLFormElement;
-    form.dispatchEvent(new Event('submit', { cancelable: true }));
-    await fixture.whenStable();
-
-    expect(store.getList(list.id)?.tasks.map((t) => t.title)).toEqual(['Neues ToDo']);
-  });
-
-  it('legt über „+“ ein ToDo ohne Abhängigkeit an', async () => {
-    const list = chainList();
-    const store = TestBed.inject(ListsStore);
-    store.addExisting(list);
-    const fixture = TestBed.createComponent(FocusView);
-    fixture.componentRef.setInput('list', list);
-    await fixture.whenStable();
-    const root = fixture.nativeElement as HTMLElement;
-
+  it('„✚" legt ein eigenes ToDo ohne Abhängigkeit an', async () => {
+    const { root, requests } = await renderWith(chainList());
     (root.querySelector('.focus__bar button') as HTMLButtonElement).click();
-    await fixture.whenStable();
+    expect(requests).toEqual([{ position: { kind: 'standalone' }, chain: true }]);
+  });
 
-    const input = root.querySelector('.chain input') as HTMLInputElement;
-    input.value = 'Einkaufen';
-    input.dispatchEvent(new Event('input'));
-    await fixture.whenStable();
+  it('hakt Punkte einer Checkliste direkt auf der Karte ab, ohne das ToDo abzuhaken', async () => {
+    const list = chainList();
+    list.tasks[0]!.checklist = [
+      { id: 'm', text: 'Milch', done: false },
+      { id: 'b', text: 'Brot', done: false },
+    ];
+    const { root } = await renderWith(list);
+    expect(root.querySelector('.task-card__checklist summary')?.textContent).toContain('0 of 2');
 
-    (root.querySelector('form.chain') as HTMLFormElement).dispatchEvent(
-      new Event('submit', { cancelable: true }),
-    );
-    await fixture.whenStable();
+    (root.querySelector('.checklist input[type=checkbox]') as HTMLInputElement).click();
 
-    const tasks = store.getList(list.id)?.tasks ?? [];
-    expect(tasks.map((t) => t.title)).toContain('Einkaufen');
-    expect(store.getList(list.id)?.edges.length).toBe(1);
+    const task = TestBed.inject(ListsStore).getList(list.id)!.tasks[0]!;
+    expect(task.checklist?.map((i) => i.done)).toEqual([true, false]);
+    expect(task.done).toBe(false);
   });
 
   function tripleList(): TodoList {
