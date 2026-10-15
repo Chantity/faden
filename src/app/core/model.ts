@@ -1,6 +1,8 @@
 // Datenmodell von Faden.
 // Zeitfelder werden IMMER gespeichert und beim Moduswechsel NICHT gelöscht.
+import type { ColorScheme } from './color-scheme';
 import type { CustomKeymap } from './keymap';
+import type { Preferences } from './preferences';
 
 export type TimeboxMode = 'none' | 'estimate' | 'dayPlan' | 'schedule';
 
@@ -84,13 +86,17 @@ export interface Template {
   createdAt: string;
 }
 
-export interface AppSettings {
+export interface AppSettings extends Preferences {
   theme: 'system' | 'light' | 'dark';
   /** Oberflächensprache; fehlt bei Alt-Daten und wird dann auf DEFAULT_LOCALE gesetzt. */
   language: Locale;
   lastBackupAt?: string;
   /** Geänderte Tastenkürzel (nur Abweichungen von der Standardbelegung). */
   keymap?: CustomKeymap;
+  /** Eigene Farbschemata (das Standardschema steht nur im Code). */
+  colorSchemes?: ColorScheme[];
+  /** ID des aktiven Schemas; fehlt oder unbekannt = Standardschema. */
+  activeScheme?: string;
   schemaVersion: number;
 }
 

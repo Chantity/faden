@@ -3,6 +3,7 @@
 import type { TimeboxMode } from '../model';
 import type { ConflictStrategy } from '../storage/backup';
 import type { ShortcutScope } from '../keymap';
+import type { CompletedListsAction, SimpleFeature } from '../preferences';
 import type { Translations } from './types';
 
 export const en = {
@@ -220,7 +221,6 @@ export const en = {
       addAfter: 'Insert after',
       splitAfter: 'Create successor task',
       join: 'Create predecessor task',
-      connect: 'Connect to another todo',
       delete: 'Delete',
       deleteOnly: 'Delete without reconnecting',
     },
@@ -233,7 +233,6 @@ export const en = {
     predecessors: 'Must be done before',
     successors: 'Comes after',
     addLink: '+ add',
-    chooseTask: 'Choose a todo',
     removeLink: (title: string): string => `Remove ${title}`,
     estimateLabel: 'Duration',
     estimateCustom: 'Custom minutes',
@@ -337,6 +336,16 @@ export const en = {
   advanced: {
     title: 'Advanced',
     intro: 'Settings most people never need.',
+    notesHeading: 'Notes',
+    noteKindLabel: 'New todos start with',
+    completedHeading: 'Finished lists',
+    completedHint:
+      'What happens to a list whose todos are all done – the next time you open the overview, with undo.',
+    completed: {
+      archive: 'Archive',
+      delete: 'Delete',
+      keep: 'Do nothing',
+    } satisfies Record<CompletedListsAction, string>,
     shortcutsHeading: 'Keyboard shortcuts',
     shortcutsHint:
       'Shortcuts only work while no input field is active. Tab and Esc stay reserved for navigating.',
@@ -357,6 +366,10 @@ export const en = {
     saved: (label: string, keys: string): string => `${label}: now ${keys}.`,
     cancelled: 'Not changed.',
     custom: 'changed',
+  },
+
+  schemes: {
+    defaultName: 'Sage',
   },
 
   listDialog: {
@@ -444,6 +457,8 @@ export const en = {
     listDuplicated: 'List duplicated.',
     autoArchivedOne: (title: string): string => `“${title}” is done and was archived.`,
     autoArchivedMany: (n: number): string => `${n} finished lists were archived.`,
+    autoDeletedOne: (title: string): string => `“${title}” is done and was deleted.`,
+    autoDeletedMany: (n: number): string => `${n} finished lists were deleted.`,
     saveFailed: 'Saving failed – please try again later.',
   },
 

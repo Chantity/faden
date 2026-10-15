@@ -241,11 +241,25 @@ describe('ListsStore – Archiv und Namen', () => {
     store.addExisting({ ...createList('Leer'), id: 'c', sortOrder: 2 });
     store.addExisting({ ...createList('Offen'), id: 'd', sortOrder: 3, tasks: [createTask('X', 'x')] });
 
-    expect(store.archiveCompleted().map((l) => l.id)).toEqual(['a', 'b']);
+    expect(store.handleCompleted('archive').map((l) => l.id)).toEqual(['a', 'b']);
     expect(store.lists().map((l) => l.id)).toEqual(['c', 'd']);
 
     store.undo();
     expect(store.archived()).toHaveLength(0);
+  });
+
+  it('löscht fertige Zettel auf Wunsch in einem Rückgängig-Schritt oder lässt sie stehen', () => {
+    const { store } = setup();
+    store.addExisting(finished('a', 'Fertig A'));
+    store.addExisting(finished('b', 'Fertig B', 1));
+
+    expect(store.handleCompleted('keep')).toEqual([]);
+    expect(store.handleCompleted('delete').map((l) => l.id)).toEqual(['a', 'b']);
+    expect(store.lists()).toHaveLength(0);
+    expect(store.archived()).toHaveLength(0);
+
+    store.undo();
+    expect(store.lists().map((l) => l.id)).toEqual(['a', 'b']);
   });
 
   it('dupliziert archivierte Zettel frisch, nicht archiviert und mit eindeutigem Namen', () => {

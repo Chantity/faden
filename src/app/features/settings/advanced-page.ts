@@ -23,10 +23,11 @@ import {
   type ShortcutScope,
 } from '../../core/keymap';
 import { shortcutLabel } from '../../shared/shortcut-label';
+import { COMPLETED_LISTS_ACTIONS, NOTE_KINDS } from '../../core/preferences';
 
 const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
 
-/** „Für Fortgeschrittene“: selten gebrauchte Einstellungen, vorerst die Tastenkürzel. */
+/** „Für Fortgeschrittene“: selten gebrauchte Einstellungen (Modus, Verhalten, Farben, Tasten). */
 @Component({
   selector: 'app-advanced-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +37,46 @@ const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
     <a class="back" routerLink="/einstellungen">← {{ t().titles.settings }}</a>
     <h1>{{ t().advanced.title }}</h1>
     <p class="muted">{{ t().advanced.intro }}</p>
+
+    <section class="card block" aria-labelledby="notes-heading">
+      <h2 id="notes-heading">{{ t().advanced.notesHeading }}</h2>
+      <fieldset class="group">
+        <legend class="field__label">{{ t().advanced.noteKindLabel }}</legend>
+        <div class="options">
+          @for (kind of noteKinds; track kind) {
+            <label class="option" [class.is-selected]="settings.noteKind() === kind">
+              <input
+                type="radio"
+                name="noteKind"
+                [checked]="settings.noteKind() === kind"
+                (change)="settings.setNoteKind(kind)"
+              />
+              <span>{{ kind === 'text' ? t().editor.descText : t().editor.descChecklist }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+    </section>
+
+    <section class="card block" aria-labelledby="completed-heading">
+      <h2 id="completed-heading">{{ t().advanced.completedHeading }}</h2>
+      <fieldset class="group">
+        <legend class="muted">{{ t().advanced.completedHint }}</legend>
+        <div class="options">
+          @for (action of completedActions; track action) {
+            <label class="option" [class.is-selected]="settings.completedLists() === action">
+              <input
+                type="radio"
+                name="completedLists"
+                [checked]="settings.completedLists() === action"
+                (change)="settings.setCompletedLists(action)"
+              />
+              <span>{{ t().advanced.completed[action] }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+    </section>
 
     <section class="card block" aria-labelledby="shortcuts-heading">
       <h2 id="shortcuts-heading">{{ t().advanced.shortcutsHeading }}</h2>
@@ -105,6 +146,22 @@ const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
 
     .block {
       padding: var(--space-4) var(--space-5);
+      margin-bottom: var(--space-4);
+    }
+
+    .block h2 {
+      margin-top: 0;
+    }
+
+    .group {
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .group legend {
+      margin-bottom: var(--space-2);
+      padding: 0;
     }
 
     h3 {
@@ -172,8 +229,11 @@ const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
 export class AdvancedPage {
   private readonly injector = inject(Injector);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly settings = inject(SettingsStore);
+  protected readonly settings = inject(SettingsStore);
   protected readonly t = inject(I18nStore).t;
+
+  protected readonly noteKinds = NOTE_KINDS;
+  protected readonly completedActions = COMPLETED_LISTS_ACTIONS;
 
   /** Aktion, deren neue Taste gerade aufgenommen wird. */
   protected readonly recording = signal<ShortcutAction | null>(null);

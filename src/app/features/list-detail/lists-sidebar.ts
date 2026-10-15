@@ -55,12 +55,18 @@ import { ViewStore } from '../../core/state/view.store';
     @media (min-width: 1025px) {
       :host {
         display: block;
+        align-self: start;
+        position: sticky;
+        top: calc(var(--header-height) + var(--space-4));
       }
     }
 
+    /* Unter dem klebenden Kopf; die Liste scrollt für sich, die Seite wächst nicht mit. */
     .side {
-      position: sticky;
-      top: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      max-height: calc(100dvh - var(--header-height) - 2 * var(--space-4));
       width: 15rem;
     }
 
@@ -69,9 +75,14 @@ import { ViewStore } from '../../core/state/view.store';
     }
 
     .side__list {
+      align-self: stretch;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       list-style: none;
       margin: var(--space-2) 0 0;
-      padding: 0;
+      /* Platz für den Fokusring, den overflow sonst abschneidet. */
+      padding: 5px;
       display: flex;
       flex-direction: column;
       gap: var(--space-1);

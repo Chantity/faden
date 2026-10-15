@@ -159,9 +159,6 @@ import type { CreateRequest } from './task-editor';
                     <button type="button" (click)="startSplit(task); closeMenu($event)">
                       {{ t().focus.menu.splitAfter }}
                     </button>
-                    <button type="button" (click)="connect(task); closeMenu($event)">
-                      {{ t().focus.menu.connect }}
-                    </button>
                     <button type="button" class="danger" (click)="remove(task); closeMenu($event)">
                       {{ t().focus.menu.delete }}
                     </button>
@@ -360,7 +357,6 @@ export class FocusView {
   readonly list = input.required<TodoList>();
   readonly edit = output<string>();
   readonly create = output<CreateRequest>();
-  readonly connectRequest = output<string>();
 
   protected readonly t = this.i18n.t;
   protected readonly now = this.nowStore.now;
@@ -501,10 +497,6 @@ export class FocusView {
 
   protected emitEdit(task: Task): void {
     this.edit.emit(task.id);
-  }
-
-  protected connect(task: Task): void {
-    this.connectRequest.emit(task.id);
   }
 
   protected readonly deleteBridges = deleteBridges;

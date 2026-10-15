@@ -47,6 +47,7 @@ import {
 } from '../../core/time';
 import { describeGraphError } from '../../core/i18n/graph-error';
 import { I18nStore } from '../../core/i18n/i18n.store';
+import { SettingsStore } from '../../core/state/settings.store';
 import { ListsStore } from '../../core/state/lists.store';
 import { focusAfterRender } from '../../shared/focus';
 
@@ -538,6 +539,7 @@ export class TaskEditor {
   private readonly injector = inject(Injector);
   private readonly store = inject(ListsStore);
   private readonly i18n = inject(I18nStore);
+  protected readonly settings = inject(SettingsStore);
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
   private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
@@ -897,7 +899,7 @@ export class TaskEditor {
   private resetFields(): void {
     this.title.set('');
     this.notes.set('');
-    this.kind.set('text');
+    this.kind.set(this.settings.noteKind());
     this.checklist.set([]);
     this.estimate.set(null);
     this.dayStart.set('');

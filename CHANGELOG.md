@@ -10,7 +10,17 @@
 
 **New**
 
+- **Finished lists:** choose under **Settings → Advanced** whether finished
+  lists are archived (as before), deleted or left alone.
+- **Notes:** choose whether new todos start with text or a checklist.
+
 **Improved**
+
+- An empty list opens “New todo” right away.
+- On wide screens, the list of lists on the left scrolls on its own instead of
+  making the whole page longer.
+- The ⋯ menu of a todo no longer has “Connect to another todo” – the edit
+  dialog already does this.
 
 ### 2.1.0
 
@@ -65,7 +75,18 @@
 
 **Neu**
 
+- **Erledigte Zettel:** Unter **Einstellungen → Für Fortgeschrittene** lässt
+  sich wählen, ob erledigte Zettel archiviert (wie bisher), gelöscht oder in Ruhe
+  gelassen werden.
+- **Notizen:** wählbar, ob neue ToDos mit Text oder mit einer Checkliste beginnen.
+
 **Verbessert**
+
+- Ein leerer Zettel öffnet gleich „Neues ToDo“.
+- Auf breiten Bildschirmen scrollt die Zettel-Liste links für sich, statt die
+  ganze Seite zu verlängern.
+- Das ⋯-Menü eines ToDos hat kein „Mit anderem ToDo verbinden“ mehr – das kann
+  der Bearbeiten-Dialog schon.
 
 ### 2.1.0
 

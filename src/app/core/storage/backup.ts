@@ -17,7 +17,10 @@ import {
   type TodoList,
 } from '../model';
 import { validateGraph, type GraphErrorCode } from '../graph';
+import { parseColorSchemes } from '../color-scheme';
+import { DICTIONARIES } from '../i18n/dictionaries';
 import { parseKeymap } from '../keymap';
+import { parsePreferences } from '../preferences';
 import { migrate } from './migrations';
 
 export const BACKUP_APP_ID = 'faden';
@@ -273,13 +276,22 @@ function parseTemplate(raw: unknown, index: number, errors: BackupIssue[]): Temp
   return errors.length > startErrors ? undefined : template;
 }
 
-function parseSettings(raw: unknown): AppSettings {
+/** Prüft gespeicherte oder importierte Einstellungen; Ungültiges fällt auf den Standard. */
+export function parseSettings(raw: unknown): AppSettings {
   if (!isRecord(raw)) {
     return { theme: 'system', language: DEFAULT_LOCALE, schemaVersion: SCHEMA_VERSION };
   }
   const theme = raw['theme'];
   const keymap = parseKeymap(raw['keymap']);
+  const colorSchemes = parseColorSchemes(
+    raw['colorSchemes'],
+    Object.values(DICTIONARIES).map((d) => d.schemes.defaultName),
+  );
+  const activeScheme = colorSchemes?.find((s) => s.id === raw['activeScheme'])?.id;
   return {
+    ...parsePreferences(raw),
+    ...(colorSchemes ? { colorSchemes } : {}),
+    ...(activeScheme ? { activeScheme } : {}),
     theme: theme === 'light' || theme === 'dark' ? theme : 'system',
     language: isLocale(raw['language']) ? raw['language'] : DEFAULT_LOCALE,
     schemaVersion: isNumber(raw['schemaVersion']) ? raw['schemaVersion'] : SCHEMA_VERSION,

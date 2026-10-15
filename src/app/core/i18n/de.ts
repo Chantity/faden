@@ -4,6 +4,7 @@
 import type { TimeboxMode } from '../model';
 import type { ConflictStrategy } from '../storage/backup';
 import type { ShortcutScope } from '../keymap';
+import type { CompletedListsAction, SimpleFeature } from '../preferences';
 
 export const de = {
   app: {
@@ -220,7 +221,6 @@ export const de = {
       addAfter: 'Danach einfügen',
       splitAfter: 'Nachfolgeaufgabe erstellen',
       join: 'Voraufgabe erstellen',
-      connect: 'Mit anderem ToDo verbinden',
       delete: 'Löschen',
       deleteOnly: 'Löschen, ohne zu verbinden',
     },
@@ -233,7 +233,6 @@ export const de = {
     predecessors: 'Muss vorher erledigt sein',
     successors: 'Kommt danach',
     addLink: '+ hinzufügen',
-    chooseTask: 'ToDo auswählen',
     removeLink: (title: string): string => `${title} entfernen`,
     estimateLabel: 'Dauer',
     estimateCustom: 'Eigene Minuten',
@@ -337,6 +336,16 @@ export const de = {
   advanced: {
     title: 'Für Fortgeschrittene',
     intro: 'Einstellungen, die die meisten nie brauchen.',
+    notesHeading: 'Notizen',
+    noteKindLabel: 'Neue ToDos beginnen mit',
+    completedHeading: 'Erledigte Zettel',
+    completedHint:
+      'Was mit einem Zettel passiert, dessen ToDos alle erledigt sind – beim nächsten Öffnen der Übersicht, mit Rückgängig.',
+    completed: {
+      archive: 'Archivieren',
+      delete: 'Löschen',
+      keep: 'Nichts tun',
+    } satisfies Record<CompletedListsAction, string>,
     shortcutsHeading: 'Tastenkürzel',
     shortcutsHint:
       'Kürzel wirken nur, wenn gerade kein Eingabefeld aktiv ist. Tab und Esc bleiben für die Bedienung reserviert.',
@@ -357,6 +366,10 @@ export const de = {
     saved: (label: string, keys: string): string => `${label}: jetzt ${keys}.`,
     cancelled: 'Nicht geändert.',
     custom: 'geändert',
+  },
+
+  schemes: {
+    defaultName: 'Salbei',
   },
 
   listDialog: {
@@ -442,6 +455,8 @@ export const de = {
     listDuplicated: 'Zettel dupliziert.',
     autoArchivedOne: (title: string): string => `„${title}“ ist erledigt und wurde archiviert.`,
     autoArchivedMany: (n: number): string => `${n} erledigte Zettel wurden archiviert.`,
+    autoDeletedOne: (title: string): string => `„${title}“ ist erledigt und wurde gelöscht.`,
+    autoDeletedMany: (n: number): string => `${n} erledigte Zettel wurden gelöscht.`,
     saveFailed: 'Speichern hat nicht geklappt – bitte später erneut versuchen.',
   },
 

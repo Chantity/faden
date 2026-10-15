@@ -278,28 +278,6 @@ import { formatBytes } from '../../core/time';
       margin-top: 0;
     }
 
-    .options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-    }
-
-    .option {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-2);
-      padding: var(--space-3) var(--space-4);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      cursor: pointer;
-      min-height: var(--touch-min);
-    }
-
-    .option.is-selected {
-      border-color: var(--color-primary);
-      background: var(--color-accent-soft);
-    }
-
     .actions {
       display: flex;
       flex-wrap: wrap;

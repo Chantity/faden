@@ -2,7 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  afterRenderEffect,
   inject,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -25,7 +27,6 @@ import { ListDialog } from '../lists/list-dialog';
 import { FocusView } from './focus-view';
 import { FlowView } from './flow-view';
 import { TaskEditor, type CreateRequest } from './task-editor';
-import { ConnectDialog } from './connect-dialog';
 import { ShortcutHelp } from './shortcut-help';
 import { PlanEditor } from './plan-editor';
 import { ListsSidebar } from './lists-sidebar';
@@ -34,7 +35,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
 @Component({
   selector: 'app-list-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ConnectDialog, ShortcutHelp, PlanEditor, InsertTemplateDialog, ListsSidebar],
+  imports: [RouterLink, ListDialog, FocusView, FlowView, TaskEditor, ShortcutHelp, PlanEditor, InsertTemplateDialog, ListsSidebar],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <app-lists-sidebar class="lists-side" [currentId]="id()" />
@@ -134,14 +135,12 @@ import { InsertTemplateDialog } from './insert-template-dialog';
             [list]="current"
             (edit)="openEditor($event)"
             (create)="openCreate($event)"
-            (connectRequest)="openConnect($event)"
           />
         } @else {
           <app-flow-view
             [list]="current"
             (edit)="openEditor($event)"
             (create)="openCreate($event)"
-            (connectRequest)="openConnect($event)"
             (shiftStrand)="planEditor.openStrand(current, $event)"
           />
         }
@@ -152,7 +151,6 @@ import { InsertTemplateDialog } from './insert-template-dialog';
       }
 
       <app-task-editor />
-      <app-connect-dialog />
       <app-shortcut-help />
       <app-plan-editor #planEditor />
       <app-insert-template-dialog />
@@ -256,7 +254,6 @@ export class ListDetailPage {
   protected readonly templates = inject(TemplatesStore);
 
   private readonly editor = viewChild.required(TaskEditor);
-  private readonly connectDialog = viewChild.required(ConnectDialog);
   private readonly help = viewChild.required(ShortcutHelp);
   private readonly listDialog = viewChild.required(ListDialog);
   private readonly planEditor = viewChild.required(PlanEditor);
@@ -268,8 +265,20 @@ export class ListDetailPage {
     initialValue: null,
   });
 
+  /** Zettel, für den das Anlege-Sheet schon von selbst aufging (nur einmal je Öffnen). */
+  private autoCreatedFor: string | null = null;
+
   constructor() {
     inject(PageTitleService).set('list');
+    // Ein leerer Zettel startet gleich mit „Neues ToDo“ – nicht, wenn man später das letzte löscht.
+    afterRenderEffect(() => {
+      const current = this.list();
+      if (!current || current.id === this.autoCreatedFor) return;
+      this.autoCreatedFor = current.id;
+      if (current.tasks.length === 0 && !current.archived) {
+        untracked(() => this.editor().create(current.id, { kind: 'standalone' }, true));
+      }
+    });
   }
 
   protected readonly list = computed(() => {
@@ -327,11 +336,6 @@ export class ListDetailPage {
   protected openCreate(request: CreateRequest): void {
     const id = this.id();
     if (id) this.editor().create(id, request.position, request.chain);
-  }
-
-  protected openConnect(taskId: string): void {
-    const id = this.id();
-    if (id) this.connectDialog().open(id, taskId);
   }
 
   protected editList(current: TodoList): void {

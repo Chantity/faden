@@ -279,7 +279,6 @@ const MAX_SCALE = 2;
               <button type="button" (click)="menuEdit(menu.id)">{{ t().focus.menu.edit }}</button>
               <button type="button" (click)="menuSplit(menu.id)">{{ t().focus.menu.splitAfter }}</button>
               <button type="button" (click)="menuJoin(menu.id)">{{ t().focus.menu.join }}</button>
-              <button type="button" (click)="menuConnect(menu.id)">{{ t().focus.menu.connect }}</button>
               @if (timed()) {
                 <button type="button" (click)="menuShiftStrand(menu.id)">{{ t().flow.moveStrand }}</button>
               }
@@ -620,7 +619,6 @@ export class FlowView {
   readonly list = input.required<TodoList>();
   readonly edit = output<string>();
   readonly create = output<CreateRequest>();
-  readonly connectRequest = output<string>();
   /** „Strang verschieben …" für den Strang dieser Karte. */
   readonly shiftStrand = output<string>();
 
@@ -911,11 +909,6 @@ export class FlowView {
 
   protected menuJoin(id: string): void {
     this.startInsert({ kind: 'join', anchor: id });
-  }
-
-  protected menuConnect(id: string): void {
-    this.nodeMenu.set(null);
-    this.connectRequest.emit(id);
   }
 
   protected readonly deleteBridges = deleteBridges;

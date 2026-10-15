@@ -9,6 +9,7 @@ import {
   type TodoList,
 } from '../model';
 import { FadenDb, upgradeList, upgradeLists } from '../storage';
+import type { CompletedListsAction } from '../preferences';
 import { withTimeboxMode } from '../time';
 import { CommandHistory, History } from './history';
 
@@ -225,13 +226,18 @@ export class ListsStore {
   }
 
   /**
-   * Archiviert alle Zettel, deren ToDos (mindestens eines) alle erledigt sind –
-   * ein Rückgängig-Schritt in der Übersicht. Liefert die archivierten Zettel.
+   * Archiviert oder löscht alle Zettel, deren ToDos (mindestens eines) alle
+   * erledigt sind – ein Rückgängig-Schritt in der Übersicht. Liefert die betroffenen Zettel.
    */
-  archiveCompleted(): TodoList[] {
+  handleCompleted(action: CompletedListsAction): TodoList[] {
+    if (action === 'keep') return [];
     const done = this.lists().filter((l) => l.tasks.length > 0 && l.tasks.every((t) => t.done));
     if (done.length === 0) return [];
     const ids = new Set(done.map((l) => l.id));
+    if (action === 'delete') {
+      this.removeMany(ids);
+      return done;
+    }
     const apply = (archived: boolean) => () =>
       this.setAll(
         this.all().map((l) => (ids.has(l.id) ? { ...l, archived, updatedAt: new Date().toISOString() } : l)),
@@ -269,18 +275,29 @@ export class ListsStore {
    */
   remove(id: string): void {
     if (!this.getList(id)) return;
-    let snapshot: TodoList | undefined;
+    this.removeMany(new Set([id]));
+  }
+
+  /** Löscht weich (mit Frist) – ein Rückgängig-Schritt für alle. */
+  private removeMany(ids: ReadonlySet<string>): void {
+    const snapshots = new Map<string, TodoList>();
     const softDelete = () => {
-      snapshot = this.getList(id) ?? snapshot;
-      this.replace(id, (l) => ({ ...l, deletedAt: new Date().toISOString() }));
+      for (const id of ids) {
+        const current = this.getList(id);
+        if (current) snapshots.set(id, current);
+        this.replace(id, (l) => ({ ...l, deletedAt: new Date().toISOString() }));
+      }
       this.schedulePurge();
     };
     const bringBack = () => {
-      // Wurde der Name inzwischen neu vergeben, kommt der Zettel als „Name (2)" zurück.
-      if (this.all().some((l) => l.id === id)) {
-        this.replace(id, ({ deletedAt: _deletedAt, ...l }) => ({ ...l, title: this.uniqueTitle(l.title, id) }));
-      } else if (snapshot) {
-        this.setAll([...this.all(), { ...snapshot, title: this.uniqueTitle(snapshot.title, id) }]);
+      for (const id of ids) {
+        // Wurde der Name inzwischen neu vergeben, kommt der Zettel als „Name (2)" zurück.
+        const snapshot = snapshots.get(id);
+        if (this.all().some((l) => l.id === id)) {
+          this.replace(id, ({ deletedAt: _deletedAt, ...l }) => ({ ...l, title: this.uniqueTitle(l.title, id) }));
+        } else if (snapshot) {
+          this.setAll([...this.all(), { ...snapshot, title: this.uniqueTitle(snapshot.title, id) }]);
+        }
       }
     };
     this.run({ undo: bringBack, redo: softDelete });

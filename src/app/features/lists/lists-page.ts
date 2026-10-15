@@ -17,6 +17,7 @@ import { listToTemplate, templateToList } from '../../core/templates';
 import { modeSwitchOffer, withTimeboxMode } from '../../core/time';
 import { BackupService } from '../../core/backup/backup.service';
 import { ListsStore } from '../../core/state/lists.store';
+import { SettingsStore } from '../../core/state/settings.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { ListDialog, type ListDialogResult } from './list-dialog';
@@ -35,6 +36,7 @@ export class ListsPage {
   private readonly i18n = inject(I18nStore);
   private readonly backup = inject(BackupService);
   private readonly templatesStore = inject(TemplatesStore);
+  protected readonly settings = inject(SettingsStore);
   protected readonly templates = this.templatesStore.templates;
 
   protected readonly t = this.i18n.t;
@@ -47,7 +49,7 @@ export class ListsPage {
     // Einmal pro Besuch der Übersicht, sobald die Zettel geladen sind.
     const archiveOnce = effect(() => {
       if (!this.store.ready()) return;
-      untracked(() => this.archiveCompleted());
+      untracked(() => this.handleCompleted());
       archiveOnce.destroy();
     });
   }
@@ -164,14 +166,15 @@ export class ListsPage {
     return topologicalOrder(list).map((task) => task.title);
   }
 
-  /** Fertige Zettel wandern beim Betreten der Übersicht ins Archiv (mit Rückgängig). */
-  private archiveCompleted(): void {
-    const archived = this.store.archiveCompleted();
-    if (archived.length === 0) return;
-    const message =
-      archived.length === 1
-        ? this.t().snackbar.autoArchivedOne(archived[0]!.title)
-        : this.t().snackbar.autoArchivedMany(archived.length);
+  /** Fertige Zettel wandern beim Betreten der Übersicht ins Archiv oder in den Papierkorb (mit Rückgängig). */
+  private handleCompleted(): void {
+    const action = this.settings.completedLists();
+    const handled = this.store.handleCompleted(action);
+    if (handled.length === 0) return;
+    const snack = this.t().snackbar;
+    const one = action === 'delete' ? snack.autoDeletedOne : snack.autoArchivedOne;
+    const many = action === 'delete' ? snack.autoDeletedMany : snack.autoArchivedMany;
+    const message = handled.length === 1 ? one(handled[0]!.title) : many(handled.length);
     this.snackbar.show(message, { label: this.t().common.undo, run: () => this.store.undo() });
   }
 }
