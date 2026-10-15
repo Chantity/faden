@@ -136,7 +136,7 @@ describe('TaskEditor – Anlegen und Checkliste', () => {
     await fixture.whenStable();
 
     const createButton = root.querySelector('.sheet__actions .btn--primary') as HTMLButtonElement;
-    expect(createButton.disabled).toBe(true);
+    expect(createButton.getAttribute('aria-disabled')).toBe('true');
     expect(root.querySelector('#task-title-hint')?.textContent).toBe(''); // noch nichts getippt
     await submit();
     expect(root.querySelector('#task-title-hint')?.textContent).toContain('title');

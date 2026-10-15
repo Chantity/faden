@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { SettingsPage } from './settings-page';
 import { BackupService } from '../../core/backup/backup.service';
 import { ListsStore } from '../../core/state/lists.store';
@@ -9,7 +10,7 @@ describe('SettingsPage – Konflikte beim Zusammenführen', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SettingsPage],
-      providers: [{ provide: FadenDb, useFactory: () => new FadenDb() }],
+      providers: [provideRouter([]), { provide: FadenDb, useFactory: () => new FadenDb() }],
     }).compileComponents();
   });
 

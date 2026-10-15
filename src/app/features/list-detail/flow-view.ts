@@ -40,8 +40,12 @@ import {
 import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { TemplatesStore } from '../../core/state/templates.store';
+import { SettingsStore } from '../../core/state/settings.store';
+import { actionFor } from '../../core/keymap';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import type { CreateRequest } from './task-editor';
+
+type FlowDirection = 'flowUp' | 'flowDown' | 'flowLeft' | 'flowRight';
 
 const MIN_SCALE = 0.4;
 const MAX_SCALE = 2;
@@ -610,6 +614,7 @@ export class FlowView {
   private readonly i18n = inject(I18nStore);
   private readonly nowStore = inject(NowStore);
   private readonly templates = inject(TemplatesStore);
+  private readonly settings = inject(SettingsStore);
   private readonly wrap = viewChild<ElementRef<HTMLElement>>('wrap');
 
   readonly list = input.required<TodoList>();
@@ -963,30 +968,29 @@ export class FlowView {
   // --- Tastatur -------------------------------------------------
 
   protected onKeydown(event: KeyboardEvent): void {
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-    const target = event.target as HTMLElement | null;
-    if (target?.closest('input, textarea, select, [contenteditable]')) return;
-    const card = target?.closest('[data-task-id]') as HTMLElement | null;
-    const id = card?.dataset['taskId'];
-    if (!id) return;
-    if (event.key === 'Enter') {
-      event.preventDefault();
+    const target = event.target instanceof HTMLElement ? event.target : null;
+    if (target?.closest('input, textarea, select, [contenteditable], dialog')) return;
+    // Nur auf der fokussierten Karte selbst: Knöpfe darin (Abhaken, ⋯) behalten Enter/Leertaste.
+    if (!target?.matches('[data-task-id]')) return;
+    const id = target.dataset['taskId'];
+    const action = actionFor(event, this.settings.keymap(), ['flow']);
+    if (!id || !action) return;
+    event.preventDefault();
+    if (action === 'flowEdit') {
       this.edit.emit(id);
-    } else if (event.key === 'Delete' || event.key === 'Backspace') {
-      event.preventDefault();
+    } else if (action === 'flowDelete') {
       const list = this.list();
       this.store.editList(list.id, (l) => deleteTask(l, id, 'bridge'));
       this.snackbar.show(this.t().common.delete, {
         label: this.t().common.undo,
         run: () => this.store.undo(list.id),
       });
-    } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-      event.preventDefault();
-      this.moveFocus(id, event.key);
+    } else {
+      this.moveFocus(id, action as FlowDirection); // die übrigen Aktionen im Bereich „Ablauf“
     }
   }
 
-  private moveFocus(fromId: string, key: string): void {
+  private moveFocus(fromId: string, direction: FlowDirection): void {
     const nodes = this.layout().nodes;
     const current = nodes.find((n) => n.id === fromId);
     if (!current) return;
@@ -995,10 +999,10 @@ export class FlowView {
       const dx = n.x - current.x;
       const dy = n.y - current.y;
       const inDirection =
-        (key === 'ArrowDown' && dy > 0) ||
-        (key === 'ArrowUp' && dy < 0) ||
-        (key === 'ArrowRight' && dx > 0) ||
-        (key === 'ArrowLeft' && dx < 0);
+        (direction === 'flowDown' && dy > 0) ||
+        (direction === 'flowUp' && dy < 0) ||
+        (direction === 'flowRight' && dx > 0) ||
+        (direction === 'flowLeft' && dx < 0);
       if (!inDirection) return Number.POSITIVE_INFINITY;
       return Math.abs(dx) + Math.abs(dy);
     };

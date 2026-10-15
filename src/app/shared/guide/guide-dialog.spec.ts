@@ -38,7 +38,7 @@ describe('GuideDialog', () => {
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
 
-    expect([...root.querySelectorAll('h2[id]')].map((h) => h.id)).toEqual(['guide-title', 'english', 'deutsch']);
+    expect([...root.querySelectorAll('.guide__content h2[id]')].map((h) => h.id)).toEqual(['english', 'deutsch']);
     expect(scrolled).toEqual(['english']); // Sprache der Tests: Englisch
 
     const hash = location.hash;
@@ -47,5 +47,18 @@ describe('GuideDialog', () => {
     expect(click.defaultPrevented).toBe(true);
     expect(location.hash).toBe(hash);
     expect(scrolled).toEqual(['english', 'deutsch']);
+  });
+
+  it('öffnet auch das Änderungsprotokoll („Was ist neu?“) aus eigener Datei', async () => {
+    const fetchMock = vi.fn(async (url: string) => ({ ok: true, text: async () => `<h2>English</h2><p>${url}</p>` }));
+    vi.stubGlobal('fetch', fetchMock);
+    HTMLElement.prototype.scrollIntoView = () => undefined;
+    const fixture = TestBed.createComponent(GuideDialog);
+    await fixture.componentInstance.open('changelog');
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('dialog h2')?.textContent).toBe('What’s new?');
+    expect(root.querySelector('.guide__content')?.textContent).toContain('guide/changelog.html');
+    expect(fetchMock).toHaveBeenCalledWith('guide/changelog.html');
   });
 });

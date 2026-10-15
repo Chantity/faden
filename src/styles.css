@@ -181,7 +181,10 @@ button {
   color: var(--color-danger);
 }
 
-.btn[disabled] {
+/* aria-disabled: sieht gesperrt aus, bleibt aber erreichbar; die Aktion prüft selbst
+   (kein Wettlauf zwischen schnellem Enter und dem nächsten Rendern). */
+.btn[disabled],
+.btn[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
 }

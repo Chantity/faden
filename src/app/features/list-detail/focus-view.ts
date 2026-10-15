@@ -35,6 +35,8 @@ import {
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
+import { SettingsStore } from '../../core/state/settings.store';
+import { actionFor } from '../../core/keymap';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { closeMenu } from '../../shared/menus';
 import type { CreateRequest } from './task-editor';
@@ -351,6 +353,7 @@ export class FocusView {
   private readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
+  private readonly settings = inject(SettingsStore);
   private readonly nowStore = inject(NowStore);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -560,26 +563,17 @@ export class FocusView {
   // --- Tastatur -------------------------------------------------
 
   protected onKeydown(event: KeyboardEvent): void {
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-    const target = event.target as HTMLElement | null;
+    const target = event.target instanceof HTMLElement ? event.target : null;
     if (target?.closest('input, textarea, select, [contenteditable], dialog')) return;
+    const action = actionFor(event, this.settings.keymap(), ['focus']);
+    if (!action) return;
     const card = target?.closest('[data-task-id]') as HTMLElement | null;
     const id = card?.dataset['taskId'];
     const task = id ? this.available().find((t) => t.id === id) : this.available()[0];
     if (!task) return;
-    switch (event.key.toLowerCase()) {
-      case 'v':
-        event.preventDefault();
-        this.startBefore(task);
-        break;
-      case 'n':
-        event.preventDefault();
-        this.startAfter(task);
-        break;
-      case 'e':
-        event.preventDefault();
-        this.emitEdit(task);
-        break;
-    }
+    event.preventDefault();
+    if (action === 'needFirst') this.startBefore(task);
+    else if (action === 'insertAfter') this.startAfter(task);
+    else this.emitEdit(task);
   }
 }

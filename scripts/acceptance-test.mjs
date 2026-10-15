@@ -347,6 +347,7 @@ const PAGES = [
   { name: 'Ablauf (lange Titel)', hash: '#/zettel/lang', view: 'flow', fullZoom: true },
   { name: 'Vorlagen', hash: '#/vorlagen' },
   { name: 'Einstellungen', hash: '#/einstellungen' },
+  { name: 'Für Fortgeschrittene', hash: '#/einstellungen/fortgeschritten' },
 ];
 
 async function openPage(p) {

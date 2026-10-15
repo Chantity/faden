@@ -19,20 +19,27 @@ describe('ListDialog – Namen', () => {
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
     const input = root.querySelector('input[name=title]') as HTMLInputElement;
-    const button = () => root.querySelector('button[type=submit]') as HTMLButtonElement;
+    const submit = () => root.querySelector('button[type=submit]') as HTMLButtonElement;
+    const button = () => ({ disabled: submit().getAttribute('aria-disabled') === 'true' });
     const hint = () => root.querySelector('#list-title-hint')!.textContent!.trim();
     const type = async (value: string) => {
       input.value = value;
       input.dispatchEvent(new Event('input'));
       await fixture.whenStable();
     };
-    return { button, hint, type };
+    return { fixture, submit, button, hint, type };
   }
 
   it('leer und vergeben verhalten sich gleich: Knopf gesperrt, Hinweis unter dem Feld', async () => {
-    const { button, hint, type } = await setup();
+    const { fixture, submit, button, hint, type } = await setup();
+    const saved: unknown[] = [];
+    fixture.componentInstance.saved.subscribe((r) => saved.push(r));
     expect(button().disabled).toBe(true);
     expect(hint()).toBe(''); // vor dem ersten Tippen kein Hinweis
+    submit().click(); // gesperrt, aber erreichbar: zeigt den Hinweis, legt nichts an
+    await fixture.whenStable();
+    expect(hint()).toBe('Please enter a title.');
+    expect(saved).toEqual([]);
 
     await type('KÜCHE ');
     expect(button().disabled).toBe(true);

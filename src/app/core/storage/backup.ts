@@ -17,6 +17,7 @@ import {
   type TodoList,
 } from '../model';
 import { validateGraph, type GraphErrorCode } from '../graph';
+import { parseKeymap } from '../keymap';
 import { migrate } from './migrations';
 
 export const BACKUP_APP_ID = 'faden';
@@ -277,11 +278,13 @@ function parseSettings(raw: unknown): AppSettings {
     return { theme: 'system', language: DEFAULT_LOCALE, schemaVersion: SCHEMA_VERSION };
   }
   const theme = raw['theme'];
+  const keymap = parseKeymap(raw['keymap']);
   return {
     theme: theme === 'light' || theme === 'dark' ? theme : 'system',
     language: isLocale(raw['language']) ? raw['language'] : DEFAULT_LOCALE,
     schemaVersion: isNumber(raw['schemaVersion']) ? raw['schemaVersion'] : SCHEMA_VERSION,
     ...(isString(raw['lastBackupAt']) ? { lastBackupAt: raw['lastBackupAt'] } : {}),
+    ...(keymap ? { keymap } : {}),
   };
 }
 

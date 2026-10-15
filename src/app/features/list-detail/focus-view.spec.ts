@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { FocusView } from './focus-view';
 import { ListsStore } from '../../core/state/lists.store';
+import { SettingsStore } from '../../core/state/settings.store';
 import { FadenDb } from '../../core/storage';
 import { createList, createTask, edgeId, type TodoList } from '../../core/model';
 import type { CreateRequest } from './task-editor';
@@ -90,6 +91,17 @@ describe('FocusView', () => {
     const task = TestBed.inject(ListsStore).getList(list.id)!.tasks[0]!;
     expect(task.checklist?.map((i) => i.done)).toEqual([true, false]);
     expect(task.done).toBe(false);
+  });
+
+  it('Tastenkürzel folgen der eingestellten Belegung (V → B)', async () => {
+    const { requests } = await renderWith(chainList());
+    const press = (key: string) =>
+      document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    await TestBed.inject(SettingsStore).setShortcut('needFirst', [{ key: 'b' }]);
+    press('v');
+    expect(requests).toEqual([]);
+    press('b');
+    expect(requests).toEqual([{ position: { kind: 'before', anchor: 'a' }, chain: true }]);
   });
 
   it('zeigt dezent, wenn alles auf der Liste erledigt ist – das ToDo bleibt offen', async () => {

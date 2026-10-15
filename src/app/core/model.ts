@@ -1,5 +1,6 @@
 // Datenmodell von Faden.
 // Zeitfelder werden IMMER gespeichert und beim Moduswechsel NICHT gelöscht.
+import type { CustomKeymap } from './keymap';
 
 export type TimeboxMode = 'none' | 'estimate' | 'dayPlan' | 'schedule';
 
@@ -88,6 +89,8 @@ export interface AppSettings {
   /** Oberflächensprache; fehlt bei Alt-Daten und wird dann auf DEFAULT_LOCALE gesetzt. */
   language: Locale;
   lastBackupAt?: string;
+  /** Geänderte Tastenkürzel (nur Abweichungen von der Standardbelegung). */
+  keymap?: CustomKeymap;
   schemaVersion: number;
 }
 

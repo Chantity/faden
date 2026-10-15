@@ -19,12 +19,13 @@ import { describeBackupIssue } from '../../core/i18n/backup-error';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { GuideDialog } from '../../shared/guide/guide-dialog';
+import { RouterLink } from '@angular/router';
 import { formatBytes } from '../../core/time';
 
 @Component({
   selector: 'app-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [GuideDialog],
+  imports: [GuideDialog, RouterLink],
   template: `
     <h1>{{ t().nav.settings }}</h1>
 
@@ -100,6 +101,9 @@ import { formatBytes } from '../../core/time';
     <section class="card block">
       <h2>{{ t().settings.versionHeading }}</h2>
       <p class="muted">{{ t().settings.versionLabel }}: {{ appVersion }}</p>
+      <div class="actions">
+        <button type="button" class="btn" (click)="guide.open('changelog')">{{ t().settings.changelogOpen }}</button>
+      </div>
       @if (pwa.offline() === 'ready') {
         <p class="muted">{{ t().settings.updateHint }}</p>
         @switch (pwa.update()) {
@@ -141,6 +145,14 @@ import { formatBytes } from '../../core/time';
         <a class="btn" [href]="repoUrl" target="_blank" rel="noopener">{{ t().settings.repoLink }}</a>
       </div>
       <app-guide-dialog #guide />
+    </section>
+
+    <section class="card block">
+      <h2>{{ t().settings.advancedHeading }}</h2>
+      <p class="muted">{{ t().settings.advancedHint }}</p>
+      <div class="actions">
+        <a class="btn" routerLink="/einstellungen/fortgeschritten">{{ t().settings.advancedOpen }} →</a>
+      </div>
     </section>
 
     <section class="card block">

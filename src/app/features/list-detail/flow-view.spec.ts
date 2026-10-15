@@ -113,6 +113,24 @@ describe('FlowView', () => {
     expect(shifted).toEqual(['b']);
   });
 
+  it('Enter bearbeitet nur auf der Karte selbst – auf einem Knopf darin bleibt Enter beim Knopf', async () => {
+    const list = chainList();
+    TestBed.inject(ListsStore).addExisting(list);
+    const fixture = TestBed.createComponent(FlowView);
+    fixture.componentRef.setInput('list', list);
+    const edited: string[] = [];
+    fixture.componentInstance.edit.subscribe((id) => edited.push(id));
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const enter = (el: Element) =>
+      el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+
+    enter(root.querySelector('[data-task-id="a"] .node__toggle')!);
+    expect(edited).toEqual([]);
+    enter(root.querySelector('[data-task-id="a"]')!);
+    expect(edited).toEqual(['a']);
+  });
+
   it('zeigt genau einen „+“ zwischen zwei verbundenen ToDos', async () => {
     const list = chainList();
     TestBed.inject(ListsStore).addExisting(list);

@@ -86,7 +86,7 @@ import { focusAfterRender } from '../../shared/focus';
 
         <div class="sheet__actions">
           <button type="button" class="btn" (click)="close()">{{ t().common.cancel }}</button>
-          <button type="submit" class="btn btn--primary" [disabled]="empty() || taken()">
+          <button type="submit" class="btn btn--primary" [attr.aria-disabled]="empty() || taken()">
             {{ editing() ? t().common.save : t().listDialog.create }}
           </button>
         </div>
@@ -266,6 +266,7 @@ export class ListDialog {
   }
 
   protected submit(): void {
+    this.touched.set(true); // ein leerer Name zeigt jetzt seinen Hinweis
     if (this.empty() || this.taken()) return; // Länge begrenzt schon maxlength
     this.saved.emit({
       id: this.editingId(),

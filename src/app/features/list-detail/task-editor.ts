@@ -334,7 +334,7 @@ function withoutEmpty(task: Task): Task {
         <div class="sheet__actions">
           <button type="button" class="btn" (click)="close()">{{ t().common.cancel }}</button>
           <!-- In einer Kette beendet „Fertig“ mit leerem Feld die Kette und bleibt daher aktiv. -->
-          <button type="submit" class="btn btn--primary" [disabled]="titleEmpty() && !creating()?.chain">
+          <button type="submit" class="btn btn--primary" [attr.aria-disabled]="titleEmpty() && !creating()?.chain">
             {{ submitLabel() }}
           </button>
         </div>

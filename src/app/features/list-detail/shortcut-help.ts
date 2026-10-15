@@ -1,11 +1,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   inject,
   viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { I18nStore } from '../../core/i18n/i18n.store';
+import { SettingsStore } from '../../core/state/settings.store';
+import { formatCombo, SHORTCUT_ACTIONS } from '../../core/keymap';
+import { shortcutLabel } from '../../shared/shortcut-label';
 
 interface Shortcut {
   keys: string;
@@ -15,8 +20,9 @@ interface Shortcut {
 @Component({
   selector: 'app-shortcut-help',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
   template: `
-    <dialog #dlg class="sheet" (close)="onClosed()">
+    <dialog #dlg class="sheet">
       <h2>{{ t().shortcuts.title }}</h2>
       <dl class="shortcuts">
         @for (shortcut of shortcuts(); track shortcut.label) {
@@ -27,6 +33,7 @@ interface Shortcut {
         }
       </dl>
       <div class="sheet__actions">
+        <a class="btn" routerLink="/einstellungen/fortgeschritten" (click)="close()">{{ t().shortcuts.customize }}</a>
         <button type="button" class="btn btn--primary" (click)="close()">{{ t().common.close }}</button>
       </div>
     </dialog>
@@ -64,7 +71,7 @@ interface Shortcut {
     }
 
     dt {
-      flex: 0 0 5.5rem;
+      flex: 0 0 8rem;
     }
 
     dd {
@@ -86,31 +93,32 @@ interface Shortcut {
 
     .sheet__actions {
       display: flex;
+      flex-wrap: wrap;
       justify-content: flex-end;
+      gap: var(--space-2);
     }
   `,
 })
 export class ShortcutHelp {
   private readonly i18n = inject(I18nStore);
+  private readonly settings = inject(SettingsStore);
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
 
   protected readonly t = this.i18n.t;
 
-  protected shortcuts(): Shortcut[] {
+  /** Die aktuelle (ggf. geänderte) Belegung plus die festen Tasten des Browsers. */
+  protected readonly shortcuts = computed<Shortcut[]>(() => {
     const t = this.t();
+    const keymap = this.settings.keymap();
     return [
-      { keys: '⏎', label: t.shortcuts.done },
-      { keys: 'v', label: t.shortcuts.needFirst },
-      { keys: 'n', label: t.shortcuts.after },
-      { keys: 'e', label: t.shortcuts.edit },
-      { keys: '↑ ↓ ← →', label: t.shortcuts.flowNav },
-      { keys: '⏎', label: t.shortcuts.flowEdit },
-      { keys: '⌫', label: t.shortcuts.flowDelete },
-      { keys: 'Ctrl+Z', label: t.shortcuts.undo },
-      { keys: 'Ctrl+Shift+Z', label: t.shortcuts.redo },
-      { keys: '?', label: t.shortcuts.help },
+      { keys: `${t.keys.named['Enter']} / ${t.keys.named[' ']}`, label: t.shortcuts.activate },
+      ...SHORTCUT_ACTIONS.map((action) => ({
+        keys: keymap[action].map((combo) => formatCombo(combo, t.keys)).join(' / '),
+        label: shortcutLabel(t, action),
+      })),
+      { keys: t.keys.named['Escape']!, label: t.shortcuts.close },
     ];
-  }
+  });
 
   open(): void {
     this.dialogRef().nativeElement.showModal();
@@ -118,9 +126,5 @@ export class ShortcutHelp {
 
   close(): void {
     this.dialogRef().nativeElement.close();
-  }
-
-  protected onClosed(): void {
-    // nichts aufzuräumen
   }
 }

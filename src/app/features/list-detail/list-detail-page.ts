@@ -15,6 +15,8 @@ import { progress } from '../../core/graph';
 import { listToTemplate } from '../../core/templates';
 import { estimateSums, formatDuration, modeSwitchOffer, withTimeboxMode } from '../../core/time';
 import { ListsStore } from '../../core/state/lists.store';
+import { SettingsStore } from '../../core/state/settings.store';
+import { actionFor } from '../../core/keymap';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { ViewStore, type ListView } from '../../core/state/view.store';
 import { closeMenu } from '../../shared/menus';
@@ -250,6 +252,7 @@ export class ListDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
+  private readonly settings = inject(SettingsStore);
   protected readonly templates = inject(TemplatesStore);
 
   private readonly editor = viewChild.required(TaskEditor);
@@ -390,25 +393,14 @@ export class ListDetailPage {
   protected readonly closeMenu = closeMenu;
 
   protected onKeydown(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement | null;
-    const inField = Boolean(target?.closest('input, textarea, select, [contenteditable]'));
-    const mod = event.ctrlKey || event.metaKey;
-    if (mod) {
-      if (inField) return;
-      const key = event.key.toLowerCase();
-      if (key === 'z') {
-        event.preventDefault();
-        if (event.shiftKey) this.redo();
-        else this.undo();
-      } else if (key === 'y') {
-        event.preventDefault();
-        this.redo();
-      }
-      return;
-    }
-    if (event.key === '?' && !inField) {
-      event.preventDefault();
-      this.help().open();
-    }
+    const target = event.target instanceof HTMLElement ? event.target : null;
+    // In Feldern gilt das Rückgängig des Browsers; in Dialogen nichts dahinter auslösen.
+    if (target?.closest('input, textarea, select, [contenteditable], dialog')) return;
+    const action = actionFor(event, this.settings.keymap(), ['global']);
+    if (!action) return;
+    event.preventDefault();
+    if (action === 'undo') this.undo();
+    else if (action === 'redo') this.redo();
+    else this.help().open();
   }
 }

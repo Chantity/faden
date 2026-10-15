@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { DEFAULT_LOCALE, isLocale, SCHEMA_VERSION, type AppSettings, type Locale } from '../model';
 import { I18nStore } from '../i18n/i18n.store';
 import { FadenDb } from '../storage';
+import { parseKeymap, resolveKeymap, type KeyCombo, type ShortcutAction } from '../keymap';
 
 export type ThemeChoice = AppSettings['theme'];
 
@@ -13,10 +14,13 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 function normalizeSettings(stored: AppSettings | undefined): AppSettings {
   if (!stored) return DEFAULT_SETTINGS;
+  const { keymap: _keymap, ...rest } = stored;
+  const keymap = parseKeymap(stored.keymap);
   return {
     ...DEFAULT_SETTINGS,
-    ...stored,
+    ...rest,
     language: isLocale(stored.language) ? stored.language : DEFAULT_LOCALE,
+    ...(keymap ? { keymap } : {}),
     schemaVersion: SCHEMA_VERSION,
   };
 }
@@ -29,6 +33,8 @@ export class SettingsStore {
   readonly settings = signal<AppSettings>(DEFAULT_SETTINGS);
   readonly theme = computed(() => this.settings().theme);
   readonly language = computed(() => this.settings().language);
+  /** Gültige Tastenkürzel: Standardbelegung plus eigene Änderungen. */
+  readonly keymap = computed(() => resolveKeymap(this.settings().keymap));
 
   async load(): Promise<void> {
     try {
@@ -58,6 +64,31 @@ export class SettingsStore {
   async markBackup(iso: string): Promise<void> {
     this.settings.update((s) => ({ ...s, lastBackupAt: iso }));
     await this.db.putSettings(this.settings());
+  }
+
+  /** Belegt ein Tastenkürzel neu; `null` stellt die Standardbelegung wieder her. */
+  async setShortcut(action: ShortcutAction, combos: KeyCombo[] | null): Promise<void> {
+    this.settings.update(({ keymap, ...s }) => {
+      const next = { ...keymap };
+      if (combos) next[action] = combos;
+      else delete next[action];
+      return Object.keys(next).length > 0 ? { ...s, keymap: next } : s;
+    });
+    await this.save();
+  }
+
+  /** Alle Tastenkürzel auf die Standardbelegung. */
+  async resetShortcuts(): Promise<void> {
+    this.settings.update(({ keymap: _keymap, ...s }) => s);
+    await this.save();
+  }
+
+  private async save(): Promise<void> {
+    try {
+      await this.db.putSettings(this.settings());
+    } catch {
+      // Ohne IndexedDB (Tests) gilt die Änderung nur für diese Sitzung.
+    }
   }
 
   /** Setzt das Theme am <html>-Element; 'system' folgt der Browser-Einstellung. */

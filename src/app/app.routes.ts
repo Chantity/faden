@@ -19,5 +19,9 @@ export const routes: Routes = [
     path: 'einstellungen',
     loadComponent: () => import('./features/settings/settings-page').then((m) => m.SettingsPage),
   },
+  {
+    path: 'einstellungen/fortgeschritten',
+    loadComponent: () => import('./features/settings/advanced-page').then((m) => m.AdvancedPage),
+  },
   { path: '**', redirectTo: '' },
 ];

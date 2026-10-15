@@ -13,25 +13,37 @@ import {
 import { I18nStore } from '../../core/i18n/i18n.store';
 
 /** Vom Build erzeugt (scripts/guide.mjs) und vorab gecacht – also auch offline da. */
-const GUIDE_URL = 'guide/guide.html';
+const DOCUMENTS = {
+  guide: 'guide/guide.html',
+  changelog: 'guide/changelog.html',
+} as const;
+
+export type GuideDocument = keyof typeof DOCUMENTS;
+
+/** Eindeutige Überschriften-IDs, falls mehrere Dialoge gleichzeitig im DOM sind. */
+let nextId = 0;
 
 /**
- * Lädt die Anleitung einmal pro Sitzung (geteilt von allen Dialogen); nach einem
+ * Lädt jedes Dokument einmal pro Sitzung (geteilt von allen Dialogen); nach einem
  * Fehler beim nächsten Öffnen erneut. Als Service statt Modul-Variable, damit
  * jeder Test frisch beginnt (Vitest isoliert Testdateien hier nicht).
  */
 @Injectable({ providedIn: 'root' })
 export class GuideLoader {
-  private loading: Promise<string> | null = null;
+  private readonly loading = new Map<GuideDocument, Promise<string>>();
 
-  load(): Promise<string> {
-    this.loading ??= fetch(GUIDE_URL)
-      .then((response) => (response.ok ? response.text() : Promise.reject(new Error(String(response.status)))))
-      .catch((error: unknown) => {
-        this.loading = null;
-        throw error;
-      });
-    return this.loading;
+  load(doc: GuideDocument): Promise<string> {
+    let pending = this.loading.get(doc);
+    if (!pending) {
+      pending = fetch(DOCUMENTS[doc])
+        .then((response) => (response.ok ? response.text() : Promise.reject(new Error(String(response.status)))))
+        .catch((error: unknown) => {
+          this.loading.delete(doc);
+          throw error;
+        });
+      this.loading.set(doc, pending);
+    }
+    return pending;
   }
 }
 
@@ -54,9 +66,9 @@ function slug(text: string): string {
   // Der eingesetzte Inhalt hat keine Angular-Attribute; die Klassen sind daher eindeutig benannt.
   encapsulation: ViewEncapsulation.None,
   template: `
-    <dialog #dlg class="sheet guide" aria-labelledby="guide-title" (close)="onClosed()">
+    <dialog #dlg class="sheet guide" [attr.aria-labelledby]="titleId" (close)="onClosed()">
       <div class="guide__head">
-        <h2 id="guide-title">{{ t().guide.title }}</h2>
+        <h2 [id]="titleId">{{ doc() === 'changelog' ? t().guide.changelogTitle : t().guide.title }}</h2>
         <button type="button" class="btn" (click)="close()">{{ t().guide.close }}</button>
       </div>
       <div #body class="guide__body" tabindex="-1" (click)="onBodyClick($event)">
@@ -169,18 +181,23 @@ export class GuideDialog {
   private readonly bodyRef = viewChild.required<ElementRef<HTMLElement>>('body');
 
   protected readonly t = this.i18n.t;
+  protected readonly titleId = `guide-title-${nextId++}`;
+  protected readonly doc = signal<GuideDocument>('guide');
   protected readonly html = signal<string | null>(null);
   protected readonly failed = signal(false);
 
   private restoreFocusTo: HTMLElement | null = null;
 
-  async open(): Promise<void> {
+  /** Öffnet die Anleitung oder das Änderungsprotokoll („Was ist neu?“). */
+  async open(doc: GuideDocument = 'guide'): Promise<void> {
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
     this.failed.set(false);
+    if (doc !== this.doc()) this.html.set(null);
+    this.doc.set(doc);
     const dialog = this.dialogRef().nativeElement;
     if (!dialog.open) dialog.showModal();
     try {
-      this.html.set(await this.loader.load());
+      this.html.set(await this.loader.load(doc));
     } catch {
       this.failed.set(true);
       return;

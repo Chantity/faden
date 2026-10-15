@@ -82,7 +82,7 @@ import { focusAfterRender } from '../../shared/focus';
         <p class="field__hint" id="template-name-hint" role="status">{{ renameHint() }}</p>
         <div class="sheet__actions">
           <button type="button" class="btn" (click)="closeRename()">{{ t().common.cancel }}</button>
-          <button type="submit" class="btn btn--primary" [disabled]="renameEmpty() || renameTaken()">
+          <button type="submit" class="btn btn--primary" [attr.aria-disabled]="renameEmpty() || renameTaken()">
             {{ t().common.save }}
           </button>
         </div>
@@ -239,6 +239,7 @@ export class TemplatesPage {
 
   protected submitRename(): void {
     const id = this.renamingId();
+    this.renameTouched.set(true);
     if (!id || this.renameEmpty() || this.renameTaken()) return;
     void this.store.rename(id, this.renameValue().trim());
     this.closeRename();

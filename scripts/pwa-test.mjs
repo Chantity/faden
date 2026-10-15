@@ -248,8 +248,11 @@ await test('2 Server aus: App startet, anlegen, abhaken, Export', async () => {
   await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Read the guide').click()`);
   await page.waitFor(`document.querySelector('dialog[open] .guide__content h2')`, 'Anleitung offline');
   await page.press('Escape');
+  await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'What’s new?').click()`);
+  await page.waitFor(`document.querySelector('dialog[open] .guide__content h3')?.textContent.trim() === '2.1.0'`, 'Changelog offline');
+  await page.press('Escape');
   await assertSwIntact(page);
-  return `Zettel + ToDo offline angelegt und abgehakt, ${file} exportiert, Anleitung offline gelesen`;
+  return `Zettel + ToDo offline angelegt und abgehakt, ${file} exportiert, Anleitung und Changelog offline gelesen`;
 });
 
 for (const [name, m] of [

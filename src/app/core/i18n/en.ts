@@ -2,6 +2,7 @@
 // Muss den Aufbau von de.ts exakt erfüllen (siehe `satisfies Translations`).
 import type { TimeboxMode } from '../model';
 import type { ConflictStrategy } from '../storage/backup';
+import type { ShortcutScope } from '../keymap';
 import type { Translations } from './types';
 
 export const en = {
@@ -40,6 +41,7 @@ export const en = {
     list: 'List',
     templates: 'Templates',
     settings: 'Settings',
+    advanced: 'Advanced',
   },
 
   lists: {
@@ -185,6 +187,7 @@ export const en = {
 
   guide: {
     title: 'Guide',
+    changelogTitle: 'What’s new?',
     close: 'Close',
     loading: 'Loading the guide …',
     loadError: 'The guide could not be loaded right now. It is available once Faden has been loaded completely.',
@@ -292,16 +295,68 @@ export const en = {
 
   shortcuts: {
     title: 'Keyboard shortcuts',
-    done: 'Mark done (in “Now”)',
     needFirst: 'Something else has to come first',
     after: 'Insert after',
     edit: 'Edit',
     undo: 'Undo',
     redo: 'Redo',
     help: 'Open this overview',
-    flowNav: 'In flow: pick neighbour',
     flowEdit: 'In flow: edit',
     flowDelete: 'In flow: delete',
+    flowUp: 'In flow: card above',
+    flowDown: 'In flow: card below',
+    flowLeft: 'In flow: card to the left',
+    flowRight: 'In flow: card to the right',
+    activate: 'Press the focused button, e.g. “Done”',
+    close: 'Close a menu or dialog',
+    customize: 'Change shortcuts …',
+  },
+
+  keys: {
+    ctrl: 'Ctrl',
+    shift: 'Shift',
+    alt: 'Alt',
+    named: {
+      Enter: 'Enter',
+      ' ': 'Space',
+      Delete: 'Delete',
+      Backspace: 'Backspace',
+      Escape: 'Esc',
+      Tab: 'Tab',
+      ArrowUp: '↑',
+      ArrowDown: '↓',
+      ArrowLeft: '←',
+      ArrowRight: '→',
+      Home: 'Home',
+      End: 'End',
+      PageUp: 'Page ↑',
+      PageDown: 'Page ↓',
+    } as Record<string, string>,
+  },
+
+  advanced: {
+    title: 'Advanced',
+    intro: 'Settings most people never need.',
+    shortcutsHeading: 'Keyboard shortcuts',
+    shortcutsHint:
+      'Shortcuts only work while no input field is active. Tab and Esc stay reserved for navigating.',
+    scopes: {
+      focus: 'In “Now”',
+      flow: 'In the flow',
+      global: 'Anywhere in a list',
+    } satisfies Record<ShortcutScope, string>,
+    change: 'Change',
+    changeLabel: (label: string): string => `${label}: change shortcut`,
+    reset: 'Default',
+    resetLabel: (label: string): string => `${label}: reset to default`,
+    resetAll: 'Reset all to default',
+    resetAllDone: 'All shortcuts are back to their defaults.',
+    recording: 'Press the new key … (Esc cancels)',
+    reserved: (key: string): string => `${key} is reserved for navigating.`,
+    conflict: (label: string): string => `This key is already used: ${label}.`,
+    saved: (label: string, keys: string): string => `${label}: now ${keys}.`,
+    cancelled: 'Not changed.',
+    custom: 'changed',
   },
 
   listDialog: {
@@ -445,6 +500,10 @@ export const en = {
     helpHeading: 'Help',
     guideOpen: 'Read the guide',
     repoLink: 'Faden on GitHub (source code, report a problem)',
+    changelogOpen: 'What’s new?',
+    advancedHeading: 'Advanced',
+    advancedHint: 'Change keyboard shortcuts and other rarely needed settings.',
+    advancedOpen: 'Open advanced settings',
   },
 
   a11y: {

@@ -3,6 +3,7 @@
 // Compiler erzwingt das über `satisfies Translations` (siehe types.ts).
 import type { TimeboxMode } from '../model';
 import type { ConflictStrategy } from '../storage/backup';
+import type { ShortcutScope } from '../keymap';
 
 export const de = {
   app: {
@@ -40,6 +41,7 @@ export const de = {
     list: 'Zettel',
     templates: 'Vorlagen',
     settings: 'Einstellungen',
+    advanced: 'Für Fortgeschrittene',
   },
 
   lists: {
@@ -185,6 +187,7 @@ export const de = {
 
   guide: {
     title: 'Anleitung',
+    changelogTitle: 'Was ist neu?',
     close: 'Schließen',
     loading: 'Anleitung wird geladen …',
     loadError: 'Die Anleitung konnte gerade nicht geladen werden. Sie ist verfügbar, sobald Faden einmal vollständig geladen wurde.',
@@ -292,16 +295,68 @@ export const de = {
 
   shortcuts: {
     title: 'Tastenkürzel',
-    done: 'Erledigt abhaken (in „Jetzt dran“)',
     needFirst: 'Erst noch etwas anderes nötig',
     after: 'Danach einfügen',
     edit: 'Bearbeiten',
     undo: 'Rückgängig',
     redo: 'Wiederholen',
     help: 'Diese Übersicht öffnen',
-    flowNav: 'Im Ablauf: Nachbar wählen',
     flowEdit: 'Im Ablauf: Bearbeiten',
     flowDelete: 'Im Ablauf: Löschen',
+    flowUp: 'Im Ablauf: Karte darüber',
+    flowDown: 'Im Ablauf: Karte darunter',
+    flowLeft: 'Im Ablauf: Karte links',
+    flowRight: 'Im Ablauf: Karte rechts',
+    activate: 'Fokussierten Knopf auslösen, z. B. „Erledigt“',
+    close: 'Menü oder Dialog schließen',
+    customize: 'Tastenkürzel ändern …',
+  },
+
+  keys: {
+    ctrl: 'Strg',
+    shift: 'Umschalt',
+    alt: 'Alt',
+    named: {
+      Enter: 'Enter',
+      ' ': 'Leertaste',
+      Delete: 'Entf',
+      Backspace: 'Rücktaste',
+      Escape: 'Esc',
+      Tab: 'Tab',
+      ArrowUp: '↑',
+      ArrowDown: '↓',
+      ArrowLeft: '←',
+      ArrowRight: '→',
+      Home: 'Pos1',
+      End: 'Ende',
+      PageUp: 'Bild ↑',
+      PageDown: 'Bild ↓',
+    } as Record<string, string>,
+  },
+
+  advanced: {
+    title: 'Für Fortgeschrittene',
+    intro: 'Einstellungen, die die meisten nie brauchen.',
+    shortcutsHeading: 'Tastenkürzel',
+    shortcutsHint:
+      'Kürzel wirken nur, wenn gerade kein Eingabefeld aktiv ist. Tab und Esc bleiben für die Bedienung reserviert.',
+    scopes: {
+      focus: 'In „Jetzt dran“',
+      flow: 'Im Ablauf',
+      global: 'Überall im Zettel',
+    } satisfies Record<ShortcutScope, string>,
+    change: 'Ändern',
+    changeLabel: (label: string): string => `${label}: Kürzel ändern`,
+    reset: 'Standard',
+    resetLabel: (label: string): string => `${label}: auf Standard zurücksetzen`,
+    resetAll: 'Alle auf Standard',
+    resetAllDone: 'Alle Tastenkürzel sind wieder auf Standard.',
+    recording: 'Drücke die neue Taste … (Esc bricht ab)',
+    reserved: (key: string): string => `${key} ist für die Bedienung reserviert.`,
+    conflict: (label: string): string => `Diese Taste ist schon belegt: ${label}.`,
+    saved: (label: string, keys: string): string => `${label}: jetzt ${keys}.`,
+    cancelled: 'Nicht geändert.',
+    custom: 'geändert',
   },
 
   listDialog: {
@@ -444,6 +499,10 @@ export const de = {
     helpHeading: 'Hilfe',
     guideOpen: 'Anleitung lesen',
     repoLink: 'Faden auf GitHub (Quellcode, Fehler melden)',
+    changelogOpen: 'Was ist neu?',
+    advancedHeading: 'Für Fortgeschrittene',
+    advancedHint: 'Tastenkürzel ändern und weitere selten gebrauchte Einstellungen.',
+    advancedOpen: 'Für Fortgeschrittene öffnen',
   },
 
   a11y: {
