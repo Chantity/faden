@@ -34,7 +34,7 @@ const addTask = (title: string) => (l: TodoList): TodoList => ({
   tasks: [...l.tasks, createTask(title, title)],
 });
 
-describe('ListsStore – Verlauf pro Zettel (SPEC 5.5)', () => {
+describe('ListsStore – Verlauf pro Zettel', () => {
   it('macht nur Änderungen des jeweiligen Zettels rückgängig', async () => {
     const { store } = setup();
     await store.load();
@@ -143,7 +143,7 @@ describe('ListsStore – Verlauf der Übersicht', () => {
   });
 });
 
-describe('ListsStore – Löschen mit Frist (Soft-Delete, SPEC 5.5)', () => {
+describe('ListsStore – Löschen mit Frist (Soft-Delete)', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 

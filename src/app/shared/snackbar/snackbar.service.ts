@@ -13,7 +13,7 @@ export interface SnackbarState {
 const DEFAULT_DURATION_MS = 8000;
 
 /**
- * Nicht-modaler Hinweisband-Dienst (SPEC 5.5): erscheint unten, blockiert nicht,
+ * Nicht-modaler Hinweisband-Dienst: erscheint unten, blockiert nicht,
  * wird per aria-live="polite" angekündigt und verschwindet nach ~8 Sekunden.
  */
 @Injectable({ providedIn: 'root' })

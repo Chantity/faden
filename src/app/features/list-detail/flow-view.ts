@@ -636,7 +636,7 @@ export class FlowView {
   });
 
   /**
-   * Teilsummen je Strang (SPEC 7.2, optional): nur im Modus „Zeitschätzung" und
+   * Teilsummen je Strang (optional): nur im Modus „Zeitschätzung" und
    * nur bei mehreren Strängen – bei einem Strang steht die Summe schon im Kopf.
    */
   private readonly showStrandSums = computed(
@@ -702,7 +702,7 @@ export class FlowView {
     return isBlocked(this.list(), task.id);
   }
 
-  /** Zeitstatus für das Badge (SPEC 7.3). */
+  /** Zeitstatus für das Badge. */
   protected statusOf(task: Task): TimeStatus | undefined {
     return timeStatus(this.list(), task, this.now());
   }
@@ -982,7 +982,7 @@ export class FlowView {
     return true;
   }
 
-  // --- Tastatur (SPEC 5.7) -------------------------------------------------
+  // --- Tastatur -------------------------------------------------
 
   protected onKeydown(event: KeyboardEvent): void {
     if (event.ctrlKey || event.metaKey || event.altKey) return;

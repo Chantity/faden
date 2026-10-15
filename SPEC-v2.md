@@ -192,7 +192,7 @@ Die Funktion greift beim Anlegen über eine Position (2.1), wenn der Zettel im M
    - Die App lädt `guide/guide.html` vom eigenen Ursprung und zeigt es per `[innerHTML]` (Angular-Sanitizer bleibt aktiv). Relative Bildpfade müssen funktionieren.
    - Der Konverter bekommt Unit-Tests für die genutzten Elemente.
 4. **Einstellungen: Knopf „Anleitung lesen“**, der denselben Dialog öffnet.
-5. **Einstellungen: Link zum GitHub-Repository.** Die URL steht als `APP_REPO_URL` in `src/app/app-meta.ts`. Der Link öffnet mit `target="_blank" rel="noopener"`. Ein Link ist eine Navigation durch den Nutzer und keine Laufzeit-Anfrage, das Prinzip „keine externen Requests“ bleibt also gewahrt. **Offen:** die endgültige Repo-URL; der Nutzer liefert sie, bis dahin ein Platzhalter.
+5. **Einstellungen: Link zum GitHub-Repository.** Die URL steht als `APP_REPO_URL` in `src/app/app-meta.ts`. Der Link öffnet mit `target="_blank" rel="noopener"`. Ein Link ist eine Navigation durch den Nutzer und keine Laufzeit-Anfrage, das Prinzip „keine externen Requests“ bleibt also gewahrt. URL: `https://github.com/Chantity/faden`.
 
 ---
 

@@ -1,4 +1,4 @@
-// Zeitplan-Werkzeuge (SPEC 7.3–7.5): Validierung, Verschieben, Strecken,
+// Zeitplan-Werkzeuge: Validierung, Verschieben, Strecken,
 // Zeiten aus Schätzungen vorschlagen und Tageszeiten auf ein Datum übertragen.
 // Reine Funktionen, ohne Angular.
 import { type Task, type TodoList, type TimeboxMode } from '../model';
@@ -15,7 +15,7 @@ export interface EstimateSums {
   openWithoutEstimate: number;
 }
 
-/** Summiert Schätzungen (SPEC 7.2). */
+/** Summiert Schätzungen. */
 export function estimateSums(list: TodoList): EstimateSums {
   let openMinutes = 0;
   let totalMinutes = 0;
@@ -34,7 +34,7 @@ export function estimateSums(list: TodoList): EstimateSums {
   return { openMinutes, totalMinutes, doneMinutes, openWithoutEstimate };
 }
 
-/** Validiert „Bis > Von" im Tagesplan (SPEC 7.3). */
+/** Validiert „Bis > Von" im Tagesplan. */
 export function validateDayTimes(
   dayStart: string | undefined,
   dayEnd: string | undefined,
@@ -66,7 +66,7 @@ function toLocalIso(date: Date): string {
 
 /**
  * Verschiebt alle geplanten Zeiten eines Zettels um `deltaMs`
- * (SPEC 7.4, „Alles verschieben"). Wirkt auf `startAt`/`endAt` sowie – sofern
+ * („Alles verschieben"). Wirkt auf `startAt`/`endAt` sowie – sofern
  * der Modus `dayPlan` ist – auch auf `dayStart`/`dayEnd`.
  */
 export function shiftPlan(list: TodoList, deltaMs: number): TodoList {
@@ -107,7 +107,7 @@ export interface StretchInput {
 
 /**
  * Bildet alle `startAt`/`endAt` proportional auf einen neuen Zeitraum ab
- * (SPEC 7.4, „Auf Zeitraum strecken/stauchen"), auf 5 Minuten gerundet.
+ * („Auf Zeitraum strecken/stauchen"), auf 5 Minuten gerundet.
  */
 export function stretchPlan(list: TodoList, input: StretchInput): TodoList {
   const oldStartMs = new Date(input.oldStart).getTime();
@@ -158,7 +158,7 @@ export function planBounds(list: TodoList): { start: string; end: string } | nul
 
 /**
  * Überträgt Tageszeiten (`dayStart`/`dayEnd`) auf ein gewähltes Datum und
- * erzeugt daraus `startAt`/`endAt` (SPEC 7.4, Moduswechsel `dayPlan` →
+ * erzeugt daraus `startAt`/`endAt` (Moduswechsel `dayPlan` →
  * `schedule`).
  */
 export function transferDayTimesToList(list: TodoList, day: string): TodoList {
@@ -182,13 +182,13 @@ function combine(day: string, minutes: number): string {
 export interface ProposeOptions {
   /** Startzeit („YYYY-MM-DDTHH:mm") für `schedule`, sonst „HH:mm" für `dayPlan`. */
   startAt: string;
-  /** Standarddauer für ToDos ohne Schätzung (SPEC 7.5). */
+  /** Standarddauer für ToDos ohne Schätzung. */
   fallbackMinutes?: number;
 }
 
 /**
  * Legt die ToDos in topologischer Reihenfolge nacheinander ab einer gewählten
- * Startzeit an (SPEC 7.5). `dayPlan` nutzt `dayStart`/`dayEnd`, `schedule`
+ * Startzeit an. `dayPlan` nutzt `dayStart`/`dayEnd`, `schedule`
  * `startAt`/`endAt`.
  */
 export function proposeTimes(
@@ -240,8 +240,8 @@ export function modeFields(mode: TimeboxMode): readonly (keyof Task)[] {
 
 /**
  * Setzt den Zeitmodus eines Zettels. Wird der Tagesplan aktiviert (oder fehlt
- * sein Bezugstag), gilt ab jetzt der heutige Tag als Bezugstag (SPEC 7.3).
- * Zeitfelder der ToDos bleiben unberührt (SPEC 7: kein Datenverlust).
+ * sein Bezugstag), gilt ab jetzt der heutige Tag als Bezugstag.
+ * Zeitfelder der ToDos bleiben unberührt.
  */
 export function withTimeboxMode(list: TodoList, mode: TimeboxMode, now: Date): TodoList {
   const activatesDayPlan =
@@ -255,7 +255,7 @@ export function withTimeboxMode(list: TodoList, mode: TimeboxMode, now: Date): T
 }
 
 /**
- * Was beim Moduswechsel angeboten wird (SPEC 7.4):
+ * Was beim Moduswechsel angeboten wird:
  * - 'convert': `dayPlan` → `schedule` und es gibt Tageszeiten → Übertragen anbieten.
  * - 'scheduleKept': `schedule` → `dayPlan` und es gibt Datums-Zeiten → nur Hinweis.
  */

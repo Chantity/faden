@@ -13,7 +13,7 @@ export interface PersistedData {
 
 /**
  * Reine Migrationsfunktion. Bringt Daten älterer Schema-Versionen auf den
- * aktuellen Stand (SPEC 8.7). Weitere Schritte werden hier angehängt.
+ * aktuellen Stand. Weitere Schritte werden hier angehängt.
  *
  * @throws Error bei unbekannter/zukünftiger Version.
  */

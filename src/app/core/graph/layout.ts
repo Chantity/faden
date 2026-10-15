@@ -2,7 +2,7 @@ import type { Edge, Task, TodoList } from '../model';
 import { connectedComponents } from './ordering';
 
 /**
- * Deterministisches, top-down Layered-Layout für das Ablaufdiagramm (SPEC 5.4).
+ * Deterministisches, top-down Layered-Layout für das Ablaufdiagramm.
  * Reine Funktion: gleiche Eingabe → gleiche Positionen, kein freies Verschieben.
  */
 

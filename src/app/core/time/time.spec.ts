@@ -312,7 +312,7 @@ describe('plannedBounds', () => {
   });
 });
 
-describe('withTimeboxMode (Bezugstag, SPEC 7.3)', () => {
+describe('withTimeboxMode (Bezugstag)', () => {
   const NOW = new Date(2026, 2, 12, 9, 30);
 
   it('setzt beim Aktivieren des Tagesplans heute als Bezugstag', () => {
@@ -347,7 +347,7 @@ describe('withTimeboxMode (Bezugstag, SPEC 7.3)', () => {
   });
 });
 
-describe('modeSwitchOffer (SPEC 7.4)', () => {
+describe('modeSwitchOffer', () => {
   it('bietet beim Wechsel Tagesplan → fester Zeitplan das Übertragen an', () => {
     const list = createList('Plan', 'dayPlan');
     list.tasks = [task({ id: 'a', title: 'A', dayStart: '09:00' })];

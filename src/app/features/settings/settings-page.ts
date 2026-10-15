@@ -333,7 +333,7 @@ export class SettingsPage {
   protected readonly storageStatus = signal<string>('');
   protected readonly canPersist = signal(false);
   private readonly storageEstimate = signal<{ usage: number; quota: number } | null>(null);
-  /** `navigator.storage.estimate()` als Info (SPEC 8.3). */
+  /** `navigator.storage.estimate()` als Info. */
   protected readonly storageUsage = computed(() => {
     const estimate = this.storageEstimate();
     if (!estimate) return null;

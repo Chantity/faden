@@ -1,5 +1,5 @@
 /**
- * Generischer Rückgängig/Wiederholen-Verlauf mit fester Obergrenze (SPEC 5.5).
+ * Generischer Rückgängig/Wiederholen-Verlauf mit fester Obergrenze.
  * Speichert Snapshots (immutable Werte). Redo wird bei einer neuen Änderung verworfen.
  */
 export class History<T> {
@@ -52,7 +52,7 @@ export interface Command {
 }
 
 /**
- * Rückgängig/Wiederholen als Befehle statt Snapshots (SPEC 5.5). Für die
+ * Rückgängig/Wiederholen als Befehle statt Snapshots. Für die
  * Zettel-Übersicht: Ein Schritt dort (z. B. Archivieren) soll beim Rückgängig-
  * machen nicht nebenbei spätere Änderungen in einem Zettel verwerfen.
  */

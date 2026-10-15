@@ -26,7 +26,7 @@ function txDone(tx: IDBTransaction): Promise<void> {
 }
 
 /**
- * Dünner, promise-basierter Wrapper um IndexedDB (SPEC 8).
+ * Dünner, promise-basierter Wrapper um IndexedDB.
  * Bewusst ohne externe Bibliothek. Transaktionen werden erst nach dem
  * Öffnen erzeugt und dann synchron befüllt, um Auto-Commit zu vermeiden.
  */

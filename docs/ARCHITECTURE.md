@@ -1,7 +1,8 @@
 # Architektur
 
-Technische Beschreibung der App „Faden". Fachliche Anforderungen stehen in
-`SPEC.md`, getroffene Entscheidungen in `docs/DECISIONS.md`.
+Technische Beschreibung der App „Faden" samt der technischen Entscheidungen und
+ihrer Begründung. Wofür die App da ist und nach welchen Regeln sie gebaut wird,
+steht in `docs/DESIGN-PRINCIPLES.md`; die Bedienung in `docs/USER-GUIDE.md`.
 
 ## 1. Überblick
 
@@ -24,7 +25,7 @@ src/app/
 ├─ app.routes.ts                    Hash-Routen (lazy geladen)
 ├─ app-meta.ts                      App-Name + Version (einzige Namensquelle)
 ├─ core/
-│  ├─ model.ts                      Datenmodell (SPEC 3.2) + Konstanten
+│  ├─ model.ts                      Datenmodell + Konstanten
 │  ├─ i18n/                         Oberflächentexte + reaktiver Sprachzugriff
 │  │  ├─ de.ts / en.ts              Wörterbücher (en = Standard)
 │  │  ├─ types.ts                   Translations = typeof de (Vorlage)
@@ -78,7 +79,7 @@ vollständig unit-testbar und bilden das Herz der App.
 
 ## 3. Datenmodell
 
-Definiert in `core/model.ts`, 1:1 zu `SPEC.md` 3.2:
+Definiert in `core/model.ts`:
 
 - `TodoList` („Zettel") enthält `tasks`, `edges`, `timeboxMode`, `archived`,
   Zeitstempel und `sortOrder`.
@@ -250,9 +251,23 @@ Undo/Redo, Menü), der Umschalter **„Jetzt dran" | „Ablauf"** (Wahl je Zette
 
 ## 8. PWA und Service Worker
 
-**Entscheidung: eigener, minimaler Service Worker** (Variante B) statt
-`@angular/service-worker`, weil ngsw bei HTTP 404 auf `ngsw.json` alle Caches
-löscht und sich deregistriert (Details in `docs/DECISIONS.md`).
+**Entscheidung: eigener, minimaler Service Worker** statt
+`@angular/service-worker` (ngsw). Begründung (verifiziert): ngsw ruft beim
+Update-Check `ngsw.json` ab. Liefert der Server darauf **HTTP 404**, löscht ngsw
+**alle Caches und deregistriert sich selbst** (`fetchLatestManifest` →
+`deleteAllCaches()` + `unregister()`). Das ist laut Angular bewusstes Design und
+nicht abschaltbar (https://angular.dev/ecosystem/service-workers/devops,
+https://github.com/angular/angular/issues/51337). Genau dieser Fall – „Host
+abgeschaltet, Domain antwortet mit 404" – würde „einmal hosten, nie wieder"
+zerstören; ngsw fiel deshalb durch die PWA-Pflichttests.
+
+**`public/sw.js` wird nie aus kosmetischen Gründen geändert** (auch nicht seine
+Kommentare): Jede Änderung an der Datei installiert der Browser bei bestehenden
+Nutzern selbstständig als neuen Worker. Das ist zwar abgesichert (siehe
+`install` unten), widerspricht aber dem Grundsatz „keine Auto-Updates".
+Die Kommentare dort verweisen deshalb noch auf die frühere `SPEC.md` bzw.
+`docs/DECISIONS.md` (mit v2 entfernt; Inhalt jetzt hier und in
+`docs/DESIGN-PRINCIPLES.md`).
 
 Bausteine:
 
@@ -263,7 +278,7 @@ Bausteine:
 | `public/manifest.webmanifest`, `public/icons/*`, `public/favicon.ico` | Web-App-Manifest und Icons (192, 512, maskable 512, apple-touch 180). |
 | `scripts/generate-icons.mjs` | Rastert die Icon-Geometrie (Quelle: `public/icons/icon.svg`) ohne Fremdpakete zu PNG/ICO (`npm run icons`). |
 | `core/pwa/pwa.service.ts` | Registriert `./sw.js` (nur Produktion, nach `load`), fängt `beforeinstallprompt` ab, erkennt iOS und installierten Modus, fragt den SW nach dem Precache-Status („Offline bereit"). |
-| `scripts/pwa-test.mjs` | Automatisierte Pflichttests (SPEC 9.4), siehe `docs/PWA-TESTS.md`. |
+| `scripts/pwa-test.mjs` | Automatisierte Pflichttests, siehe `docs/PWA-TESTS.md`. |
 
 Ablauf im Service Worker:
 
@@ -277,7 +292,8 @@ Ablauf im Service Worker:
 - `fetch` (nur GET, gleiche Herkunft): Cache-first aus dem aktiven Precache;
   Navigationen bekommen die gecachte `index.html`; Netzwerk nur bei Cache-Miss.
 - `message`: `status` (aktiver Precache), sowie `check-update` /
-  `apply-update` für die nutzergesteuerte Update-Prüfung (SPEC 9.3, UI in 3.12).
+  `apply-update` für die nutzergesteuerte Update-Prüfung (Einstellungen → „Nach neuer
+  Version suchen").
   Ein alter Precache wird erst gelöscht, wenn der neue vollständig geladen ist.
 
 404, 500, Captive-Portal-HTML oder ein abgeschalteter Server lassen
@@ -324,3 +340,24 @@ Bewusst minimal: Angular + RxJS + tslib. Kein Layout-Framework, keine
 IndexedDB-Bibliothek, kein UI-Kit. `@angular/cdk` ist erlaubt, wenn konkrete
 Komponenten (Overlay/Fokus/Drag) es rechtfertigen. Keine Laufzeit-Requests zu
 Fremddomains.
+
+## 11. Technische Entscheidungen (Kurzfassung)
+
+Übernommen aus dem früheren Entscheidungsprotokoll (bis v1.0.0). Neue
+Entscheidungen werden hier ergänzt.
+
+| Thema | Entscheidung | Begründung |
+|---|---|---|
+| Graph-Layout | Eigenes deterministisches top-down Layered-Layout statt `@dagrejs/dagre`. Kartenhöhe **variabel** (1–3 Titelzeilen, geschätzt über `nodeCharsPerLine`, gespiegelt per `line-clamp`); die nächste Schicht beginnt unter der höchsten Karte. Schichtabstand 128 px. | Keine Abhängigkeit; feste Höhen schnitten lange Titel ab und ließen Karten überlappen. 128 px lassen Karten- und Kanten-„+" an Verzweigungen nebeneinander Platz. |
+| Pfeile | Gerade Linien von Unter- zu Oberkante. Umweg-Pfeile (A→C trotz A→B→C) werden **nur beim Zeichnen** ausgeblendet (`transitiveReduction`). | Rechtwinklige Führung überlagerte sich an Verzweigungen; Ausblenden statt Verbieten ist verlustfrei. |
+| „+" im Ablauf | Ein „+" pro Pfeil (`insertBetween`); Karten-„+" darüber nur am Strang-Anfang, darunter am Strang-Ende **und an Verzweigungen** (≥ 2 Nachfolger, Engpass-Einfügung über `insertAfter`). Sichtbarer Kreis klein (38/30 px), Trefferfläche 44 × 44 px über `::after`. Unter ~60 % Zoom ausgeblendet mit Hinweis. | In einer Kette täten drei „+" dasselbe; so ist alles überlappungsfrei erreichbar. |
+| Verbinden | „Mit anderem ToDo verbinden" über einen **Auswahl-Dialog** statt Ziel-Antippen oder Ziehen. | Per Tastatur und Screenreader bedienbar. |
+| ⋯-Menüs | `<details class="menu">` plus `(document:click)`-Listener: Klick außerhalb **oder auf das `<details>` selbst** schließt; nur Klicks im Menüinhalt lassen es offen. Im Ablauf schließt ein Klick auf die Diagrammfläche. | Auf dem Handy gab es sonst keinen Weg, ein Menü ohne Auswahl zu schließen. |
+| „Jetzt dran"/„Wartet" | **Transitiv** über `openAncestors`. | In einer Kette offen → erledigt → offen ist nur der vorderste offene Schritt dran. |
+| i18n | Eigene, reaktive Lösung (`I18nStore`, Signals) statt `@angular/localize` oder Transloco. `de.ts` ist die Vorlage, `en.ts` erfüllt sie per `satisfies`. | `@angular/localize` übersetzt zur Buildzeit (eine Sprache je Build) – kein Umschalten zur Laufzeit im Ein-Build-Offline-Betrieb; Bibliotheken wären Abhängigkeiten. Fehlende Übersetzung = Compile-Fehler. |
+| Precache-Liste | Eigene Datei `precache-manifest.json` statt Einsetzen in `sw.js`; Cache-Name `faden-v1-<build>` plus `faden-meta`. | Eine geänderte `sw.js` wäre ein Auto-Update; ein eigener Cache je Build erlaubt, eine neue Version vollständig zu laden, bevor die alte gelöscht wird. |
+| App-Version | `APP_VERSION` per JSON-Import aus `package.json`. | Eine Quelle; der Update-Vergleich braucht eine echte Versionsnummer. |
+| Icons | Quelle `public/icons/icon.svg`, `scripts/generate-icons.mjs` rastert ohne Fremdpakete. | Keine Bildbibliothek. |
+| Erst-Start-Merker | `localStorage` (z. B. `faden.installBannerDismissed`), nicht IndexedDB. | Synchron lesbar (kein Aufblitzen beim Start); reine Anzeige-Merker gehören nicht ins Backup. |
+| Testwerkzeuge | Browser-Tests steuern Edge/Chrome headless über das DevTools-Protokoll mit Node-WebSocket; Tippen als echte Tastendrücke. | Keine Fremdpakete; `Input.insertText` ahmt eine IME-Eingabe nach und testet die Tastatur nicht. |
+| Deployment | GitHub Actions → GitHub Pages bei Push auf `main`: Unit-Tests, `npm run build`. Kein `--base-href`, kein `404.html`. | `<base href="./">` läuft unter jedem Pfad; Hash-Routing braucht keinen Fallback. |

@@ -1,4 +1,4 @@
-// Vorlagen (SPEC 5.6): Zettel/Strang → Vorlage und Vorlage → Zettel/Strang.
+// Vorlagen: Zettel/Strang → Vorlage und Vorlage → Zettel/Strang.
 // Reine Funktionen, ohne Angular.
 import {
   createList,
@@ -52,12 +52,12 @@ function buildTemplate(
   };
 }
 
-/** „Als Vorlage speichern" für den ganzen Zettel (SPEC 5.6). */
+/** „Als Vorlage speichern" für den ganzen Zettel. */
 export function listToTemplate(list: TodoList, title: string = list.title): Template {
   return buildTemplate(title, list.tasks, list.edges, list.timeboxMode, new Date().toISOString());
 }
 
-/** „Als Vorlage speichern" für einen Strang (SPEC 5.6). */
+/** „Als Vorlage speichern" für einen Strang. */
 export function strandToTemplate(list: TodoList, taskId: string, title?: string): Template | null {
   const strand = extractStrand(list, taskId);
   if (strand.tasks.length === 0) return null;
@@ -90,8 +90,8 @@ export function templateToList(template: Template): TodoList {
 }
 
 /**
- * Fügt eine Vorlage als neuen Strang in einen bestehenden Zettel ein (SPEC 5.6,
- * optional). Erzeugt ausschließlich neue IDs; es entstehen keine Verbindungen zu
+ * Fügt eine Vorlage als neuen Strang in einen bestehenden Zettel ein
+ * (optional). Erzeugt ausschließlich neue IDs; es entstehen keine Verbindungen zu
  * vorhandenen ToDos.
  */
 export function insertTemplate(list: TodoList, template: Template): TodoList {
@@ -114,7 +114,7 @@ export function insertTemplate(list: TodoList, template: Template): TodoList {
   };
 }
 
-/** Titel-Liste einer Vorlage in topologischer Reihenfolge (Vorschau, SPEC 5.6). */
+/** Titel-Liste einer Vorlage in topologischer Reihenfolge (Vorschau). */
 export function templatePreview(template: Template): string[] {
   const asList: TodoList = {
     id: template.id,

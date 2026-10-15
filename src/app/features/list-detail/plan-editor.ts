@@ -32,7 +32,7 @@ const UNIT_MS: Record<ShiftUnit, number> = {
 };
 
 /**
- * „Zeitplan bearbeiten" (SPEC 7.4/7.5): Alles verschieben, auf einen Zeitraum
+ * „Zeitplan bearbeiten": Alles verschieben, auf einen Zeitraum
  * strecken, Zeiten aus Schätzungen vorschlagen und Tageszeiten auf ein Datum
  * übertragen.
  */
@@ -261,12 +261,12 @@ export class PlanEditor {
   protected readonly convertDate = signal('');
 
   protected readonly error = signal('');
-  /** Nur „Tageszeiten übertragen" zeigen (Angebot nach Moduswechsel, SPEC 7.4). */
+  /** Nur „Tageszeiten übertragen" zeigen (Angebot nach Moduswechsel). */
   protected readonly convertOnly = signal(false);
 
   private restoreFocusTo: HTMLElement | null = null;
 
-  /** Bietet nach dem Wechsel Tagesplan → fester Zeitplan das Übertragen an (SPEC 7.4). */
+  /** Bietet nach dem Wechsel Tagesplan → fester Zeitplan das Übertragen an. */
   openConvert(list: TodoList): void {
     this.open(list);
     this.convertOnly.set(true);

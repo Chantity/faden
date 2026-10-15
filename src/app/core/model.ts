@@ -1,11 +1,11 @@
-// Datenmodell gemäß SPEC.md Kapitel 3.2.
+// Datenmodell von Faden.
 // Zeitfelder werden IMMER gespeichert und beim Moduswechsel NICHT gelöscht.
 
 export type TimeboxMode = 'none' | 'estimate' | 'dayPlan' | 'schedule';
 
 export const TIMEBOX_MODES: readonly TimeboxMode[] = ['none', 'estimate', 'dayPlan', 'schedule'];
 
-/** Unterstützte Oberflächensprachen (SPEC-Erweiterung, Standard: Englisch). */
+/** Unterstützte Oberflächensprachen (Standard: Englisch). */
 export type Locale = 'en' | 'de';
 
 export const SUPPORTED_LOCALES: readonly Locale[] = ['en', 'de'];
@@ -22,7 +22,7 @@ export interface TodoList {
   timeboxMode: TimeboxMode;
   tasks: Task[];
   edges: Edge[];
-  /** 'YYYY-MM-DD', nur Modus 'dayPlan' (siehe SPEC 7.3). */
+  /** 'YYYY-MM-DD', nur Modus 'dayPlan'. */
   dayPlanReferenceDate?: string;
   archived: boolean;
   /** ISO */
@@ -31,8 +31,8 @@ export interface TodoList {
   updatedAt: string;
   sortOrder: number;
   /**
-   * ISO; gesetzt = gelöscht, aber noch innerhalb der Rückgängig-Frist (Soft-Delete,
-   * SPEC 5.5). Solche Zettel sind unsichtbar und werden danach endgültig entfernt.
+   * ISO; gesetzt = gelöscht, aber noch innerhalb der Rückgängig-Frist (Soft-Delete).
+   * Solche Zettel sind unsichtbar und werden danach endgültig entfernt.
    */
   deletedAt?: string;
 }

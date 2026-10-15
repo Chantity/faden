@@ -1,4 +1,4 @@
-// PWA-/Offline-Pflichttests (SPEC 9.4), automatisiert und wiederholbar.
+// PWA-/Offline-Pflichttests, automatisiert und wiederholbar.
 //
 // Startet einen lokalen Static-Server für `dist/faden/browser`, dessen
 // Verhalten umschaltbar ist (normal / aus / 404 / 500 / Captive-Portal-HTML),

@@ -15,16 +15,16 @@ const PERSIST_DELAY_MS = 300;
 const UNDO_LIMIT = 100;
 
 /**
- * Frist, nach der ein gelöschter Zettel endgültig aus IndexedDB verschwindet
- * (SPEC 5.5). Etwas länger als das Hinweisband mit „Rückgängig" (8 s).
+ * Frist, nach der ein gelöschter Zettel endgültig aus IndexedDB verschwindet.
+ * Etwas länger als das Hinweisband mit „Rückgängig" (8 s).
  */
 export const DELETE_GRACE_MS = 10_000;
 
 /**
- * Zentraler Signal-Store für Zettel (SPEC 8). Schreibt entprellt nach
+ * Zentraler Signal-Store für Zettel. Schreibt entprellt nach
  * IndexedDB und synchronisiert mehrere Tabs über BroadcastChannel.
  *
- * Rückgängig/Wiederholen (SPEC 5.5):
+ * Rückgängig/Wiederholen:
  * - **pro Zettel** ein eigener Verlauf (Snapshots) für alles, was im Zettel
  *   passiert (`editList`);
  * - **Übersicht** mit eigenem Befehls-Verlauf (Anlegen, Duplizieren,
@@ -76,7 +76,7 @@ export class ListsStore {
       const stored = await this.db.getLists();
       // Gelöschte Zettel aus einer früheren Sitzung: Ihre Frist ist vorbei (der
       // Rückgängig-Verlauf existiert nicht mehr) → jetzt endgültig entfernen.
-      // Ältere Tagespläne ohne Bezugstag: ab heute gültig (SPEC 7.3).
+      // Ältere Tagespläne ohne Bezugstag: ab heute gültig.
       const lists = stored
         .filter((l) => !l.deletedAt)
         .map((l) => withTimeboxMode(l, l.timeboxMode, new Date()));
@@ -106,7 +106,7 @@ export class ListsStore {
     }, PERSIST_DELAY_MS);
   }
 
-  /** Sofort schreiben (z. B. bei visibilitychange/pagehide, SPEC 8.2). */
+  /** Sofort schreiben (z. B. bei visibilitychange/pagehide). */
   async flush(): Promise<void> {
     if (this.persistTimer !== null) {
       clearTimeout(this.persistTimer);
@@ -214,7 +214,7 @@ export class ListsStore {
   }
 
   /**
-   * Löschen mit Rückgängig (SPEC 5.5): Der Zettel wird zunächst nur als gelöscht
+   * Löschen mit Rückgängig: Der Zettel wird zunächst nur als gelöscht
    * markiert (und so gespeichert) und erst nach `DELETE_GRACE_MS` endgültig
    * entfernt. Auch danach stellt „Rückgängig" in der Übersicht ihn wieder her.
    */
@@ -261,7 +261,7 @@ export class ListsStore {
     this.setAll([...this.all().filter((l) => l.id !== list.id), list]);
   }
 
-  /** Import (SPEC 8.5): ersetzt alle Zettel; in der Übersicht rückgängig machbar. */
+  /** Import: ersetzt alle Zettel; in der Übersicht rückgängig machbar. */
   replaceAll(lists: readonly TodoList[]): void {
     const before = this.all();
     const after = [...lists];

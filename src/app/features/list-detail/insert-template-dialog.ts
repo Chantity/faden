@@ -16,7 +16,7 @@ import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { focusAfterRender } from '../../shared/focus';
 
 /**
- * „Vorlage in Zettel einfügen" (SPEC 5.6): fügt eine Vorlage als neuen,
+ * „Vorlage in Zettel einfügen": fügt eine Vorlage als neuen,
  * unabhängigen Strang in den geöffneten Zettel ein. Ein Undo-Schritt.
  */
 @Component({

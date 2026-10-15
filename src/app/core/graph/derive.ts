@@ -41,7 +41,7 @@ export function openPredecessors(list: TodoList, taskId: string): Task[] {
 /**
  * Noch offene, mittelbare und unmittelbare Vorgänger. „Wartet“ wird transitiv
  * bestimmt: Auch wenn der direkte Vorgänger schon erledigt ist, kann weiter oben
- * in der Kette noch eine offene Vorarbeit stecken (SPEC 4.2/4.4, Nutzerwunsch).
+ * in der Kette noch eine offene Vorarbeit stecken (Nutzerwunsch).
  */
 export function openAncestors(list: TodoList, taskId: string): Task[] {
   const byId = taskMap(list);
@@ -124,7 +124,7 @@ function taskMap(list: TodoList): Map<string, Task> {
 
 /**
  * Macht das „Überbrücken" beim Löschen einen Unterschied? Nur wenn das ToDo
- * sowohl Vorgänger als auch Nachfolger hat (SPEC 4.3, deleteTask).
+ * sowohl Vorgänger als auch Nachfolger hat (deleteTask).
  */
 export function deleteBridges(list: TodoList, taskId: string): boolean {
   return list.edges.some((e) => e.to === taskId) && list.edges.some((e) => e.from === taskId);

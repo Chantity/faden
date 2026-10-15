@@ -108,5 +108,5 @@ Tests: Konverter (Unit), Popups und Reihenfolge (Komponente), Erst-Start im Abna
 
 ## Offene Punkte
 
-- Repo-URL für `APP_REPO_URL` (der Nutzer liefert sie).
+- ~~Repo-URL für `APP_REPO_URL`~~ → `https://github.com/Chantity/faden`.
 - Ob `v2-requirements.md` am Ende gelöscht werden soll.

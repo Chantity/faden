@@ -1,5 +1,5 @@
-// Erzeugt nach `ng build` die Precache-Liste für den Service Worker
-// (SPEC 9.2, Variante B): `dist/faden/browser/precache-manifest.json`.
+// Erzeugt nach `ng build` die Precache-Liste für den eigenen Service Worker:
+// `dist/faden/browser/precache-manifest.json`.
 //
 // Alle Dateien im Build-Output werden mit Inhalts-Hash aufgeführt; der
 // Gesamt-Hash (`build`) benennt den Cache. `sw.js` selbst und die Liste

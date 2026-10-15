@@ -57,10 +57,11 @@ backup regularly (Settings).
 
 ### Documentation
 
-- [SPEC.md](SPEC.md) – functional requirements (German).
 - [docs/USER-GUIDE.md](docs/USER-GUIDE.md) – detailed usage (English/German).
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – technical structure (German).
-- [docs/DECISIONS.md](docs/DECISIONS.md) – decisions and deviations (German).
+- [docs/DESIGN-PRINCIPLES.md](docs/DESIGN-PRINCIPLES.md) – product and
+  development principles (German).
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – technical structure and
+  decisions (German).
 - [docs/PWA-TESTS.md](docs/PWA-TESTS.md) – mandatory offline tests (German).
 - [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) – status of the acceptance criteria
   (German).
@@ -122,10 +123,11 @@ herunterladen (Einstellungen).
 
 ### Dokumentation
 
-- [SPEC.md](SPEC.md) – fachliche Anforderungen.
 - [docs/USER-GUIDE.md](docs/USER-GUIDE.md) – ausführliche Bedienung
   (Englisch/Deutsch).
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – technischer Aufbau.
-- [docs/DECISIONS.md](docs/DECISIONS.md) – Entscheidungen und Abweichungen.
+- [docs/DESIGN-PRINCIPLES.md](docs/DESIGN-PRINCIPLES.md) – Produkt- und
+  Entwicklungsprinzipien.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – technischer Aufbau und
+  Entscheidungen.
 - [docs/PWA-TESTS.md](docs/PWA-TESTS.md) – Offline-Pflichttests.
 - [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) – Stand der Abnahmekriterien.

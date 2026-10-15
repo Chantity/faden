@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 /**
  * Liefert ein `now`-Signal, das sich minütlich und bei `visibilitychange`
- * aktualisiert (SPEC 7.3). Kein sekundengenauer Timer.
+ * aktualisiert. Kein sekundengenauer Timer.
  */
 @Injectable({ providedIn: 'root' })
 export class NowStore {

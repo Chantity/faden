@@ -4,8 +4,8 @@ import { FadenDb } from '../storage';
 export type ListView = 'focus' | 'flow';
 
 /**
- * Merkt sich pro Zettel die zuletzt gewählte Ansicht „Jetzt dran“ / „Ablauf“
- * (SPEC 5.1). Persistenz über den meta-Store, best-effort.
+ * Merkt sich pro Zettel die zuletzt gewählte Ansicht „Jetzt dran“ / „Ablauf“.
+ * Persistenz über den meta-Store, best-effort.
  */
 @Injectable({ providedIn: 'root' })
 export class ViewStore {

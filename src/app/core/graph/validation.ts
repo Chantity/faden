@@ -9,7 +9,7 @@ export type GraphErrorCode =
 
 /**
  * Fehler bei Verletzung einer Graph-Invariante. Die Oberfläche erzeugt daraus
- * einen freundlichen, deutschen Text (siehe SPEC 4.1).
+ * einen freundlichen, deutschen Text.
  */
 export class GraphError extends Error {
   constructor(
@@ -66,7 +66,7 @@ export interface GraphIssue {
 }
 
 /**
- * Prüft alle Invarianten (SPEC 4.1) und liefert gefundene Verstöße.
+ * Prüft alle Invarianten und liefert gefundene Verstöße.
  * Leeres Ergebnis = gültiger Graph.
  */
 export function validateGraph(list: TodoList): GraphIssue[] {

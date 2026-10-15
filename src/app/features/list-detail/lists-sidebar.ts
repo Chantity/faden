@@ -8,7 +8,7 @@ import { ViewStore } from '../../core/state/view.store';
 
 /**
  * Zettel-Liste links neben dem geöffneten Zettel – nur auf breiten
- * Bildschirmen (> 1024 px) und einklappbar (SPEC 5.1). Auf kleineren
+ * Bildschirmen (> 1024 px) und einklappbar. Auf kleineren
  * Bildschirmen ausgeblendet; dort führt „← Zettel" zur Übersicht.
  */
 @Component({

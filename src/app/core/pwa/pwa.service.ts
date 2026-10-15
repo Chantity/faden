@@ -17,7 +17,7 @@ export interface PrecacheInfo {
 
 export type OfflineState = 'unsupported' | 'pending' | 'ready';
 
-/** Nutzergesteuerte Update-Prüfung (SPEC 9.3). */
+/** Nutzergesteuerte Update-Prüfung. */
 export type UpdateState =
   | 'idle'
   | 'checking'
@@ -28,7 +28,7 @@ export type UpdateState =
   | 'failed';
 
 /**
- * Service-Worker-Registrierung und Installationshilfe (SPEC 9.2, 9.5).
+ * Service-Worker-Registrierung und Installationshilfe.
  * Der Service Worker wird nur in Produktionsbuilds registriert.
  */
 @Injectable({ providedIn: 'root' })
@@ -89,7 +89,7 @@ export class PwaService {
 
   /**
    * Fragt den Host nach einer neueren Version. Nur auf Knopfdruck; ohne Netz
-   * oder bei kaputtem Host passiert nichts (SPEC 9.3).
+   * oder bei kaputtem Host passiert nichts.
    */
   async checkForUpdate(): Promise<void> {
     const registration = await this.registration();

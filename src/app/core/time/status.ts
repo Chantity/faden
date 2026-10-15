@@ -1,9 +1,9 @@
-// Ableitung des Zeitstatus (SPEC 7.3 / 7.4). Nie speichern, immer berechnen.
+// Ableitung des Zeitstatus. Nie speichern, immer berechnen.
 import type { Task, TodoList, TimeboxMode } from '../model';
 import { parseHhMm, toIsoDate } from './format';
 
 /**
- * Abgeleiteter Zeitstatus (SPEC 7.3):
+ * Abgeleiteter Zeitstatus:
  * - 'running'  – „Läuft gerade"
  * - 'next'     – „Als Nächstes"
  * - 'late'     – „Nicht abgehakt"
@@ -80,7 +80,7 @@ export function referenceRelation(list: TodoList, now: Date): 'today' | 'past' |
 }
 
 /**
- * Leitet den Zeitstatus eines offenen ToDos ab (SPEC 7.3/7.4).
+ * Leitet den Zeitstatus eines offenen ToDos ab.
  * Gibt undefined zurück, wenn der Zettel keinen Zeitmodus nutzt oder das ToDo
  * keine Zeiten hat.
  */
@@ -129,7 +129,7 @@ export function earliestNextTask(list: TodoList, now: Date): Task | undefined {
   return earliest;
 }
 
-/** Sortiert ToDos in „Jetzt dran" nach Von-Uhrzeit (SPEC 7.3). */
+/** Sortiert ToDos in „Jetzt dran" nach Von-Uhrzeit. */
 export function sortPlannedFirst(list: TodoList, tasks: Task[], now: Date): Task[] {
   if (list.timeboxMode !== 'dayPlan' && list.timeboxMode !== 'schedule') return tasks;
   const rank: Record<TimeStatus, number> = { running: 0, late: 1, next: 2, planned: 3 };
@@ -149,7 +149,7 @@ export function sortPlannedFirst(list: TodoList, tasks: Task[], now: Date): Task
     });
 }
 
-/** Formatiert die Zeitspanne für die „Nicht abgehakt"-Anzeige (SPEC 7.3). */
+/** Formatiert die Zeitspanne für die „Nicht abgehakt"-Anzeige. */
 export function formatPlannedRange(list: TodoList, task: Task): string | null {
   const bounds = plannedBounds(list, task, list.dayPlanReferenceDate);
   const startHm = bounds.start !== undefined ? hhMmOf(bounds.start) : undefined;

@@ -2,7 +2,7 @@ import { GraphError } from '../graph';
 import type { TodoList } from '../model';
 import type { Translations } from './types';
 
-/** Übersetzt einen GraphError in einen freundlichen, lokalen Text (SPEC 4.1). */
+/** Übersetzt einen GraphError in einen freundlichen, lokalen Text. */
 export function describeGraphError(t: Translations, list: TodoList, error: unknown): string {
   if (!(error instanceof GraphError)) return t.snackbar.saveFailed;
   const nameOf = (id?: string): string => list.tasks.find((task) => task.id === id)?.title ?? '';

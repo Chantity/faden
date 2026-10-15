@@ -26,7 +26,7 @@ function daysBetween(from: Date, to: Date): number {
 }
 
 /**
- * Sicherung/Import und Backup-Erinnerung (SPEC 8.3–8.6).
+ * Sicherung/Import und Backup-Erinnerung.
  */
 @Injectable({ providedIn: 'root' })
 export class BackupService {
@@ -52,7 +52,7 @@ export class BackupService {
     await this.settings.markBackup(backup.exportedAt);
   }
 
-  /** Automatische Sicherung vor „Alles ersetzen" (SPEC 8.5). */
+  /** Automatische Sicherung vor „Alles ersetzen". */
   async autoBackup(): Promise<void> {
     await this.download(this.buildBackup());
   }
@@ -128,7 +128,7 @@ export class BackupService {
 
   /**
    * Fordert beim ersten Start (nach der ersten Nutzerinteraktion) dauerhaften
-   * Speicher an (SPEC 8.3). Passiert höchstens einmal.
+   * Speicher an. Passiert höchstens einmal.
    */
   async requestPersistOnFirstInteraction(): Promise<void> {
     if (

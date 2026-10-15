@@ -1,4 +1,4 @@
-// Erzeugt die App-Icons (SPEC 9.1) ohne Fremdpakete.
+// Erzeugt die App-Icons ohne Fremdpakete.
 //
 // Quelle der Geometrie ist `ICON` unten; dieselben Formen stehen als
 // `public/icons/icon.svg` im Repo. Dieses Skript rastert sie mit

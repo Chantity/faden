@@ -314,7 +314,7 @@ summary:not(.icon-btn) {
   box-sizing: border-box;
 }
 
-/* --- Dialoge auf dem Handy als Bottom-Sheet (SPEC 5.1) ----------------- */
+/* --- Dialoge auf dem Handy als Bottom-Sheet ----------------- */
 
 @media (max-width: 600px) {
   dialog.sheet[open] {
@@ -341,7 +341,7 @@ summary:not(.icon-btn) {
   }
 }
 
-/* Ablauf: Teilsumme je Strang (Modus Zeitschätzung, SPEC 7.2). */
+/* Ablauf: Teilsumme je Strang (Modus Zeitschätzung). */
 .strand-sum {
   position: absolute;
   max-width: 200px;

@@ -453,7 +453,7 @@ export class FocusView {
     return topologicalOrder(list).filter((task) => blockedIds.has(task.id));
   });
 
-  // --- Zeitstatus (SPEC 7.3/7.4) -------------------------------------------
+  // --- Zeitstatus -------------------------------------------
 
   protected showDayPlanBanner(): boolean {
     const list = this.list();
@@ -574,7 +574,7 @@ export class FocusView {
   /**
    * Verschwindet das fokussierte Element (abgehakte Karte, beendete Eingabe),
    * landet der Fokus beim nächsten „Erledigt" – bzw. bei „Zettel archivieren",
-   * wenn alles erledigt ist. Sonst müssten Tastaturnutzer von vorn tabben (SPEC 5.7).
+   * wenn alles erledigt ist. Sonst müssten Tastaturnutzer von vorn tabben.
    */
   private keepFocus(preferTaskId?: string | null): void {
     afterNextRender(
@@ -733,7 +733,7 @@ export class FocusView {
     (event.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
   }
 
-  // --- Tastatur (SPEC 5.7) -------------------------------------------------
+  // --- Tastatur -------------------------------------------------
 
   protected onKeydown(event: KeyboardEvent): void {
     if (event.ctrlKey || event.metaKey || event.altKey) return;

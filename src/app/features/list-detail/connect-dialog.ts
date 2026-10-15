@@ -15,7 +15,7 @@ import { ListsStore } from '../../core/state/lists.store';
 
 /**
  * „Mit anderem ToDo verbinden": Ziel-Auswahl als kleiner Dialog. Barrierefrei
- * über eine Auswahlliste bedienbar (SPEC 5.4, Alternative zum Ziehen).
+ * über eine Auswahlliste bedienbar (Alternative zum Ziehen).
  */
 @Component({
   selector: 'app-connect-dialog',

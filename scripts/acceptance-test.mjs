@@ -1,4 +1,4 @@
-// Abnahmetests im echten Browser (SPEC 12.2): Tastatur-Szenario
+// Abnahmetests im echten Browser: Tastatur-Szenario
 // „Geschirrspüler" (1), Responsive 360/768/1280 px + Querformat (8) und
 // reizarme Darstellung bei prefers-reduced-motion (12).
 //
@@ -42,7 +42,7 @@ const APP_READY = `document.querySelector('app-root h1') !== null`;
 
 /**
  * Drückt Tab, bis das fokussierte Element `predicate` erfüllt. Prüft dabei an
- * jedem erreichten Ziel, dass ein Fokusrahmen sichtbar ist (SPEC 5.7).
+ * jedem erreichten Ziel, dass ein Fokusrahmen sichtbar ist.
  */
 async function tabTo(predicate, label, max = 60) {
   for (let i = 0; i < max; i++) {
@@ -207,7 +207,7 @@ async function seed() {
 
 /**
  * Prüft die aktuelle Seite: kein horizontales Scrollen (außer im Diagramm),
- * Tippflächen ≥ 48 px (die „+" im Diagramm laut SPEC 5.4 ≥ 44 px). Gemessen
+ * Tippflächen ≥ 48 px (die „+" im Diagramm ≥ 44 px). Gemessen
  * wird die tatsächlich treffbare Fläche (elementFromPoint um die Mitte), damit
  * unsichtbar vergrößerte Trefferflächen zählen.
  */
@@ -315,7 +315,7 @@ for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.include
       return { left: r.left, right: r.right, bottom: r.bottom, width: innerWidth, height: innerHeight };
     })()`);
     if (vp.width < 600) {
-      // SPEC 5.1: Dialoge als Bottom-Sheet
+      // Dialoge als Bottom-Sheet
       if (Math.abs(sheet.bottom - sheet.height) > 1 || sheet.left > 1 || Math.abs(sheet.right - sheet.width) > 1) {
         problems.push(`Dialog ist kein Bottom-Sheet (${JSON.stringify(sheet)})`);
       }
@@ -323,7 +323,7 @@ for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.include
     await page.press('Escape');
 
     if (vp.width < 600) {
-      // SPEC 5.1: Floating-Action-Button für „+"
+      // Floating-Action-Button für „+"
       const fab = await page.eval(`(() => {
         const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === '+ New list');
         const r = b.getBoundingClientRect();
@@ -334,7 +334,7 @@ for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.include
       }
     }
 
-    // SPEC 5.1: > 1024 px zweispaltig (links Zettel-Liste, einklappbar)
+    // > 1024 px zweispaltig (links Zettel-Liste, einklappbar)
     await openPage(PAGES[1]);
     const side = await page.eval(`(() => {
       const aside = document.querySelector('.lists-side');

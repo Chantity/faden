@@ -158,7 +158,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
       max-width: 960px;
     }
 
-    /* > 1024 px: links die Zettel-Liste, rechts der Zettel (SPEC 5.1). */
+    /* > 1024 px: links die Zettel-Liste, rechts der Zettel. */
     @media (min-width: 1025px) {
       :host {
         display: grid;

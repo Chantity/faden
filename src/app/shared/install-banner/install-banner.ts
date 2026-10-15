@@ -6,7 +6,7 @@ import { PwaService } from '../../core/pwa/pwa.service';
 export const INSTALL_BANNER_DISMISSED_KEY = 'faden.installBannerDismissed';
 
 /**
- * Hinweis „Als App installieren“ (SPEC 9.5) – nur im Browser-Tab, nicht in der
+ * Hinweis „Als App installieren“ – nur im Browser-Tab, nicht in der
  * installierten App, und nur, solange der Nutzer es nicht ignoriert hat.
  * Chrome/Edge/Android: „Installieren“ öffnet die native Aufforderung.
  * iOS: „Installieren“ klappt die Anleitung „Teilen → Zum Home-Bildschirm“ auf.

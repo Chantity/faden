@@ -2,7 +2,7 @@ import type { Edge, Task, TodoList } from '../model';
 import { buildAdjacency } from './validation';
 
 /**
- * Stabile topologische Reihenfolge (SPEC 4.5): bei Gleichstand entscheidet die
+ * Stabile topologische Reihenfolge: bei Gleichstand entscheidet die
  * Erstellungsreihenfolge (= Position in `list.tasks`).
  */
 export function topologicalOrder(list: TodoList): Task[] {
@@ -55,8 +55,8 @@ export interface Strand {
 }
 
 /**
- * Zerlegt den Zettel in seine unabhängigen Stränge (verbundene Komponenten,
- * SPEC 4.5). Die Reihenfolge folgt der Erstellungsreihenfolge.
+ * Zerlegt den Zettel in seine unabhängigen Stränge (verbundene Komponenten).
+ * Die Reihenfolge folgt der Erstellungsreihenfolge.
  */
 export function connectedComponents(list: TodoList): Strand[] {
   const parent = new Map<string, string>(list.tasks.map((t) => [t.id, t.id]));
@@ -101,14 +101,14 @@ export function connectedComponents(list: TodoList): Strand[] {
   });
 }
 
-/** Der Strang (Teilgraph), zu dem `taskId` gehört (SPEC 4.5). */
+/** Der Strang (Teilgraph), zu dem `taskId` gehört. */
 export function extractStrand(list: TodoList, taskId: string): Strand {
   const component = connectedComponents(list).find((c) => c.tasks.some((t) => t.id === taskId));
   return component ?? { tasks: [], edges: [] };
 }
 
 /**
- * Transitive Reduktion (SPEC 4.1.4): blendet „Umweg“-Pfeile aus, die bereits
+ * Transitive Reduktion: blendet „Umweg“-Pfeile aus, die bereits
  * durch eine längere Kette ausgedrückt werden (z. B. A→C, wenn A→B→C existiert).
  * Nur fürs Zeichnen gedacht – der gespeicherte Graph behält alle Pfeile, und die
  * Erreichbarkeit (und damit „jetzt dran“/„wartet“) bleibt unverändert.

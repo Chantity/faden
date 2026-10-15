@@ -1,7 +1,7 @@
 # PWA-/Offline-Pflichttests
 
 > Status: **alle bestanden** (siehe Ergebnisprotokoll). Ein fehlgeschlagener
-> Test ist ein **Blocker** (SPEC 9.4): Die App gilt erst als fertig, wenn
+> Test ist ein **Blocker**: Die App gilt erst als fertig, wenn
 > **alle** Tests bestehen. Nach jeder Änderung an `public/sw.js`, am Build oder
 > an `index.html` erneut ausführen.
 
@@ -31,8 +31,8 @@ Das Skript braucht **keine** Zusatzpakete (Node ≥ 22). Es
 | 3 | Überall 404 | 3× neu laden, jedes Mal Update-Prüfung des Browsers erzwingen (`registration.update()`, entspricht der automatischen Prüfung nach 24 h). Erwartung: App + Daten da, Update-Prüfung schlägt fehl, SW registriert, Precache unverändert und vollständig. |
 | 4a | Überall 500 | wie 3. |
 | 4b | Captive-Portal-HTML | wie 3 (`sw.js`, Manifest, `precache-manifest.json` liefern HTML mit 200). |
-| 4c | Keine Auto-Updates | Host bietet eine neuere Version an (andere Precache-Liste). Nach Neuladen + Update-Prüfung bleibt der installierte Precache aktiv (SPEC 9.3). |
-| 8a | Update: unvollständige neue Version | Host bietet Version 98.0.0 an, eine Datei fehlt (404). „Nach neuer Version suchen" → „Jetzt aktualisieren" → ruhige Fehlermeldung; alte Version + Cache unverändert, kein halber neuer Cache übrig (SPEC 9.3). |
+| 4c | Keine Auto-Updates | Host bietet eine neuere Version an (andere Precache-Liste). Nach Neuladen + Update-Prüfung bleibt der installierte Precache aktiv. |
+| 8a | Update: unvollständige neue Version | Host bietet Version 98.0.0 an, eine Datei fehlt (404). „Nach neuer Version suchen" → „Jetzt aktualisieren" → ruhige Fehlermeldung; alte Version + Cache unverändert, kein halber neuer Cache übrig. |
 | 8b | Update: vollständige neue Version | Host bietet Version 99.0.0 an. Nach „Jetzt aktualisieren" ist die neue Version aktiv und vollständig, der alte Cache erst danach gelöscht; danach offline lauffähig. |
 | 5 | Hash-Route offline | Server aus, neuer Tab direkt auf `…/index.html#/zettel/<id>` → Zettel-Ansicht erscheint. |
 | 6 | Neustart | Browser vollständig beenden und mit demselben Profil neu starten – einmal bei Server-404, einmal bei Server aus. Daten (IndexedDB) und Precache unverändert. |
@@ -40,7 +40,7 @@ Das Skript braucht **keine** Zusatzpakete (Node ≥ 22). Es
 
 ### Zur „Wartezeit von mehreren Minuten"
 
-SPEC 9.4/3 verlangt auch Neuladen „nach mehreren Minuten". Zeitabhängig ist im
+Test 3 verlangt auch Neuladen „nach mehreren Minuten". Zeitabhängig ist im
 Browser nur die automatische Update-Prüfung von `sw.js` (spätestens alle 24 h
 bei einer Navigation). Das Skript löst genau diese Prüfung mit
 `registration.update()` sofort aus und deckt den Fall damit deterministisch ab.
@@ -73,4 +73,4 @@ Der eigene Service Worker hat keine zeitgesteuerte Logik.
 
 Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 1.0.0.
 Nicht automatisiert: Safari/iOS (kein WebKit-Testbrowser verfügbar) und
-Lighthouse-Accessibility (Abnahmekriterium 12.2/9) – manuell prüfen.
+Lighthouse-Accessibility (Abnahmekriterium 9 in `docs/ACCEPTANCE.md`) – manuell prüfen.

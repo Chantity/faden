@@ -1,7 +1,7 @@
 import type { BackupIssue } from '../storage';
 import type { Translations } from './types';
 
-/** Übersetzt einen Befund der Backup-Prüfung in einen lokalen Text (SPEC 8.5). */
+/** Übersetzt einen Befund der Backup-Prüfung in einen lokalen Text. */
 export function describeBackupIssue(t: Translations, issue: BackupIssue): string {
   const e = t.backupErrors;
   const text =

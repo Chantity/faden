@@ -1,4 +1,4 @@
-// Formatierung von Dauern, Uhrzeiten und Tagen (SPEC 7).
+// Formatierung von Dauern, Uhrzeiten und Tagen.
 // Reine Funktionen, ohne Angular.
 
 /** Bytes lesbar formatieren (z. B. „1,2 MB" / „1.2 MB"), Basis 1024. */
@@ -30,7 +30,7 @@ export function isValidHhMm(value: string | undefined): boolean {
 }
 
 /**
- * Formatiert Minuten als Dauer (SPEC 7.2). Deutsche Ausgabe „1 Std 25 Min“,
+ * Formatiert Minuten als Dauer. Deutsche Ausgabe „1 Std 25 Min“,
  * englische Ausgabe „1 h 25 min“. Negative Werte werden auf 0 gerundet.
  */
 export function formatDuration(minutes: number, locale: 'de' | 'en' = 'de'): string {
@@ -55,7 +55,7 @@ export function minutesToHhMm(minutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-/** Formatiert ein lokales Datum (SPEC 7.4): „Do., 14.03.“ bzw. „Thu 14 Mar“. */
+/** Formatiert ein lokales Datum: „Do., 14.03.“ bzw. „Thu 14 Mar“. */
 export function formatDayLabel(date: Date, locale: 'de' | 'en' = 'de'): string {
   if (locale === 'en') {
     return new Intl.DateTimeFormat('en-GB', {
@@ -110,7 +110,7 @@ export function fromDatetimeLocal(value: string | undefined): string | undefined
   return toDatetimeLocal(value);
 }
 
-/** Rundet eine Uhrzeit auf 5-Minuten-Schritte (SPEC 7.4, Strecken). */
+/** Rundet eine Uhrzeit auf 5-Minuten-Schritte (Strecken). */
 export function roundToFiveMinutes(minutes: number): number {
   return Math.round(minutes / 5) * 5;
 }

@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import type { Template } from '../model';
 import { FadenDb } from '../storage';
 
-/** Signal-Store für Vorlagen (SPEC 5.6). */
+/** Signal-Store für Vorlagen. */
 @Injectable({ providedIn: 'root' })
 export class TemplatesStore {
   private readonly db = inject(FadenDb);

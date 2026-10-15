@@ -211,7 +211,7 @@ export class ListDialog {
 
   readonly saved = output<ListDialogResult>();
 
-  /** Neuer Zettel; mit `fromTemplate` ist die erste Vorlage vorausgewählt (SPEC 5.2). */
+  /** Neuer Zettel; mit `fromTemplate` ist die erste Vorlage vorausgewählt. */
   showCreate(fromTemplate = false): void {
     this.editing.set(false);
     this.editingId = null;
