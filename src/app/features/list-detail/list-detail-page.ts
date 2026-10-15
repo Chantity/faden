@@ -47,9 +47,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
             @if (estimateLabel(); as sums) {
               <p class="muted">{{ sums }}</p>
             }
-            @if (current.timeboxMode !== 'none') {
-              <span class="badge">{{ t().timebox.modes[current.timeboxMode] }}</span>
-            }
+            <span class="badge">{{ t().timebox.modes[current.timeboxMode] }}</span>
           </div>
           <div class="detail-head__actions">
             <button
@@ -190,6 +188,11 @@ import { InsertTemplateDialog } from './insert-template-dialog';
       align-items: flex-start;
       justify-content: space-between;
       gap: var(--space-3);
+    }
+
+    .detail-head__title {
+      flex: 1 1 12rem;
+      min-width: 0;
     }
 
     .detail-head__title h1 {

@@ -37,11 +37,9 @@ import { ViewStore } from '../../core/state/view.store';
                 [class.is-current]="list.id === currentId()"
                 [attr.aria-current]="list.id === currentId() ? 'page' : null"
               >
-                <span class="side__title">{{ list.title }}</span>
+                <span class="side__title clamp-2">{{ list.title }}</span>
                 <span class="side__progress muted">{{ progressLabel(list) }}</span>
-                @if (list.timeboxMode !== 'none') {
-                  <span class="badge">{{ t().timebox.modes[list.timeboxMode] }}</span>
-                }
+                <span class="badge">{{ t().timebox.modes[list.timeboxMode] }}</span>
               </a>
             </li>
           }
@@ -99,21 +97,12 @@ import { ViewStore } from '../../core/state/view.store';
       font-weight: 600;
     }
 
-    .side__title {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
     .side__progress {
       font-size: 0.85rem;
       font-weight: 400;
     }
 
     .side__link .badge {
-      align-self: flex-start;
       margin-top: var(--space-1);
       font-weight: 400;
     }

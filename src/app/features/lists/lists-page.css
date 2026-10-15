@@ -86,6 +86,7 @@
 
 .list-card__main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -203,6 +204,7 @@
 
 .archived__title {
   font-weight: 600;
+  min-width: 0;
 }
 
 .archived__head .menu {

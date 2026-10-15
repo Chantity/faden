@@ -203,6 +203,15 @@ async function seed() {
       ],
       edges: [edge('x', 'y')],
     }),
+    // Lange Titel: ohne Leerzeichen (muss trotzdem umbrechen) und mit (Kürzung).
+    list('lang', 'Donaudampfschifffahrtsgesellschaft'.repeat(4), 13, {
+      tasks: [
+        task('l1', 'Kapitänsmützenabzeichenherstellungsbetrieb'.repeat(4)),
+        task('l2', 'Ein sehr langer ToDo-Titel mit Leerzeichen, '.repeat(4).trim()),
+        task('l3', 'Kurz'),
+      ],
+      edges: [edge('l1', 'l2'), edge('l2', 'l3')],
+    }),
     list('alt', 'Archivierter Zettel', 12, {
       archived: true,
       timeboxMode: 'estimate',
@@ -300,6 +309,24 @@ const CHECK_PAGE = `(() => {
       problems.push('Tippfläche < ' + need + ' px: ' + el.tagName.toLowerCase() + '.' + [...el.classList].join('.') + ' „' + name + '" (' + why + ')');
     }
   }
+
+  // Verschieben des Diagramms mit der Maus darf keinen Text markieren.
+  const wrap = document.querySelector('.flow__wrap');
+  if (wrap && getComputedStyle(wrap).userSelect !== 'none') problems.push('Ablauf: Text ist markierbar');
+
+  // Text darf nicht aus seinem Kasten ragen (lange Titel, auch ohne Leerzeichen).
+  // .clamp-2/.node__title schneiden ab: Ein seitlich abgeschnittenes Wort zählt ebenfalls.
+  const boxes = '.list-card, .task-card, .node__title, .clamp-2, .archived__item, .side__link, .template, h1, h2';
+  for (const box of (modal ?? document).querySelectorAll(boxes)) {
+    if (box.closest('dialog:not([open])') || box.closest('details:not([open])')) continue;
+    const r = box.getBoundingClientRect();
+    if (r.width === 0) continue;
+    const inCanvas = canvas && canvas.contains(box); // die Diagrammfläche darf über den Rand reichen
+    if (box.scrollWidth > box.clientWidth + 1 || (!inCanvas && r.right > vw + 1)) {
+      const name = (box.textContent || '').trim().slice(0, 30);
+      problems.push('Text ragt heraus: ' + box.tagName.toLowerCase() + '.' + [...box.classList].join('.') + ' „' + name + '"');
+    }
+  }
   return [...new Set(problems)];
 })()`;
 
@@ -316,6 +343,8 @@ const PAGES = [
   { name: 'Ablauf', hash: '#/zettel/wohnung', view: 'flow' },
   // fullZoom: Diagramm-Karten werden nur bei ≥ 100 % gemessen – hier sicher messen.
   { name: 'Ablauf Tagesplan (Pause am Pfeil)', hash: '#/zettel/bad', view: 'flow', fullZoom: true },
+  { name: 'Jetzt dran (lange Titel)', hash: '#/zettel/lang', view: 'focus' },
+  { name: 'Ablauf (lange Titel)', hash: '#/zettel/lang', view: 'flow', fullZoom: true },
   { name: 'Vorlagen', hash: '#/vorlagen' },
   { name: 'Einstellungen', hash: '#/einstellungen' },
 ];

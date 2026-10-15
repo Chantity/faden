@@ -352,6 +352,9 @@ const MAX_SCALE = 2;
       border-radius: var(--radius);
       touch-action: none;
       cursor: grab;
+      /* Ziehen verschiebt das Diagramm, statt Text zu markieren (und dann den Text zu ziehen). */
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .flow__canvas {

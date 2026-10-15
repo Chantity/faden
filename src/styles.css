@@ -75,7 +75,18 @@ body {
   font-size: 1.0625rem; /* 17px, skaliert mit Browser-Einstellung über rem */
   line-height: 1.55;
   overflow-x: hidden;
+  /* Lange Titel ohne Leerzeichen brechen um, statt aus Karten zu ragen. */
+  overflow-wrap: anywhere;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Text auf höchstens zwei Zeilen kürzen (Vorschauen in Karten). */
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 h1,
@@ -215,6 +226,9 @@ button {
   color: var(--color-text-muted);
   font-size: 0.8rem;
   white-space: nowrap;
+  /* Nur so breit wie der Text, auch in Flex-Spalten (die sonst strecken). */
+  width: fit-content;
+  max-width: 100%;
 }
 
 .sr-only {

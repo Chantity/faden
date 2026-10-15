@@ -331,6 +331,7 @@ import type { CreateRequest } from './task-editor';
     }
 
     .later__item {
+      min-width: 0;
       border: none;
       background: transparent;
       color: var(--color-text);

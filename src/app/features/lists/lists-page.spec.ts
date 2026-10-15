@@ -19,7 +19,9 @@ describe('ListsPage', () => {
     const list = createList('Küche');
     list.tasks = [createTask('Spülen', 'a'), createTask('Abtrocknen', 'b')];
     list.edges = [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }];
-    TestBed.inject(ListsStore).addExisting(list);
+    const store = TestBed.inject(ListsStore);
+    store.addExisting(list);
+    store.ready.set(true); // wie nach dem Laden aus IndexedDB
     const fixture = TestBed.createComponent(ListsPage);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
@@ -46,6 +48,19 @@ describe('ListsPage', () => {
     expect(templates[0]?.tasks.length).toBe(2);
     expect(templates[0]?.edges.length).toBe(1);
     expect(menu.hasAttribute('open')).toBe(false);
+  });
+
+  it('zeigt vor dem Laden nichts statt kurz „Ersten Zettel anlegen“; danach den Modus-Chip auch ohne Zeitplanung', async () => {
+    const store = TestBed.inject(ListsStore);
+    const fixture = TestBed.createComponent(ListsPage);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.empty')).toBeNull();
+
+    store.addExisting(createList('Küche'));
+    store.ready.set(true);
+    await fixture.whenStable();
+    expect(root.querySelector('.list-card .badge')?.textContent?.trim()).toBe('No time planning');
   });
 
   it('legt über „From template …" einen Zettel aus einer Vorlage an', async () => {
