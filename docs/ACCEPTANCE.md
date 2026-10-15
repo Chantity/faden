@@ -40,6 +40,12 @@ auf eine Bildschirmgröße einschränken.
 | 18 | **Zeitplanung mit Start + Dauer:** Zeit im Sheet als Zusammenfassungszeile (beim Anlegen im Tagesplan/festen Zeitplan aufgeklappt); Pause am Pfeil nur bei > 0; Verschieben für Zettel oder Strang mit Vorschau, im Tagesplan nie über 0:00/24:00; relatives Einfügen vor dem ersten, nach dem letzten und dazwischen (beide Optionen, Verzweigungen), nur im eigenen Strang, ein Undo-Schritt; „+1 Tag“ behält die Uhrzeit über die Zeitumstellung. | Unit-Tests `time.spec` (`pauseBetween`, `relativeContext`, `placeRelative`, `shiftPlan` mit Bereich und Zeitumstellung, `shiftLeavesDay`), `task-editor.spec` (Zeit), `plan-editor.spec`, `flow-view.spec`; `test:acceptance` Tests 8 (Ablauf und Sheet im Tagesplan) | ✔ |
 | 19 | **Konflikte beim Zusammenführen:** Gleichnamige Zettel (ohne Groß-/Kleinschreibung) werden angezeigt; eine Wahl für alle: als „Name (2)“, überschreiben (ID und Position bleiben, vorher Sicherung), nicht importieren, nur neuere (Gleichstand = überspringen); Ergebnis „n importiert, n übersprungen, n überschrieben“. | Unit-Tests `storage.spec` (`findConflicts`, `resolveConflicts` alle vier Strategien, Roundtrip), `backup.service.spec` (Sicherung vor dem Überschreiben), `settings-page.spec` (Konflikt-Dialog) | ✔ |
 | 20 | **Erst-Start und Anleitung:** Beim ersten Start modaler Speicher-Hinweis (nur „Verstanden“ schließt ihn), danach einmal das Angebot, die Anleitung zu lesen; das Installations-Banner erst danach. Die Anleitung öffnet im Vollbild beim Teil der eingestellten Sprache, Anker-Links bleiben im Dialog, sie ist offline lesbar und in den Einstellungen erreichbar; dort auch der Link zum Repository. | `test:acceptance` Test F (nur Tastatur, 360 px, Tippflächen); `test:pwa` Test 2 (Anleitung offline); Unit-Tests `first-run.spec`, `guide-dialog.spec`, `install-banner.spec`; `test:scripts` (Konverter) | ✔ |
+| 21 | **Lange Titel** (mit und ohne Leerzeichen) brechen überall um und ragen nie aus Karten, Kopfzeilen oder der Seitenleiste; Vorschauen in der Übersicht und im Archiv zeigen höchstens zwei Zeilen, Ablauf-Karten höchstens drei. | `test:acceptance` Tests 8 (Testzettel mit 136 Zeichen ohne Leerzeichen; Prüfung „Text ragt heraus“ in allen Größen, inkl. seitlich abgeschnittener Wörter); Gegenprobe ohne Umbruch schlägt an | ✔ |
+| 22 | **Modus-Etikett** an jedem Zettel (Übersicht, Archiv, Kopf, Seitenleiste), auch „Keine Zeitplanung“, nur so breit wie sein Text. | Unit-Test `lists-page.spec`; Bilder der Anleitung | ✔ |
+| 23 | **Namen** von Zetteln, Vorlagen und ToDos sind nie leer; Zettel- und Vorlagen-Namen sind eindeutig (auch beim Import und für vorhandene Duplikate). Leer und vergeben verhalten sich gleich: Knopf gesperrt (`aria-disabled`, weiter erreichbar), ruhiger Hinweis direkt unter dem Feld. | Unit-Tests `list-dialog.spec`, `task-editor.spec`, `templates.store.spec`, `storage.spec` | ✔ |
+| 24 | **Tastenkürzel änderbar** unter „Für Fortgeschrittene“: Aufnahme per Tastendruck, Esc bricht ab, Tab bleibt Navigation, belegte und reservierte Tasten werden abgelehnt, Zurücksetzen einzeln und gesamt; die Hilfe (?) zeigt die aktuelle Belegung. | Unit-Tests `keymap.spec`, `advanced-page.spec`, `focus-view.spec`, `flow-view.spec`; `test:acceptance` Test 1 (Standardbelegung per Tastatur) und Tests 8 (Seite responsiv) | ✔ |
+| 25 | **„Was ist neu?“** zeigt `CHANGELOG.md` in der App, auch offline. | Unit-Test `guide-dialog.spec`; `test:pwa` Test 2 | ✔ |
+| 26 | **Ablauf verschieben markiert keinen Text.** | `test:acceptance` Tests 8 (`user-select: none` auf der Diagrammfläche) | ✔ |
 
 ## Manuelle Testdaten
 
@@ -60,8 +66,10 @@ damit Auto-Archiv (⑦) und eindeutige Namen (⑨) greifen.
 | ⑦ Alles erledigt | Auto-Archiv beim Betreten der Übersicht, mit Rückgängig |
 | ⑧ Archiv | Modus-Chip, enthaltene ToDos, Menü, Duplizieren als „(2)“ |
 | ⑨ Doppelter Name (2×) | Bereinigung beim Laden, gesperrte Namen im Dialog |
-| ⑩ Lange Titel | Umbruch und Abschneiden bei 360 px |
+| ⑩ Lange Titel | Umbruch (auch ohne Leerzeichen) und Kürzen in Übersicht, „Jetzt dran“ und Ablauf |
+| ⑪ Name ohne Leerzeichen | Zettelname bricht um; Chip „Keine Zeitplanung“ überall, schmal; Ablauf ohne Textmarkierung |
 | Vorlage: Morgenroutine | Vorlage mit Zeiten und Checkliste einsetzen |
+| Vorlage doppelt (2×) | Eindeutige Vorlagen-Namen beim Import, gesperrtes Umbenennen |
 
 Was jeweils zu tun ist, steht in den Notizen der ToDos. Neue Features ergänzen
 hier ihren Zettel; der Unit-Test in `storage.spec` stellt sicher, dass die Datei

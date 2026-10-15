@@ -44,6 +44,7 @@ src/app/
 │  │  ├─ status.ts                  Zeitstatus, nächster Schritt, Sortierung, Spannen
 │  │  ├─ plan.ts                    Validierung, Verschieben, Strecken, Vorschläge
 │  │  └─ relative.ts                Pause am Pfeil, Einfügen mit relativen Zeiten
+│  ├─ keymap.ts                     REINE Tastenkürzel-Logik (Standard, eigene Belegung, Konflikte)
 │  ├─ templates/                    REINE Vorlagen-Logik (framewerkfrei, Phase 3)
 │  │  └─ templates.ts               Zettel/Strang → Vorlage, Vorlage → Zettel/Strang
 │  ├─ storage/                      Persistenz (IndexedDB, Migration, Backup)
@@ -70,7 +71,7 @@ src/app/
 │  │  ├─ plan-editor.ts             „Zeitplan bearbeiten" / „Strang verschieben"
 │  │  └─ shortcut-help.ts           Tastenkürzel-Übersicht
 │  ├─ templates/                    Vorlagen-Seite (Phase 3, fertig)
-│  └─ settings/                     Einstellungen (Phase 1: Theme, Sprache, Version, Speicher)
+│  └─ settings/                     Einstellungen; advanced-page.ts = „Für Fortgeschrittene“ (Tastenkürzel)
 └─ shared/
    ├─ menus.ts                      gemeinsames Schließen aller ⋯-Menüs (Klick, Esc)
    ├─ focus.ts                      focusAfterRender (Fokus in neu erscheinende Felder)
@@ -168,6 +169,21 @@ Frameworkfrei und vollständig unit-getestet. Vier Dateien:
 Alle Funktionen sind **rein** (Eingabe → neue Struktur). Das minütliche `now`
 liefert `core/state/now.store.ts` als Signal; die reinen Funktionen bekommen `now`
 übergeben und bleiben dadurch testbar.
+
+## 4a2. Tastenkürzel (`core/keymap.ts`)
+
+Frameworkfrei und getestet (`keymap.spec.ts`). Jede Aktion gehört zu einem
+**Bereich**: `focus` („Jetzt dran“), `flow` (Ablauf, nur auf einer fokussierten
+Karte) oder `global` (überall im Zettel). `DEFAULT_KEYMAP` ist die
+Standardbelegung; `AppSettings.keymap` speichert **nur Abweichungen**
+(`SettingsStore.keymap` = Standard + eigene). `actionFor(event, keymap,
+scopes)` ersetzt alle früheren Tasten-Vergleiche in `focus-view`, `flow-view`
+und `list-detail-page`. Regeln: Strg und Cmd gelten gleich; Umschalt zählt bei
+Buchstaben und benannten Tasten, nicht bei Zeichen wie „?“ (je nach
+Tastaturlayout nötig); Tab und Esc sind reserviert; `conflictFor` verhindert
+Doppelbelegungen in Bereichen, die zugleich aktiv sein können (`global`
+überschneidet sich mit allen). Die Seite `einstellungen/fortgeschritten`
+nimmt neue Tasten auf; die Tastenkürzel-Hilfe zeigt die aktuelle Belegung.
 
 ## 4b. Vorlagen-Logik (`core/templates`)
 
@@ -341,7 +357,7 @@ Bausteine:
 | `scripts/generate-icons.mjs` | Rastert die Icon-Geometrie (Quelle: `public/icons/icon.svg`) ohne Fremdpakete zu PNG/ICO (`npm run icons`). |
 | `core/pwa/pwa.service.ts` | Registriert `./sw.js` (nur Produktion, nach `load`), fängt `beforeinstallprompt` ab, erkennt iOS und installierten Modus, fragt den SW nach dem Precache-Status („Offline bereit"). |
 | `scripts/pwa-test.mjs` | Automatisierte Pflichttests, siehe `docs/PWA-TESTS.md`. |
-| `scripts/guide.mjs`, `scripts/lib/markdown.mjs` | Läuft vor `ng build` und `ng serve`: wandelt `docs/USER-GUIDE.md` mit einem eigenen kleinen Konverter (nur die genutzten Elemente, Zitate als Kästen „Am PC / Auf dem Handy“, keine Abhängigkeit; Tests mit `npm run test:scripts`) in das Fragment `public/guide/guide.html` um und kopiert `docs/images/`. Nicht eingecheckt; über den Build im Precache, also offline lesbar. |
+| `scripts/guide.mjs`, `scripts/lib/markdown.mjs` | Läuft vor `ng build` und `ng serve`: wandelt `docs/USER-GUIDE.md` und `CHANGELOG.md` mit einem eigenen kleinen Konverter (nur die genutzten Elemente, Zitate als Kästen „Am PC / Auf dem Handy“, keine Abhängigkeit; Tests mit `npm run test:scripts`) in die Fragmente `public/guide/guide.html` und `public/guide/changelog.html` um (der `GuideDialog` zeigt beide, „Was ist neu?“) und kopiert `docs/images/`. Nicht eingecheckt; über den Build im Precache, also offline lesbar. |
 
 Ablauf im Service Worker:
 

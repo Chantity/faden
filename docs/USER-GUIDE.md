@@ -58,9 +58,10 @@ Both notes appear only once. Then:
 ![The list overview](images/en/overview.webp)
 
 The start page shows all your lists as cards. Each card shows the **title**,
-the **progress** (“1 of 4 done”), a **mode label** if the list uses a time
-planning, and the todo that is **up now** – so you know what's next without
-opening the list. Tapping the card opens it.
+the **progress** (“1 of 4 done”), a **label** with its time planning (also
+“No time planning”), and the todo that is **up now** – so you know what's next
+without opening the list. Long titles are shortened to two lines. Tapping the
+card opens it.
 
 At the top are **Undo** (↶) and **Redo** (↷) for what you did in the overview,
 and – once you have templates – **“From template …”**.
@@ -78,8 +79,10 @@ The **menu (⋯)** on a card offers:
 Every menu (⋯) in the app closes when you tap anywhere outside it, tap the
 three dots again or press **Esc**.
 
-**Names are unique:** two lists can't have the same name (upper and lower case
-don't count). If a name is taken, the dialog says so and waits for another one.
+**Names:** every list needs a name, and two lists can't have the same name
+(upper and lower case don't count). As long as the name is empty or taken, the
+button stays disabled and a short hint below the field says why. The same
+applies to templates.
 
 **Finished lists archive themselves:** when you come back to the overview,
 every list whose todos are all done moves to the archive, with **“Undo”** at
@@ -143,7 +146,7 @@ menu (⋯).
 Result: only the newest prerequisite is “Now”. Once it's checked off, the next
 one moves up by itself.
 
-> **On a computer:** **V** = something else has to come first, **N** = insert
+> **On a computer** (keys changeable, section 12): **V** = something else has to come first, **N** = insert
 > after, **E** = edit, **Enter/Space** = done, **Esc** ends a chain.
 
 ### 5. A list: “Flow”
@@ -284,7 +287,9 @@ Save a whole list **or** a single strand as a **template**:
 - **One strand:** in the Flow, card menu (⋯) → **“Save strand as template”**.
 
 Templates keep structure, titles, notes, checklists (unchecked), durations,
-times of day and the time planning – but not what was already done.
+times of day and the time planning – but not what was already done. Template
+names are unique like list names: saving a second “Weekly shop” creates
+“Weekly shop (2)”.
 
 On the **Templates** page you can expand the **Flow** of a template as a
 preview, **Rename** or **Delete** it (with Undo) and create a
@@ -301,11 +306,14 @@ into list”**: the template is added as a new, separate strand.
   permanently. If not, **“Protect permanently”** asks the browser.
 - **Install** – shows **“Offline ready”** once Faden is completely stored on
   your device, plus **“Install app”** where the browser offers it.
-- **Version** – the installed version. Faden **never updates by itself**;
-  **“Check for a new version”** asks, and a new version is only switched to
-  once it has been downloaded completely.
+- **Version** – the installed version. **“What's new?”** shows the changes of
+  every version (also offline). Faden **never updates by itself**; **“Check
+  for a new version”** asks, and a new version is only switched to once it has
+  been downloaded completely.
 - **Help** – **“Read the guide”** opens this guide in the app (also offline);
   **“Faden on GitHub”** opens the source code and the place to report problems.
+- **Advanced** – settings most people never need; for now the keyboard
+  shortcuts (section 12).
 - **Backup and data** – section 10.
 
 > **On a phone (iPhone/iPad):** in Safari, **Share → Add to Home Screen**
@@ -355,13 +363,23 @@ checking off, inserting, shifting.
 
 > **On a computer:**
 > - **Tab / Shift+Tab** move through the controls; every control shows a
->   clear focus ring.
-> - In “Now”: **Enter/Space** = done, **V** = something else has to come first,
->   **N** = insert after, **E** = edit.
-> - In the Flow: arrow keys move between cards, **Enter** edits, **Delete**
->   deletes.
+>   clear focus ring. **Enter/Space** press the focused button, e.g. “Done”.
+> - In “Now”: **V** = something else has to come first, **N** = insert after,
+>   **E** = edit.
+> - In the Flow (on a focused card): arrow keys move between cards, **Enter**
+>   edits, **Delete** deletes.
 > - **Ctrl/Cmd+Z** = undo, **Ctrl/Cmd+Shift+Z** or **Ctrl+Y** = redo.
-> - **?** shows all shortcuts. **Esc** closes menus and dialogs.
+> - **?** shows all shortcuts with their current keys. **Esc** closes menus
+>   and dialogs.
+
+![Changing keyboard shortcuts](images/en/advanced.webp)
+
+**Changing shortcuts:** under **Settings → Advanced**, tap **“Change”** next to
+an action and press the new key or combination (**Esc** cancels). Faden
+refuses keys that are already used where the action works, and **Tab** and
+**Esc**, which stay reserved for navigating. Changed shortcuts are marked
+“changed”; **“Default”** resets one, **“Reset all to default”** all of them.
+Shortcuts only work while no input field is active.
 
 ### 13. If something goes wrong
 
@@ -432,10 +450,10 @@ Beide Hinweise kommen nur einmal. Danach:
 ![Die Zettel-Übersicht](images/de/overview.webp)
 
 Die Startseite zeigt alle Zettel als Karten. Jede Karte zeigt den **Titel**,
-den **Fortschritt** („1 von 4 erledigt“), ein **Modus-Etikett**, wenn der
-Zettel eine Zeitplanung nutzt, und das ToDo, das **jetzt dran** ist – so weißt
-du, was als Nächstes kommt, ohne den Zettel zu öffnen. Ein Tipp auf die Karte
-öffnet ihn.
+den **Fortschritt** („1 von 4 erledigt“), ein **Etikett** mit seiner
+Zeitplanung (auch „Keine Zeitplanung“) und das ToDo, das **jetzt dran** ist – so
+weißt du, was als Nächstes kommt, ohne den Zettel zu öffnen. Lange Titel werden
+auf zwei Zeilen gekürzt. Ein Tipp auf die Karte öffnet ihn.
 
 Oben stehen **Rückgängig** (↶) und **Wiederholen** (↷) für das, was du in der
 Übersicht getan hast, und – sobald es Vorlagen gibt – **„Aus Vorlage …“**.
@@ -453,9 +471,10 @@ Das **Menü (⋯)** einer Karte bietet:
 Jedes Menü (⋯) in der App schließt sich, wenn du irgendwo daneben tippst, noch
 einmal auf die drei Punkte tippst oder **Esc** drückst.
 
-**Namen sind eindeutig:** Zwei Zettel können nicht gleich heißen (Groß- und
-Kleinschreibung zählen nicht). Ist ein Name vergeben, sagt der Dialog das und
-wartet auf einen anderen.
+**Namen:** Jeder Zettel braucht einen Namen, und zwei Zettel können nicht gleich
+heißen (Groß- und Kleinschreibung zählen nicht). Solange der Name leer oder
+vergeben ist, bleibt der Knopf gesperrt, und ein kurzer Hinweis unter dem Feld
+sagt warum. Für Vorlagen gilt dasselbe.
 
 **Fertige Zettel archivieren sich selbst:** Kommst du zurück in die Übersicht,
 wandert jeder Zettel, dessen ToDos alle erledigt sind, ins Archiv – mit
@@ -519,7 +538,7 @@ Fortschritt, Modus-Etikett, Rückgängig/Wiederholen für diesen Zettel, **?**
 Ergebnis: Nur die neueste Vorarbeit ist „Jetzt dran“. Ist sie abgehakt, rückt
 die nächste von selbst nach.
 
-> **Am PC:** **V** = erst noch etwas anderes nötig, **N** = danach einfügen,
+> **Am PC** (Tasten änderbar, Abschnitt 12): **V** = erst noch etwas anderes nötig, **N** = danach einfügen,
 > **E** = bearbeiten, **Enter/Leertaste** = erledigt, **Esc** beendet eine
 > Kette.
 
@@ -668,6 +687,8 @@ Speichere einen ganzen Zettel **oder** einen einzelnen Strang als **Vorlage**:
 
 Vorlagen behalten Struktur, Titel, Notizen, Checklisten (ohne Haken), Dauern,
 Uhrzeiten und die Zeitplanung – aber nicht, was schon erledigt war.
+Vorlagen-Namen sind eindeutig wie Zettel-Namen: Ein zweiter „Wocheneinkauf“ wird
+zu „Wocheneinkauf (2)“.
 
 Auf der Seite **Vorlagen** klappst du den **Ablauf** einer Vorlage als Vorschau
 auf, kannst sie **Umbenennen** oder **Löschen** (mit Rückgängig) und mit
@@ -685,12 +706,15 @@ neuer, eigener Strang dazu.
   schützt. Wenn nicht, fragt **„Dauerhaft schützen“** beim Browser nach.
 - **Installieren** – zeigt **„Offline bereit“**, sobald Faden vollständig auf
   deinem Gerät liegt, und **„App installieren“**, wo der Browser es anbietet.
-- **Version** – die installierte Version. Faden **aktualisiert sich nie von
+- **Version** – die installierte Version. **„Was ist neu?“** zeigt die
+  Änderungen jeder Version (auch offline). Faden **aktualisiert sich nie von
   selbst**; **„Nach neuer Version suchen“** fragt nach, und auf eine neue
   Version wird erst umgeschaltet, wenn sie vollständig geladen ist.
 - **Hilfe** – **„Anleitung lesen“** öffnet diese Anleitung in der App (auch
   offline); **„Faden auf GitHub“** öffnet den Quellcode und die Stelle zum
   Melden von Fehlern.
+- **Für Fortgeschrittene** – Einstellungen, die die meisten nie brauchen;
+  vorerst die Tastenkürzel (Abschnitt 12).
 - **Sicherung und Daten** – Abschnitt 10.
 
 > **Auf dem Handy (iPhone/iPad):** In Safari installiert **Teilen → Zum
@@ -745,14 +769,26 @@ Löschen, Abhaken, Einfügen, Verschieben.
 
 > **Am PC:**
 > - **Tab / Umschalt+Tab** wechseln zwischen den Bedienelementen; jedes zeigt
->   einen deutlichen Fokusrahmen.
-> - In „Jetzt dran“: **Enter/Leertaste** = erledigt, **V** = erst noch etwas
->   anderes nötig, **N** = danach einfügen, **E** = bearbeiten.
-> - Im Ablauf: Pfeiltasten wechseln zwischen Karten, **Enter** bearbeitet,
->   **Entf** löscht.
+>   einen deutlichen Fokusrahmen. **Enter/Leertaste** lösen den fokussierten
+>   Knopf aus, z. B. „Erledigt“.
+> - In „Jetzt dran“: **V** = erst noch etwas anderes nötig, **N** = danach
+>   einfügen, **E** = bearbeiten.
+> - Im Ablauf (auf einer fokussierten Karte): Pfeiltasten wechseln zwischen
+>   Karten, **Enter** bearbeitet, **Entf** löscht.
 > - **Strg/Cmd+Z** = rückgängig, **Strg/Cmd+Umschalt+Z** oder **Strg+Y** =
 >   wiederholen.
-> - **?** zeigt alle Tastenkürzel. **Esc** schließt Menüs und Dialoge.
+> - **?** zeigt alle Tastenkürzel mit ihrer aktuellen Belegung. **Esc** schließt
+>   Menüs und Dialoge.
+
+![Tastenkürzel ändern](images/de/advanced.webp)
+
+**Tastenkürzel ändern:** Unter **Einstellungen → Für Fortgeschrittene** tippst
+du neben einer Aktion auf **„Ändern“** und drückst die neue Taste oder
+Kombination (**Esc** bricht ab). Faden lehnt Tasten ab, die dort schon belegt
+sind, wo die Aktion wirkt, sowie **Tab** und **Esc**, die für die Bedienung
+reserviert bleiben. Geänderte Kürzel sind als „geändert“ markiert;
+**„Standard“** setzt eines zurück, **„Alle auf Standard“** alle. Kürzel wirken
+nur, wenn gerade kein Eingabefeld aktiv ist.
 
 ### 13. Wenn etwas schiefgeht
 

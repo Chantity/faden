@@ -29,6 +29,12 @@
 - The overview no longer briefly shows “Create your first list” while your
   lists are loading.
 
+**Fixed**
+
+- In the flow, Enter on the check circle or ⋯ of a card now presses that
+  button instead of opening “Edit”.
+- Ctrl+Z inside a dialog no longer undoes something behind it.
+
 ### 2.0.0
 
 - One sheet for creating and editing todos; Enter creates instantly.
@@ -70,6 +76,12 @@
   zu „Name (2)“.
 - Beim Verschieben des Ablaufs mit der Maus wird kein Text mehr markiert.
 - Die Übersicht zeigt beim Laden nicht mehr kurz „Ersten Zettel anlegen“.
+
+**Behoben**
+
+- Im Ablauf löst Enter auf dem Abhak-Kreis oder dem ⋯ einer Karte jetzt diesen
+  Knopf aus, statt „Bearbeiten“ zu öffnen.
+- Strg+Z in einem Dialog macht nichts mehr dahinter rückgängig.
 
 ### 2.0.0
 

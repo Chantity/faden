@@ -17,7 +17,7 @@
           "id": "mt-chain-a",
           "title": "Geschirrspüler einräumen",
           "done": false,
-          "notes": "Prüfen:\n- V (oder „Erst noch etwas anderes nötig …“) öffnet das Sheet, Enter legt an und öffnet sofort das nächste (Kette), Esc beendet.\n- Mehrzeiligen Text ins Titelfeld einfügen → eine Zeile, ein ToDo.\n- N legt danach an, E bearbeitet, Strg+Z macht rückgängig, ? zeigt die Tastenkürzel.\n- Alles ohne Maus, Fokusrahmen immer sichtbar."
+          "notes": "Prüfen:\n- V (oder „Erst noch etwas anderes nötig …“) öffnet das Sheet, Enter legt an und öffnet sofort das nächste (Kette), Esc beendet.\n- Mehrzeiligen Text ins Titelfeld einfügen → eine Zeile, ein ToDo.\n- N legt danach an, E bearbeitet, Strg+Z macht rückgängig, ? zeigt die Tastenkürzel.\n- Alles ohne Maus, Fokusrahmen immer sichtbar.\n- v2.1: Einstellungen → Für Fortgeschrittene → V auf B ändern; hier wirkt dann B statt V, ? zeigt B. Esc bricht die Aufnahme ab, E für „Danach einfügen“ wird abgelehnt (schon belegt).\n- v2.1: Leerer Titel im Sheet: Knopf gesperrt, Hinweis unter dem Feld."
         }
       ],
       "edges": []
@@ -271,21 +271,41 @@
       "sortOrder": 10,
       "tasks": [
         {
+          "id": "mt-long-b",
+          "title": "Superlangeswortohneleerzeichenzumtestendesumbruchsinkartenundimablaufdiagrammundinderjetztdranvorschau",
+          "done": false,
+          "dayStart": "17:00",
+          "estimateMinutes": 15,
+          "notes": "v2.1: Dieses Wort ohne Leerzeichen muss überall umbrechen – Übersicht („Jetzt dran: …“, höchstens 2 Zeilen), Karte in „Jetzt dran“ (vollständig), Ablauf (höchstens 3 Zeilen), nie über den Kartenrand."
+        },
+        {
           "id": "mt-long-a",
           "title": "Ein sehr langer ToDo-Titel, der auf schmalen Bildschirmen umbrechen muss und im Ablauf nach drei Zeilen sauber abgeschnitten wird, statt die Karte zu sprengen",
           "done": false,
           "dayStart": "18:00",
-          "estimateMinutes": 45
-        },
-        {
-          "id": "mt-long-b",
-          "title": "Superlangeswortohneleerzeichenzumtestendesumbruchsinkartenundimablaufdiagramm",
-          "done": false,
-          "dayStart": "19:00",
-          "estimateMinutes": 15
+          "estimateMinutes": 45,
+          "notes": "Steht in „Jetzt dran“ unter „Danach: …“ – auch diese Zeile bricht um."
         }
       ],
-      "edges": [{ "id": "mt-long-a__mt-long-b", "from": "mt-long-a", "to": "mt-long-b" }]
+      "edges": [{ "id": "mt-long-b__mt-long-a", "from": "mt-long-b", "to": "mt-long-a" }]
+    },
+    {
+      "id": "mt-nospace",
+      "title": "⑪Zettelnameganzohneleerzeichendermitsamtchipnichtüberdenkartenrandragendarf",
+      "timeboxMode": "none",
+      "archived": false,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-10-15T08:00:00.000Z",
+      "sortOrder": 11,
+      "tasks": [
+        {
+          "id": "mt-nospace-a",
+          "title": "Chip „Keine Zeitplanung“ in Übersicht, Kopf und Seitenleiste – nur so breit wie der Text",
+          "done": false,
+          "notes": "Außerdem: Im Ablauf mit der Maus ziehen markiert keinen Text."
+        }
+      ],
+      "edges": []
     }
   ],
   "templates": [
@@ -309,6 +329,27 @@
         }
       ],
       "edges": [{ "id": "mt-tpl-a__mt-tpl-b", "from": "mt-tpl-a", "to": "mt-tpl-b" }]
+    },
+    {
+      "id": "mt-tpl-dup-1",
+      "title": "Vorlage doppelt",
+      "timeboxMode": "none",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "tasks": [{ "id": "mt-tpl-dup-1-a", "title": "Die ältere behält den Namen" }],
+      "edges": []
+    },
+    {
+      "id": "mt-tpl-dup-2",
+      "title": "vorlage DOPPELT",
+      "timeboxMode": "none",
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "tasks": [
+        {
+          "id": "mt-tpl-dup-2-a",
+          "title": "v2.1: Diese heißt nach dem Import „vorlage DOPPELT (2)“. Umbenennen in „Vorlage doppelt“ ist gesperrt (Hinweis unter dem Feld)."
+        }
+      ],
+      "edges": []
     }
   ]
 }

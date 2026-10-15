@@ -86,6 +86,9 @@ danach“.
   noch …“).
 - **Tastatur:** alles per Tastatur bedienbar, sichtbare Fokusrahmen, Fokus
   landet in neu erscheinenden Feldern und geht nach einer Aktion nie verloren.
+  Alle Tastenkürzel sind änderbar („Für Fortgeschrittene“); **Tab** und **Esc**
+  bleiben für die Bedienung reserviert, Enter/Leertaste auf einem Knopf lösen
+  immer den Knopf aus.
 - **Menüs** (⋯) schließen sich bei Klick/Tipp außerhalb und mit Esc.
 - **Responsive:** ab 360 px Breite ohne horizontales Scrollen (außer in der
   Diagrammfläche). Unter 600 px Dialoge als Bottom-Sheets, über 1024 px
@@ -116,9 +119,17 @@ danach“.
 
 **Zettel und ToDos:**
 
-- **Zettel-Namen sind eindeutig** (getrimmt, ohne Groß-/Kleinschreibung, über
-  aktive und archivierte Zettel). Ein vergebener Name wird im Dialog ruhig
-  gesperrt; automatisch entstehende Namen bekommen „ (2)“, „ (3)“ …
+- **Namen sind nie leer.** **Zettel- und Vorlagen-Namen sind eindeutig**
+  (getrimmt, ohne Groß-/Kleinschreibung; bei Zetteln über aktive und
+  archivierte); ToDo-Titel dürfen sich wiederholen. Leer und vergeben verhalten
+  sich gleich: Der Knopf ist gesperrt (`aria-disabled`, bleibt erreichbar), ein
+  ruhiger Hinweis steht direkt unter dem Feld. Automatisch entstehende Namen
+  bekommen „ (2)“, „ (3)“ …
+- **Jeder Zettel zeigt seine Zeitplanung** als Etikett, auch „Keine
+  Zeitplanung“ – überall gleich (Übersicht, Archiv, Kopf, Seitenleiste).
+- **Lange Titel** brechen überall um, auch ohne Leerzeichen; Vorschauen kürzen
+  auf zwei (Karten) bzw. drei Zeilen (Ablauf), der Titel in „Jetzt dran“ bleibt
+  vollständig.
 - **Fertige Zettel archivieren sich selbst** beim Betreten der Übersicht (mit
   Rückgängig). Archivierte Zettel bleiben vollständig nutzbar (Inhalt ansehen,
   duplizieren, als Vorlage).
