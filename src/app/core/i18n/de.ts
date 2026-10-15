@@ -231,13 +231,17 @@ export const de = {
         title: 'Der Ablauf',
         body: '„Ablauf“ zeigt alle ToDos als Faden, von oben nach unten. Schalte um.',
       },
+      newStrand: {
+        title: 'Ein neuer Strang',
+        body: 'Etwas, das mit dem Bisherigen nichts zu tun hat? ✚ oben rechts beginnt einen eigenen Strang – ein ToDo ohne Vorarbeit. Lege so eines an.',
+      },
       edit: {
-        title: 'Bearbeiten',
-        body: 'Im ⋯-Menü einer Karte öffnet „Bearbeiten“ das ToDo. Unter „Muss vorher erledigt sein“ wählst du, was davor kommt. Schließe den Dialog danach wieder.',
+        title: 'Verbinden',
+        body: 'Im ⋯-Menü der neuen Karte öffnet „Bearbeiten“ das ToDo. Wähle unter „Muss vorher erledigt sein“ das letzte ToDo deiner Kette – schon hängt der Strang daran. Schließe den Dialog danach.',
       },
       archive: {
         title: 'Wenn alles erledigt ist',
-        body: 'Ist ein Zettel ganz abgehakt, wandert er beim nächsten Besuch der Übersicht ins Archiv. Was genau passiert, stellst du unter Einstellungen → Für Fortgeschrittene ein.',
+        body: 'Im Ablauf hakst du mit dem Kreis oben links auf jeder Karte ab. Ist ein Zettel ganz abgehakt, wandert er beim nächsten Besuch der Übersicht ins Archiv. Was genau passiert, stellst du unter Einstellungen → Für Fortgeschrittene ein.',
       },
       more: {
         title: 'Das sind die Grundlagen',
@@ -245,7 +249,7 @@ export const de = {
       },
       branch: {
         title: 'Verzweigungen',
-        body: 'Im Ablauf legt „Nachfolgeaufgabe erstellen“ im ⋯-Menü einer Karte einen Schritt an, der neben dem bisherigen Nachfolger herläuft. Probier es aus.',
+        body: 'Im Ablauf legt „Nachfolgeaufgabe erstellen“ im ⋯-Menü einer Karte einen Schritt an, der neben dem bisherigen Nachfolger herläuft – „Voraufgabe erstellen“ das Gleiche davor. Probier eines davon aus.',
       },
       links: {
         title: 'Verbindungen',

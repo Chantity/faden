@@ -694,20 +694,49 @@ await test('T Geführte Tour: Grundlagen mit echten Aktionen, dann „Mehr anzei
   await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Sheet „Danach einfügen“');
   await page.type('Switch on');
   await click('dialog[open] .sheet__actions .btn--primary');
-  await step('The flow');
+  await page.waitFor(`${tourTitle} === 'The flow'`, 'Tour-Schritt „The flow“');
+  // Im Umschalter (overflow: hidden) liegt der Rahmen innen, sonst wäre er abgeschnitten.
+  await page.waitFor(`(() => {
+    const b = document.querySelector('[data-tour="view-flow"].tour-target');
+    return b && parseFloat(getComputedStyle(b).outlineOffset) < 0;
+  })()`, 'Umschalter sichtbar umrahmt');
+  await tourButton('Got it');
   await click('[data-tour="view-flow"]');
-  await step('Edit');
-  await page.waitFor(`document.querySelector('.flow__canvas .node')`, 'Ablauf');
-  await click('.flow__canvas .node__menu-btn');
-  await page.eval(`[...document.querySelectorAll('.popover button')].find((b) => b.textContent.trim() === 'Edit').click()`);
-  await page.waitFor(`document.querySelector('dialog[open]')`, 'Bearbeiten offen');
+
+  const menuItem = (label) =>
+    page.eval(`[...document.querySelectorAll('.popover button')].find((b) => b.textContent.trim() === ${JSON.stringify(label)}).click()`);
+  const addInSheet = async (title) => {
+    await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Sheet');
+    await page.type(title);
+    await click('dialog[open] .sheet__actions .btn--primary');
+  };
+  await step('A new strand');
+  await click('[data-tour="new-strand"]');
+  await addInSheet('Wipe the table');
+  await step('Connect');
+  await page.waitFor(`document.querySelector('.node__menu-btn.tour-target')`, 'Karte des neuen Strangs umrahmt');
+  await click('.node__menu-btn.tour-target');
+  await menuItem('Edit');
+  await page.waitFor(`document.querySelector('dialog[open] select[aria-labelledby=links-prev]')`, 'einzelnes Dropdown');
+  await page.eval(`(() => {
+    const select = document.querySelector('dialog[open] select[aria-labelledby=links-prev]');
+    select.value = select.options[1].value;
+    select.dispatchEvent(new Event('change'));
+  })()`);
   await page.press('Escape');
-  await step('When everything is done', 'Next');
+  await page.waitFor(`${tourTitle} === 'When everything is done'`, 'Tour-Schritt „When everything is done“');
+  await page.waitFor(`document.querySelectorAll('.node__toggle.tour-target').length >= 4`, 'alle Abhak-Kreise umrahmt');
+  await tourButton('Next');
 
   await page.waitFor(`${tourTitle} === 'Those are the basics'`, 'Ende der Grundlagen');
   assert(await page.eval(`document.querySelector('.tour').textContent.includes('simple mode')`), 'Text zum einfachen Modus fehlt');
   await tourButton('Show more');
-  await page.waitFor(`${tourTitle} === 'Branches'`, 'erweiterte Schritte');
+  await step('Branches');
+  // Am Strang-Ende: keine Verzweigung, die Tour muss trotzdem weitergehen.
+  await page.eval(`[...document.querySelectorAll('.flow__canvas .node__menu-btn')].at(-1).click()`);
+  await menuItem('Create successor task');
+  await addInSheet('Dry the dishes');
+  await page.waitFor(`${tourTitle} === 'Connections'`, 'weiter nach „Branches“');
   await page.goto(BASE + '#/einstellungen');
   await page.waitFor(`document.querySelector('.check-row input')`, 'Einstellungen');
   assert(!(await page.eval(`document.querySelector('.check-row input').checked`)), 'Einfacher Modus noch an');
@@ -715,7 +744,7 @@ await test('T Geführte Tour: Grundlagen mit echten Aktionen, dann „Mehr anzei
   await page.waitFor(`!document.querySelector('.tour')`, 'Tour beendet');
   assert((await page.eval(`localStorage.getItem('faden.tourActive')`)) === null, 'Tour-Merker bleibt stehen');
   assert(problems.length === 0, '\n    - ' + problems.join('\n    - '));
-  return 'Start aus „Über“, 8 Grundlagen-Schritte per Klick/Tastatur, Hinweis wartet bei offenem Dialog, „Mehr anzeigen“ schaltet den einfachen Modus aus';
+  return 'Start aus „Über“, 9 Grundlagen-Schritte per Klick/Tastatur (neuer Strang, Verbinden per Dropdown), Hinweis wartet bei offenem Dialog, „Mehr anzeigen“ schaltet den einfachen Modus aus, „Branches“ geht weiter';
 });
 
 await browser.close();

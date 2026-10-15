@@ -173,7 +173,7 @@ export class TourOverlay {
       timer = null;
       observer?.disconnect();
       observer = null;
-      this.highlight(null);
+      this.highlight([]);
     };
     effect(() => {
       if (!this.tour.active()) return stop();
@@ -208,26 +208,31 @@ export class TourOverlay {
     this.tour.collapsed.set(false);
   }
 
+  private targets(): HTMLElement[] {
+    const selector = this.tour.step()?.target?.({ practice: this.tour.practiceId(), task: this.tour.taskId() });
+    return selector ? [...document.querySelectorAll<HTMLElement>(selector)] : [];
+  }
+
   private target(): HTMLElement | null {
-    const selector = this.tour.step()?.target?.(this.tour.practiceId());
-    return selector ? document.querySelector<HTMLElement>(selector) : null;
+    return this.targets()[0] ?? null;
   }
 
   private poll(): void {
     const open = document.querySelector('dialog[open]') !== null;
     if (open !== this.tour.dialogOpen()) this.tour.setDialogOpen(open);
-    const target = open ? null : this.target();
-    this.highlight(target);
+    const targets = open ? [] : this.targets();
+    this.highlight(targets);
+    const target = targets[0];
     if (target) {
       const rect = target.getBoundingClientRect();
       this.atTop.set(rect.top + rect.height / 2 > window.innerHeight / 2);
     }
   }
 
-  private highlight(target: HTMLElement | null): void {
-    for (const el of document.querySelectorAll(`.${TARGET_CLASS}`)) {
-      if (el !== target) el.classList.remove(TARGET_CLASS);
+  private highlight(targets: readonly HTMLElement[]): void {
+    for (const el of document.querySelectorAll<HTMLElement>(`.${TARGET_CLASS}`)) {
+      if (!targets.includes(el)) el.classList.remove(TARGET_CLASS);
     }
-    target?.classList.add(TARGET_CLASS);
+    for (const el of targets) el.classList.add(TARGET_CLASS);
   }
 }

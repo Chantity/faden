@@ -2,7 +2,6 @@
  * Geführte Tour (ohne UI-Abhängigkeiten): Schritte, Ziele und wann ein Schritt
  * erledigt ist. Der TourService fragt `done` bei jeder Änderung ab.
  */
-import { isJoin, isSplit } from './graph';
 import type { TodoList } from './model';
 
 export type TourStepId =
@@ -12,6 +11,7 @@ export type TourStepId =
   | 'undo'
   | 'insertAfter'
   | 'flow'
+  | 'newStrand'
   | 'edit'
   | 'archive'
   | 'more'
@@ -38,18 +38,20 @@ export interface TourContext {
   /** In diesem Schritt war schon ein Dialog offen. */
   sawDialog: boolean;
   /** Stand zu Beginn des Schritts. */
-  start: { listIds: readonly string[]; tasks: number; done: number };
+  start: { listIds: readonly string[]; taskIds: readonly string[]; done: number };
 }
 
 export interface TourStep {
   id: TourStepId;
   kind: TourStepKind;
-  /** CSS-Selektor des erklärten Elements (wird hervorgehoben). */
-  target?: (practiceId: string | null) => string;
+  /** CSS-Selektor der erklärten Elemente (alle Treffer werden hervorgehoben, der erste bekommt den Fokus). */
+  target?: (ids: { practice: string | null; task: string | null }) => string;
   done?: (ctx: TourContext) => boolean;
 }
 
 const tasks = (ctx: TourContext) => ctx.practice?.tasks.length ?? 0;
+/** In diesem Schritt ist ein ToDo dazugekommen (und das Sheet wieder zu). */
+const added = (ctx: TourContext) => newTaskId(ctx) !== null && !ctx.dialogOpen;
 const doneCount = (ctx: TourContext) => ctx.practice?.tasks.filter((t) => t.done).length ?? 0;
 
 /** Grundlagen (passen zum einfachen Modus), danach „Mehr anzeigen“ mit den erweiterten Funktionen. */
@@ -63,7 +65,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'fill',
     kind: 'action',
-    target: (id) => `[data-tour-list="${id}"]`,
+    target: ({ practice }) => `[data-tour-list="${practice}"]`,
     done: (ctx) => tasks(ctx) >= 2 && !ctx.dialogOpen,
   },
   {
@@ -82,7 +84,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     id: 'insertAfter',
     kind: 'action',
     target: () => '.task-card .menu summary',
-    done: (ctx) => tasks(ctx) > ctx.start.tasks && !ctx.dialogOpen,
+    done: added,
   },
   {
     id: 'flow',
@@ -91,19 +93,26 @@ export const TOUR_STEPS: readonly TourStep[] = [
     done: (ctx) => ctx.view === 'flow',
   },
   {
+    id: 'newStrand',
+    kind: 'action',
+    target: () => '[data-tour="new-strand"]',
+    done: added,
+  },
+  {
     id: 'edit',
     kind: 'action',
-    target: () => '.flow__canvas .node__menu-btn',
+    // Die Karte des neuen Strangs aus dem vorigen Schritt (sonst irgendeine).
+    target: ({ task }) => (task ? `[data-task-id="${task}"] .node__menu-btn` : '.flow__canvas .node__menu-btn'),
     done: (ctx) => ctx.sawDialog && !ctx.dialogOpen,
   },
-  { id: 'archive', kind: 'info', target: () => '[data-tour="nav-lists"]' },
+  { id: 'archive', kind: 'info', target: () => '.flow__canvas .node__toggle' },
   { id: 'more', kind: 'more' },
   {
     id: 'branch',
     kind: 'action',
     target: () => '.flow__canvas .node__menu-btn',
-    done: (ctx) =>
-      !ctx.dialogOpen && !!ctx.practice?.tasks.some((t) => isSplit(ctx.practice!, t.id) || isJoin(ctx.practice!, t.id)),
+    // Jede neue Nachfolge- oder Voraufgabe zählt – am Strang-Ende entsteht dabei keine Verzweigung.
+    done: added,
   },
   { id: 'links', kind: 'info', target: () => '.flow__canvas .node__menu-btn' },
   { id: 'timing', kind: 'info', target: () => '[data-tour="list-menu"]' },
@@ -115,6 +124,11 @@ export const TOUR_STEPS: readonly TourStep[] = [
 /** Index des ersten erweiterten Schritts (nach „Mehr anzeigen“). */
 export const TOUR_ADVANCED_START = TOUR_STEPS.findIndex((s) => s.id === 'more') + 1;
 export const TOUR_CLEANUP = TOUR_STEPS.findIndex((s) => s.id === 'cleanup');
+
+/** Das in diesem Schritt neu angelegte ToDo im Übungszettel. */
+export function newTaskId(ctx: TourContext): string | null {
+  return ctx.practice?.tasks.find((t) => !ctx.start.taskIds.includes(t.id))?.id ?? null;
+}
 
 /** Der in diesem Schritt neu angelegte Zettel (für „Dein erster Zettel“). */
 export function newListId(ctx: TourContext): string | null {

@@ -6,6 +6,7 @@ import { SettingsStore } from '../../core/state/settings.store';
 import { ViewStore } from '../../core/state/view.store';
 import {
   newListId,
+  newTaskId,
   TOUR_ADVANCED_START,
   TOUR_CLEANUP,
   TOUR_STEPS,
@@ -32,6 +33,8 @@ export class TourService {
   /** Hinweis weggeklickt – jetzt ist die Aktion dran. */
   readonly collapsed = signal(false);
   readonly practiceId = signal<string | null>(null);
+  /** Neue Karte aus „Neuer Strang“ – der nächste Schritt zeigt auf sie. */
+  readonly taskId = signal<string | null>(null);
   /** Ein Dialog ist offen (der Hinweis wartet dann); gemeldet vom TourOverlay. */
   readonly dialogOpen = signal(false);
   private readonly sawDialog = signal(false);
@@ -39,7 +42,7 @@ export class TourService {
   readonly focusRequest = signal(0);
   /** War der einfache Modus beim Start an? Bestimmt den Text nach den Grundlagen. */
   readonly simpleAtStart = signal(false);
-  private readonly start = signal<TourContext['start']>({ listIds: [], tasks: 0, done: 0 });
+  private readonly start = signal<TourContext['start']>({ listIds: [], taskIds: [], done: 0 });
 
   readonly active = computed(() => this.index() !== null);
   readonly step = computed(() => {
@@ -96,6 +99,7 @@ export class TourService {
     const index = this.index();
     if (index === null) return;
     if (this.step()?.id === 'createList') this.practiceId.set(newListId(this.context()));
+    if (this.step()?.id === 'newStrand') this.taskId.set(newTaskId(this.context()));
     this.goTo(index + 1);
   }
 
@@ -134,6 +138,7 @@ export class TourService {
     }
     this.index.set(null);
     this.practiceId.set(null);
+    this.taskId.set(null);
   }
 
   setDialogOpen(open: boolean): void {
@@ -150,7 +155,7 @@ export class TourService {
     const practice = untracked(this.practice);
     this.start.set({
       listIds: untracked(this.lists.lists).map((l) => l.id),
-      tasks: practice?.tasks.length ?? 0,
+      taskIds: practice?.tasks.map((t) => t.id) ?? [],
       done: practice?.tasks.filter((t) => t.done).length ?? 0,
     });
     this.sawDialog.set(untracked(this.dialogOpen));

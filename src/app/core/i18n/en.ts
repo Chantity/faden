@@ -231,13 +231,17 @@ export const en = {
         title: 'The flow',
         body: '“Flow” shows all todos as a thread, from top to bottom. Switch to it.',
       },
+      newStrand: {
+        title: 'A new strand',
+        body: 'Something unrelated to what you have so far? ✚ at the top right starts a strand of its own – a todo without prerequisites. Add one.',
+      },
       edit: {
-        title: 'Edit',
-        body: 'In the ⋯ menu of a card, “Edit” opens the todo. Under “Must be done before” you choose what comes first. Close the dialog afterwards.',
+        title: 'Connect',
+        body: 'In the ⋯ menu of the new card, “Edit” opens the todo. Under “Must be done before”, pick the last todo of your chain – and the strand is attached. Close the dialog afterwards.',
       },
       archive: {
         title: 'When everything is done',
-        body: 'Once a list is completely ticked off, it moves to the archive the next time you open the overview. You can choose what happens under Settings → Advanced.',
+        body: 'In the flow, the circle at the top left of each card ticks it off. Once a list is completely ticked off, it moves to the archive the next time you open the overview. You can choose what happens under Settings → Advanced.',
       },
       more: {
         title: 'Those are the basics',
@@ -245,7 +249,7 @@ export const en = {
       },
       branch: {
         title: 'Branches',
-        body: 'In the flow, “Create successor task” in the ⋯ menu of a card adds a step that runs next to the existing successor. Try it.',
+        body: 'In the flow, “Create successor task” in the ⋯ menu of a card adds a step that runs next to the existing successor – “Create predecessor task” does the same before it. Try one of them.',
       },
       links: {
         title: 'Connections',

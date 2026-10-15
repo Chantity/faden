@@ -579,3 +579,8 @@ input[type='checkbox'] {
   outline: 3px dashed var(--color-primary);
   outline-offset: 3px;
 }
+
+/* Im Umschalter schneidet overflow: hidden den Rahmen außen ab – dort innen zeichnen. */
+.view-toggle .tour-target {
+  outline-offset: -5px;
+}

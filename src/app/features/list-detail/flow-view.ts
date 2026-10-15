@@ -80,6 +80,7 @@ const MAX_SCALE = 2;
         <button
           type="button"
           class="icon-btn"
+          data-tour="new-strand"
           [attr.aria-label]="t().flow.newStrand"
           (click)="insertAround('standalone')"
         >

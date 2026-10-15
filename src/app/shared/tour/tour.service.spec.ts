@@ -60,7 +60,11 @@ describe('TourService', () => {
     expect(step()).toBe('flow');
 
     TestBed.inject(ViewStore).set('p', 'flow');
+    expect(step()).toBe('newStrand');
+
+    edit((l) => ({ ...l, tasks: [...l.tasks, createTask('D', 'd')] }));
     expect(step()).toBe('edit');
+    expect(tour.taskId()).toBe('d'); // der nächste Hinweis zeigt auf die neue Karte
 
     tour.setDialogOpen(true);
     tour.setDialogOpen(false);
@@ -82,12 +86,22 @@ describe('TourService', () => {
     await settings.setSimpleEnabled(true);
     const { tour, step } = setup();
     tour.startTour();
-    tour.index.set(8); // „Das sind die Grundlagen“
+    TestBed.inject(ListsStore).addExisting({ ...createList('Practice list'), id: 'p', tasks: [createTask('A', 'a')] });
+    TestBed.tick();
+    tour.index.set(9); // „Das sind die Grundlagen“
     expect(step()).toBe('more');
     tour.more();
     expect(step()).toBe('branch');
     expect(settings.simpleEnabled()).toBe(false);
-    expect(tour.counter()).toEqual({ n: 10, total: 14 });
+    expect(tour.counter()).toEqual({ n: 11, total: 15 });
+
+    // Nachfolgeaufgabe am Strang-Ende: keine Verzweigung, zählt trotzdem.
+    TestBed.inject(ListsStore).editList(tour.practiceId()!, (l) => ({
+      ...l,
+      tasks: [...l.tasks, createTask('B', 'b')],
+      edges: [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }],
+    }));
+    expect(step()).toBe('links');
   });
 
   it('endet ohne Aufräum-Frage, wenn es keinen Übungszettel (mehr) gibt', () => {
