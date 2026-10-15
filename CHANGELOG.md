@@ -10,6 +10,8 @@
 
 **New**
 
+- **Shift from here:** in the flow, the ⋯ menu of a todo with times can shift
+  just that todo and everything after it – the todos before it stay put.
 - **Finished lists:** choose under **Settings → Advanced** whether finished
   lists are archived (as before), deleted or left alone.
 - **Notes:** choose whether new todos start with text or a checklist.
@@ -75,6 +77,8 @@
 
 **Neu**
 
+- **Ab hier verschieben:** Im Ablauf kann das ⋯-Menü eines ToDos mit Uhrzeit
+  nur dieses ToDo und alles danach verschieben – die Vorarbeiten bleiben stehen.
 - **Erledigte Zettel:** Unter **Einstellungen → Für Fortgeschrittene** lässt
   sich wählen, ob erledigte Zettel archiviert (wie bisher), gelöscht oder in Ruhe
   gelassen werden.

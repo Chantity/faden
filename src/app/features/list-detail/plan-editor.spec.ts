@@ -154,6 +154,37 @@ describe('PlanEditor', () => {
     ]);
   });
 
+  it('„Ab hier verschieben" bewegt nur das ToDo und seine Nachfolger, nicht Vorgänger oder Geschwister', async () => {
+    // A → B → D und A → C: ab B verschieben lässt A und C stehen.
+    const a = { ...createTask('A', 'a'), startAt: '2026-03-12T09:00', estimateMinutes: 30 };
+    const b = { ...createTask('B', 'b'), startAt: '2026-03-12T10:00', estimateMinutes: 30 };
+    const c = { ...createTask('C', 'c'), startAt: '2026-03-12T10:00', estimateMinutes: 30 };
+    const d = { ...createTask('D', 'd'), startAt: '2026-03-12T11:00', estimateMinutes: 30 };
+    const list = scheduleList(a, b, c, d);
+    list.edges = [
+      { id: edgeId('a', 'b'), from: 'a', to: 'b' },
+      { id: edgeId('a', 'c'), from: 'a', to: 'c' },
+      { id: edgeId('b', 'd'), from: 'b', to: 'd' },
+    ];
+    const store = TestBed.inject(ListsStore);
+    store.addExisting(list);
+
+    const fixture = TestBed.createComponent(PlanEditor);
+    fixture.componentInstance.openStrand(list, 'b', 'from');
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('h2')?.textContent?.trim()).toBe('Shift from here');
+
+    (root.querySelector('[data-action="shift"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(store.getList(list.id)!.tasks.map((t) => t.startAt)).toEqual([
+      '2026-03-12T09:00',
+      '2026-03-12T10:30',
+      '2026-03-12T10:00',
+      '2026-03-12T11:30',
+    ]);
+  });
+
   it('Tagesplan: Verschieben über Mitternacht wird abgelehnt', async () => {
     const list = createList('Tag', 'dayPlan');
     list.dayPlanReferenceDate = '2026-03-12';

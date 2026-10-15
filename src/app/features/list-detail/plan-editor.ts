@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import type { TodoList } from '../../core/model';
-import { extractStrand, topologicalOrder } from '../../core/graph';
+import { extractStrand, reachableIds, topologicalOrder } from '../../core/graph';
 import {
   formatDayLabel,
   fromDatetimeLocal,
@@ -46,7 +46,15 @@ const UNIT_MS: Record<ShiftUnit, number> = {
   template: `
     <dialog #dlg class="sheet" (close)="onClosed()">
       <div class="sheet__form">
-        <h2>{{ strandOnly() ? t().time.shiftStrandHeading : t().time.editPlanTitle }}</h2>
+        <h2>
+          @if (!strandOnly()) {
+            {{ t().time.editPlanTitle }}
+          } @else if (entry() === 'from') {
+            {{ t().time.shiftFromHeading }}
+          } @else {
+            {{ t().time.shiftStrandHeading }}
+          }
+        </h2>
 
         @if (error()) {
           <p class="field__error" role="alert">{{ error() }}</p>
@@ -56,6 +64,10 @@ const UNIT_MS: Record<ShiftUnit, number> = {
           <fieldset class="section">
             <legend class="field__label">{{ strandOnly() ? t().time.scopeLabel : t().time.shiftHeading }}</legend>
             @if (strandOnly()) {
+              <label class="radio">
+                <input type="radio" name="scope" [checked]="scope() === 'from'" (change)="scope.set('from')" />
+                {{ t().time.scopeFrom }}
+              </label>
               <label class="radio">
                 <input type="radio" name="scope" [checked]="scope() === 'strand'" (change)="scope.set('strand')" />
                 {{ t().time.scopeStrand }}
@@ -290,13 +302,18 @@ export class PlanEditor {
   /** Nur „Tageszeiten übertragen" zeigen (Angebot nach Moduswechsel). */
   protected readonly convertOnly = signal(false);
 
-  /** Gesetzt = „Strang verschieben …" aus dem Karten-Menü: nur Verschieben, mit Bereich. */
-  private readonly strandIds = signal<ReadonlySet<string> | null>(null);
-  protected readonly strandOnly = computed(() => this.strandIds() !== null);
-  protected readonly scope = signal<'strand' | 'list'>('list');
+  /**
+   * Gesetzt = „Ab hier / Strang verschieben …" aus dem Karten-Menü: nur Verschieben,
+   * mit Bereich – ab dem ToDo (es und alles danach), sein Strang oder der ganze Zettel.
+   */
+  private readonly taskScopes = signal<Record<'from' | 'strand', ReadonlySet<string>> | null>(null);
+  protected readonly strandOnly = computed(() => this.taskScopes() !== null);
+  protected readonly entry = signal<'from' | 'strand'>('strand');
+  protected readonly scope = signal<'from' | 'strand' | 'list'>('list');
 
   private scopeIds(): ReadonlySet<string> | undefined {
-    return this.scope() === 'strand' ? (this.strandIds() ?? undefined) : undefined;
+    const scope = this.scope();
+    return scope === 'list' ? undefined : this.taskScopes()?.[scope];
   }
 
   private deltaMs(): number {
@@ -337,16 +354,20 @@ export class PlanEditor {
     this.convertDate.set(list.dayPlanReferenceDate ?? todayIso(this.nowStore.now()));
   }
 
-  /** „Strang verschieben …": Verschieben für den Strang von `taskId` (oder den ganzen Zettel). */
-  openStrand(list: TodoList, taskId: string): void {
+  /** „Ab hier / Strang verschieben …" für `taskId`; der Bereich bleibt im Sheet wählbar. */
+  openStrand(list: TodoList, taskId: string, entry: 'from' | 'strand' = 'strand'): void {
     this.open(list);
-    this.strandIds.set(new Set(extractStrand(list, taskId).tasks.map((task) => task.id)));
-    this.scope.set('strand');
+    this.taskScopes.set({
+      from: new Set([taskId, ...reachableIds(list, taskId, 'out')]),
+      strand: new Set(extractStrand(list, taskId).tasks.map((task) => task.id)),
+    });
+    this.entry.set(entry);
+    this.scope.set(entry);
   }
 
   open(list: TodoList): void {
     this.convertOnly.set(false);
-    this.strandIds.set(null);
+    this.taskScopes.set(null);
     this.scope.set('list');
     this.listId.set(list.id);
     this.error.set('');

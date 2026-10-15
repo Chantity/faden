@@ -280,6 +280,7 @@ const MAX_SCALE = 2;
               <button type="button" (click)="menuSplit(menu.id)">{{ t().focus.menu.splitAfter }}</button>
               <button type="button" (click)="menuJoin(menu.id)">{{ t().focus.menu.join }}</button>
               @if (timed()) {
+                <button type="button" (click)="menuShiftFrom(menu.id)">{{ t().flow.moveFrom }}</button>
                 <button type="button" (click)="menuShiftStrand(menu.id)">{{ t().flow.moveStrand }}</button>
               }
               <button type="button" (click)="menuSaveStrand(menu.id)">
@@ -620,7 +621,7 @@ export class FlowView {
   readonly edit = output<string>();
   readonly create = output<CreateRequest>();
   /** „Strang verschieben …" für den Strang dieser Karte. */
-  readonly shiftStrand = output<string>();
+  readonly shiftStrand = output<{ id: string; entry: 'from' | 'strand' }>();
 
   protected readonly t = this.i18n.t;
   protected readonly now = this.nowStore.now;
@@ -925,7 +926,12 @@ export class FlowView {
 
   protected menuShiftStrand(id: string): void {
     this.nodeMenu.set(null);
-    this.shiftStrand.emit(id);
+    this.shiftStrand.emit({ id, entry: 'strand' });
+  }
+
+  protected menuShiftFrom(id: string): void {
+    this.nodeMenu.set(null);
+    this.shiftStrand.emit({ id, entry: 'from' });
   }
 
   protected menuSaveStrand(id: string): void {

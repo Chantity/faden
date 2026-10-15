@@ -141,7 +141,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
             [list]="current"
             (edit)="openEditor($event)"
             (create)="openCreate($event)"
-            (shiftStrand)="planEditor.openStrand(current, $event)"
+            (shiftStrand)="planEditor.openStrand(current, $event.id, $event.entry)"
           />
         }
       } @else {

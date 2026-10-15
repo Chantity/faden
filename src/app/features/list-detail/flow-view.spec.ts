@@ -91,16 +91,17 @@ describe('FlowView', () => {
     expect(root.querySelector('.edge-pause')).toBeNull();
   });
 
-  it('„Strang verschieben …" im Karten-Menü nur mit Uhrzeiten', async () => {
+  it('„Ab hier / Strang verschieben …" im Karten-Menü nur mit Uhrzeiten', async () => {
     const list = chainList();
     TestBed.inject(ListsStore).addExisting(list);
     const fixture = TestBed.createComponent(FlowView);
     fixture.componentRef.setInput('list', list);
-    const shifted: string[] = [];
-    fixture.componentInstance.shiftStrand.subscribe((id) => shifted.push(id));
+    const shifted: { id: string; entry: string }[] = [];
+    fixture.componentInstance.shiftStrand.subscribe((event) => shifted.push(event));
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
-    const menuItem = () => [...root.querySelectorAll<HTMLButtonElement>('.popover button')].find((b) => b.textContent?.includes('Shift strand'));
+    const menuItem = (text = 'Shift strand') =>
+      [...root.querySelectorAll<HTMLButtonElement>('.popover button')].find((b) => b.textContent?.includes(text));
 
     root.querySelector<HTMLButtonElement>('[data-task-id="b"] .node__menu-btn')!.click();
     await fixture.whenStable();
@@ -110,7 +111,13 @@ describe('FlowView', () => {
     root.querySelector<HTMLButtonElement>('[data-task-id="b"] .node__menu-btn')!.click();
     await fixture.whenStable();
     menuItem()!.click();
-    expect(shifted).toEqual(['b']);
+    root.querySelector<HTMLButtonElement>('[data-task-id="b"] .node__menu-btn')!.click();
+    await fixture.whenStable();
+    menuItem('Shift from here')!.click();
+    expect(shifted).toEqual([
+      { id: 'b', entry: 'strand' },
+      { id: 'b', entry: 'from' },
+    ]);
   });
 
   it('Enter bearbeitet nur auf der Karte selbst – auf einem Knopf darin bleibt Enter beim Knopf', async () => {
