@@ -1,16 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
+  effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { TITLE_MAX_LENGTH, type TimeboxMode, type TodoList } from '../../core/model';
-import { availableTasks, progress } from '../../core/graph';
+import { availableTasks, progress, topologicalOrder } from '../../core/graph';
+import { closeMenu } from '../../shared/menus';
 import { listToTemplate, templateToList } from '../../core/templates';
 import { modeSwitchOffer, withTimeboxMode } from '../../core/time';
 import { BackupService } from '../../core/backup/backup.service';
@@ -25,7 +27,6 @@ import { ListDialog, type ListDialogResult } from './list-dialog';
   imports: [RouterLink, ListDialog],
   templateUrl: './lists-page.html',
   styleUrl: './lists-page.css',
-  host: { '(document:click)': 'onDocumentClick($event)' },
 })
 export class ListsPage {
   protected readonly store = inject(ListsStore);
@@ -35,7 +36,6 @@ export class ListsPage {
   private readonly backup = inject(BackupService);
   private readonly templatesStore = inject(TemplatesStore);
   protected readonly templates = this.templatesStore.templates;
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly t = this.i18n.t;
   protected readonly maxTitle = TITLE_MAX_LENGTH;
@@ -44,6 +44,12 @@ export class ListsPage {
   constructor() {
     inject(PageTitleService).set('lists');
     void this.checkReminder();
+    // Einmal pro Besuch der Übersicht, sobald die Zettel geladen sind.
+    const archiveOnce = effect(() => {
+      if (!this.store.ready()) return;
+      untracked(() => this.archiveCompleted());
+      archiveOnce.destroy();
+    });
   }
 
   private async checkReminder(): Promise<void> {
@@ -151,28 +157,21 @@ export class ListsPage {
     this.snackbar.show(this.t().templates.savedSnack(template.title));
   }
 
-  protected closeMenu(event: Event): void {
-    (event.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
+  protected readonly closeMenu = closeMenu;
+
+  /** Titel aller ToDos in Ablauf-Reihenfolge (für archivierte Zettel). */
+  protected taskTitles(list: TodoList): string[] {
+    return topologicalOrder(list).map((task) => task.title);
   }
 
-  /**
-   * Klick irgendwo schließt offene Kartenmenüs – außer einem Klick im
-   * geöffneten Menü selbst (dort bleibt es offen, damit Auswahl möglich ist).
-   */
-  protected onDocumentClick(event: Event): void {
-    const target = event.target as HTMLElement | null;
-    const inMenu = target?.closest('details.menu') as HTMLDetailsElement | null;
-    const inPanel = target !== null && target.closest('.menu__panel') !== null;
-    const onMenuSelf = inMenu !== null && inMenu.hasAttribute('open') && !inPanel;
-
-    // Ohne preventDefault würde die native Kippbewegung das Menü sofort wieder öffnen.
-    if (onMenuSelf) event.preventDefault();
-
-    for (const menu of this.host.nativeElement.querySelectorAll<HTMLDetailsElement>(
-      'details.menu[open]',
-    )) {
-      if (menu === inMenu && inPanel) continue;
-      menu.removeAttribute('open');
-    }
+  /** Fertige Zettel wandern beim Betreten der Übersicht ins Archiv (mit Rückgängig). */
+  private archiveCompleted(): void {
+    const archived = this.store.archiveCompleted();
+    if (archived.length === 0) return;
+    const message =
+      archived.length === 1
+        ? this.t().snackbar.autoArchivedOne(archived[0]!.title)
+        : this.t().snackbar.autoArchivedMany(archived.length);
+    this.snackbar.show(message, { label: this.t().common.undo, run: () => this.store.undo() });
   }
 }

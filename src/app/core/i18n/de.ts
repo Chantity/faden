@@ -50,6 +50,7 @@ export const de = {
       'Ein Zettel ist eine ToDo-Liste mit Ablauf. Lege deinen ersten Zettel an und trage ein, was zu tun ist.',
     archivedHeading: 'Archivierte Zettel',
     archivedCount: (n: number): string => (n === 1 ? '1 archivierter Zettel' : `${n} archivierte Zettel`),
+    archivedTasks: (n: number): string => (n === 1 ? 'Enthaltenes ToDo (1)' : `Enthaltene ToDos (${n})`),
     progress: (done: number, total: number): string => `${done} von ${total} erledigt`,
     emptyList: 'Noch keine ToDos',
     nowDoing: (title: string): string => `Jetzt dran: ${title}`,
@@ -246,6 +247,7 @@ export const de = {
     templateLabel: 'Aus Vorlage',
     noTemplate: 'Ohne Vorlage (leerer Zettel)',
     fromTemplate: 'Aus Vorlage …',
+    titleTaken: 'Es gibt schon einen Zettel mit diesem Namen.',
   },
 
   timebox: {
@@ -310,6 +312,8 @@ export const de = {
     listArchived: 'Zettel archiviert.',
     listRestored: 'Zettel wiederhergestellt.',
     listDuplicated: 'Zettel dupliziert.',
+    autoArchivedOne: (title: string): string => `„${title}“ ist erledigt und wurde archiviert.`,
+    autoArchivedMany: (n: number): string => `${n} erledigte Zettel wurden archiviert.`,
     saveFailed: 'Speichern hat nicht geklappt – bitte später erneut versuchen.',
   },
 

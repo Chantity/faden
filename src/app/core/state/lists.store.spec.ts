@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DELETE_GRACE_MS, ListsStore } from './lists.store';
 import { FadenDb } from '../storage';
-import { createTask, type TodoList } from '../model';
+import { createList, createTask, type TodoList } from '../model';
 
 /** IndexedDB-Ersatz, der festhält, was gespeichert ist. */
 class FakeDb {
@@ -207,5 +207,67 @@ describe('ListsStore – Löschen mit Frist (Soft-Delete)', () => {
     expect(store.allItems()).toHaveLength(0);
     await vi.advanceTimersByTimeAsync(500);
     expect(db.rows.has('old')).toBe(false);
+  });
+});
+
+describe('ListsStore – Fensterwechsel', () => {
+  it('überschreibt einen noch nicht gespeicherten Stand nicht mit dem älteren aus IndexedDB', async () => {
+    const list: TodoList = { ...createList('Küche'), id: 'k', updatedAt: '2026-01-01T00:00:00.000Z' };
+    const { store, db } = setup([list]);
+    await store.load();
+
+    store.editList('k', addTask('Spülen')); // erst nach 300 ms gespeichert
+    window.dispatchEvent(new Event('focus'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(store.getList('k')?.tasks.map((t) => t.title)).toEqual(['Spülen']);
+    expect(db.rows.get('k')?.tasks).toHaveLength(0);
+  });
+});
+
+describe('ListsStore – Archiv und Namen', () => {
+  const finished = (id: string, title: string, sortOrder = 0): TodoList => ({
+    ...createList(title),
+    id,
+    sortOrder,
+    tasks: [{ ...createTask('A', `${id}-a`), done: true, doneAt: '2026-01-01T00:00:00.000Z' }],
+  });
+
+  it('archiviert fertige Zettel in einem Rückgängig-Schritt, leere und offene nicht', () => {
+    const { store } = setup();
+    store.addExisting(finished('a', 'Fertig A'));
+    store.addExisting(finished('b', 'Fertig B', 1));
+    store.addExisting({ ...createList('Leer'), id: 'c', sortOrder: 2 });
+    store.addExisting({ ...createList('Offen'), id: 'd', sortOrder: 3, tasks: [createTask('X', 'x')] });
+
+    expect(store.archiveCompleted().map((l) => l.id)).toEqual(['a', 'b']);
+    expect(store.lists().map((l) => l.id)).toEqual(['c', 'd']);
+
+    store.undo();
+    expect(store.archived()).toHaveLength(0);
+  });
+
+  it('dupliziert archivierte Zettel frisch, nicht archiviert und mit eindeutigem Namen', () => {
+    const { store } = setup();
+    const source = { ...finished('a', 'Einkauf'), archived: true };
+    source.tasks[0]!.checklist = [{ id: 'm', text: 'Milch', done: true }];
+    store.addExisting(source);
+
+    const id = store.duplicate('a')!;
+    const copy = store.getList(id)!;
+    expect(copy.title).toBe('Einkauf (2)');
+    expect(copy.archived).toBe(false);
+    expect(copy.tasks[0]).toMatchObject({ done: false, checklist: [{ text: 'Milch', done: false }] });
+    expect(copy.tasks[0]!.doneAt).toBeUndefined();
+  });
+
+  it('macht Namen neuer Zettel eindeutig und erkennt vergebene Namen', () => {
+    const { store } = setup();
+    store.create('Einkauf');
+    const second = store.create(' einkauf ');
+    expect(store.getList(second)?.title).toBe('einkauf (2)');
+    expect(store.isTitleTaken('EINKAUF')).toBe(true);
+    expect(store.isTitleTaken('Einkauf', store.lists()[0]!.id)).toBe(false);
   });
 });

@@ -44,6 +44,7 @@ import { ListsStore } from '../../core/state/lists.store';
 import { NowStore } from '../../core/state/now.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { focusAfterRender } from '../../shared/focus';
+import { closeMenu } from '../../shared/menus';
 
 type ChainMode = 'before' | 'after' | 'split' | 'standalone';
 
@@ -58,7 +59,6 @@ interface Chain {
   imports: [FormsModule],
   host: {
     '(document:keydown)': 'onKeydown($event)',
-    '(document:click)': 'onDocumentClick($event)',
   },
   template: `
     @if (list().tasks.length === 0) {
@@ -684,22 +684,6 @@ export class FocusView {
   }
 
   /** Schließt ein offenes ⋯-Menü bei Klick außerhalb (z. B. auf dem Handy). */
-  protected onDocumentClick(event: Event): void {
-    const target = event.target as HTMLElement | null;
-    const inMenu = target?.closest('details.menu') as HTMLDetailsElement | null;
-    const inPanel = target !== null && target.closest('.menu__panel') !== null;
-    const onMenuSelf = inMenu !== null && inMenu.hasAttribute('open') && !inPanel;
-
-    // Klick auf das offene Menü selbst (Zusammenfassung oder Elementfläche).
-    // Ohne preventDefault würde die native Kippbewegung es sofort wieder öffnen.
-    if (onMenuSelf) event.preventDefault();
-
-    for (const menu of this.host.nativeElement.querySelectorAll<HTMLDetailsElement>('details.menu[open]')) {
-      if (menu === inMenu && inPanel) continue;
-      menu.removeAttribute('open');
-    }
-  }
-
   private commitOne(text: string): void {
     const list = this.list();
     const chain = this.chain();
@@ -729,9 +713,7 @@ export class FocusView {
     focusAfterRender(this.injector, () => this.chainInput());
   }
 
-  protected closeMenu(event: Event): void {
-    (event.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
-  }
+  protected readonly closeMenu = closeMenu;
 
   // --- Tastatur -------------------------------------------------
 

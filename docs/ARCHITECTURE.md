@@ -70,6 +70,9 @@ src/app/
 │  ├─ templates/                    Vorlagen-Seite (Phase 3, fertig)
 │  └─ settings/                     Einstellungen (Phase 1: Theme, Sprache, Version, Speicher)
 └─ shared/
+   ├─ menus.ts                      gemeinsames Schließen aller ⋯-Menüs (Klick, Esc)
+   ├─ focus.ts                      focusAfterRender (Fokus in neu erscheinende Felder)
+   ├─ install-banner/               Hinweis „Als App installieren"
    └─ snackbar/                     nicht-modaler Hinweisband-Dienst + Komponente
 ```
 
@@ -377,7 +380,8 @@ Entscheidungen werden hier ergänzt.
 | Pfeile | Gerade Linien von Unter- zu Oberkante. Umweg-Pfeile (A→C trotz A→B→C) werden **nur beim Zeichnen** ausgeblendet (`transitiveReduction`). | Rechtwinklige Führung überlagerte sich an Verzweigungen; Ausblenden statt Verbieten ist verlustfrei. |
 | „+" im Ablauf | Ein „+" pro Pfeil (`insertBetween`); Karten-„+" darüber nur am Strang-Anfang, darunter am Strang-Ende **und an Verzweigungen** (≥ 2 Nachfolger, Engpass-Einfügung über `insertAfter`). Sichtbarer Kreis klein (38/30 px), Trefferfläche 44 × 44 px über `::after`. Unter ~60 % Zoom ausgeblendet mit Hinweis. | In einer Kette täten drei „+" dasselbe; so ist alles überlappungsfrei erreichbar. |
 | Verbinden | „Mit anderem ToDo verbinden" über einen **Auswahl-Dialog** statt Ziel-Antippen oder Ziehen. | Per Tastatur und Screenreader bedienbar. |
-| ⋯-Menüs | `<details class="menu">` plus `(document:click)`-Listener: Klick außerhalb **oder auf das `<details>` selbst** schließt; nur Klicks im Menüinhalt lassen es offen. Im Ablauf schließt ein Klick auf die Diagrammfläche. | Auf dem Handy gab es sonst keinen Weg, ein Menü ohne Auswahl zu schließen. |
+| ⋯-Menüs | `<details class="menu">` mit `.menu__panel`; **ein** gemeinsamer Handler (`shared/menus.ts`), in der App-Shell an `document` gehängt: Klick außerhalb **oder auf das offene `<details>` selbst** schließt (mit `preventDefault`, sonst klappt es nativ wieder auf), nur Klicks im Menüinhalt lassen es offen; **Esc** schließt und gibt den Fokus an das ⋯ zurück. Die Popover im Ablauf (Signal statt `<details>`) öffnen mit `stopPropagation` und schließen bei jedem anderen Dokument-Klick und bei Esc. | Auf dem Handy gab es sonst keinen Weg, ein Menü ohne Auswahl zu schließen. Vorher hatte jede Seite eine eigene Kopie, und das Zettel-Menü in der Detailansicht fehlte ganz. |
+| Automatisches Archivieren | `ListsStore.archiveCompleted()` (ein Befehl im Verlauf der Übersicht) läuft einmal pro Besuch der Übersicht, sobald `ListsStore.ready` (erster Ladeversuch fertig) gesetzt ist. | Beim allerersten Öffnen ist die Übersicht schon da, bevor IndexedDB geladen hat. |
 | „Jetzt dran"/„Wartet" | **Transitiv** über `openAncestors`. | In einer Kette offen → erledigt → offen ist nur der vorderste offene Schritt dran. |
 | i18n | Eigene, reaktive Lösung (`I18nStore`, Signals) statt `@angular/localize` oder Transloco. `de.ts` ist die Vorlage, `en.ts` erfüllt sie per `satisfies`. | `@angular/localize` übersetzt zur Buildzeit (eine Sprache je Build) – kein Umschalten zur Laufzeit im Ein-Build-Offline-Betrieb; Bibliotheken wären Abhängigkeiten. Fehlende Übersetzung = Compile-Fehler. |
 | Precache-Liste | Eigene Datei `precache-manifest.json` statt Einsetzen in `sw.js`; Cache-Name `faden-v1-<build>` plus `faden-meta`. | Eine geänderte `sw.js` wäre ein Auto-Update; ein eigener Cache je Build erlaubt, eine neue Version vollständig zu laden, bevor die alte gelöscht wird. |

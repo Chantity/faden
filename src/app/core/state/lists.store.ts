@@ -2,6 +2,8 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import {
   createList,
   edgeId,
+  titleKey,
+  uniqueTitle,
   type Task,
   type TimeboxMode,
   type TodoList,
@@ -48,6 +50,8 @@ export class ListsStore {
   private loaded = false;
 
   readonly saveError = signal(false);
+  /** Erster Ladeversuch abgeschlossen (mit oder ohne IndexedDB). */
+  readonly ready = signal(false);
 
   private readonly visible = computed(() => this.all().filter((l) => !l.deletedAt));
 
@@ -99,6 +103,7 @@ export class ListsStore {
       this.loaded = false;
       this.touchHistory();
     }
+    this.ready.set(true);
   }
 
   private schedulePersist(): void {
@@ -177,21 +182,62 @@ export class ListsStore {
     return this.addNew(withTimeboxMode(createList(title), timeboxMode, new Date()));
   }
 
-  /** Fügt einen fertig aufgebauten neuen Zettel (z. B. aus einer Vorlage) unten an. */
+  /**
+   * Fügt einen fertig aufgebauten neuen Zettel (z. B. aus einer Vorlage) unten an;
+   * ein schon vergebener Name wird eindeutig gemacht („Einkauf (2)").
+   */
   addNew(list: TodoList): string {
-    const added = { ...list, sortOrder: this.nextSortOrder() };
+    const added = { ...list, title: this.uniqueTitle(list.title), sortOrder: this.nextSortOrder() };
     this.insertListCommand(added);
     return added.id;
   }
 
+  /**
+   * Kopie mit eindeutigem Namen („Einkauf (2)"), nie archiviert. Die Kopie eines
+   * archivierten Zettels startet frisch (keine Haken) – sie soll wieder benutzt werden.
+   */
   duplicate(id: string): string | undefined {
     const source = this.getList(id);
     if (!source) return undefined;
     const copy = this.cloneList(source);
-    copy.title = `${source.title} (Kopie)`;
+    copy.title = this.uniqueTitle(source.title);
+    copy.archived = false;
+    if (source.archived) copy.tasks = copy.tasks.map(uncheck);
     copy.sortOrder = this.nextSortOrder();
     this.insertListCommand(copy);
     return copy.id;
+  }
+
+  /** Eindeutiger Name gegenüber allen sichtbaren Zetteln (außer `exceptId`). */
+  uniqueTitle(title: string, exceptId?: string): string {
+    return uniqueTitle(
+      title,
+      this.visible()
+        .filter((l) => l.id !== exceptId)
+        .map((l) => l.title),
+    );
+  }
+
+  /** Gibt es den Namen schon (außer bei `exceptId`)? */
+  isTitleTaken(title: string, exceptId?: string): boolean {
+    const key = titleKey(title);
+    return this.visible().some((l) => l.id !== exceptId && titleKey(l.title) === key);
+  }
+
+  /**
+   * Archiviert alle Zettel, deren ToDos (mindestens eines) alle erledigt sind –
+   * ein Rückgängig-Schritt in der Übersicht. Liefert die archivierten Zettel.
+   */
+  archiveCompleted(): TodoList[] {
+    const done = this.lists().filter((l) => l.tasks.length > 0 && l.tasks.every((t) => t.done));
+    if (done.length === 0) return [];
+    const ids = new Set(done.map((l) => l.id));
+    const apply = (archived: boolean) => () =>
+      this.setAll(
+        this.all().map((l) => (ids.has(l.id) ? { ...l, archived, updatedAt: new Date().toISOString() } : l)),
+      );
+    this.run({ undo: apply(false), redo: apply(true) });
+    return done;
   }
 
   /** Titel und Modus in einem Schritt (aus der Übersicht; ein Undo-Schritt dort). */
@@ -230,10 +276,11 @@ export class ListsStore {
       this.schedulePurge();
     };
     const bringBack = () => {
+      // Wurde der Name inzwischen neu vergeben, kommt der Zettel als „Name (2)" zurück.
       if (this.all().some((l) => l.id === id)) {
-        this.replace(id, ({ deletedAt: _deletedAt, ...l }) => l);
+        this.replace(id, ({ deletedAt: _deletedAt, ...l }) => ({ ...l, title: this.uniqueTitle(l.title, id) }));
       } else if (snapshot) {
-        this.setAll([...this.all(), snapshot]);
+        this.setAll([...this.all(), { ...snapshot, title: this.uniqueTitle(snapshot.title, id) }]);
       }
     };
     this.run({ undo: bringBack, redo: softDelete });
@@ -453,6 +500,15 @@ export class ListsStore {
       // Ohne IndexedDB (z. B. Tests) nichts zu tun.
     }
   }
+}
+
+function uncheck(task: Task): Task {
+  const { doneAt: _doneAt, ...rest } = task;
+  return {
+    ...rest,
+    done: false,
+    ...(task.checklist ? { checklist: task.checklist.map((i) => ({ ...i, done: false })) } : {}),
+  };
 }
 
 type ListFields = Pick<TodoList, 'title' | 'timeboxMode' | 'dayPlanReferenceDate'>;

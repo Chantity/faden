@@ -114,7 +114,36 @@
       <ul class="archived__list">
         @for (list of store.archived(); track list.id) {
           <li class="archived__item">
-            <span>{{ list.title }}</span>
+            <div class="archived__head">
+              <span class="archived__title">{{ list.title }}</span>
+              @if (list.timeboxMode !== 'none') {
+                <span class="badge">{{ modeLabel(list.timeboxMode) }}</span>
+              }
+              <details class="menu">
+                <summary class="icon-btn" [attr.aria-label]="t().a11y.actionsFor(list.title)">⋯</summary>
+                <div class="menu__panel" role="menu">
+                  <button type="button" (click)="openEdit(list); closeMenu($event)">
+                    {{ t().common.rename }}
+                  </button>
+                  <button type="button" (click)="duplicate(list); closeMenu($event)">
+                    {{ t().common.duplicate }}
+                  </button>
+                  <button type="button" (click)="saveAsTemplate(list); closeMenu($event)">
+                    {{ t().templates.saveList }}
+                  </button>
+                </div>
+              </details>
+            </div>
+            @if (hasTasks(list)) {
+              <details class="archived__tasks">
+                <summary>{{ t().lists.archivedTasks(list.tasks.length) }}</summary>
+                <ol>
+                  @for (title of taskTitles(list); track $index) {
+                    <li>{{ title }}</li>
+                  }
+                </ol>
+              </details>
+            }
             <span class="archived__actions">
               <button type="button" class="btn" (click)="restore(list)">
                 {{ t().common.restore }}

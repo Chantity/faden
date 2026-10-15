@@ -17,6 +17,7 @@ import { estimateSums, formatDuration, modeSwitchOffer, withTimeboxMode } from '
 import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { ViewStore, type ListView } from '../../core/state/view.store';
+import { closeMenu } from '../../shared/menus';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { ListDialog } from '../lists/list-dialog';
 import { FocusView } from './focus-view';
@@ -45,6 +46,9 @@ import { InsertTemplateDialog } from './insert-template-dialog';
             <p class="muted">{{ progressLabel() }}</p>
             @if (estimateLabel(); as sums) {
               <p class="muted">{{ sums }}</p>
+            }
+            @if (current.timeboxMode !== 'none') {
+              <span class="badge">{{ t().timebox.modes[current.timeboxMode] }}</span>
             }
           </div>
           <div class="detail-head__actions">
@@ -191,6 +195,11 @@ import { InsertTemplateDialog } from './insert-template-dialog';
 
     .detail-head__title p {
       margin: var(--space-1) 0 0;
+    }
+
+    .detail-head__title .badge {
+      display: inline-block;
+      margin-top: var(--space-2);
     }
 
     .detail-head__actions {
@@ -367,9 +376,7 @@ export class ListDetailPage {
     void this.router.navigate(['/']);
   }
 
-  protected closeMenu(event: Event): void {
-    (event.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
-  }
+  protected readonly closeMenu = closeMenu;
 
   protected onKeydown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;

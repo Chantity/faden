@@ -48,26 +48,6 @@ describe('ListsPage', () => {
     expect(menu.hasAttribute('open')).toBe(false);
   });
 
-  it('schließt das ⋯-Menü bei einem Klick außerhalb', async () => {
-    const root = await render();
-    const menu = root.querySelector<HTMLDetailsElement>('details.menu')!;
-    menu.setAttribute('open', '');
-
-    document.body.click();
-
-    expect(menu.hasAttribute('open')).toBe(false);
-  });
-
-  it('lässt das ⋯-Menü bei einem Klick in den Menüinhalt offen', async () => {
-    const root = await render();
-    const menu = root.querySelector<HTMLDetailsElement>('details.menu')!;
-    menu.setAttribute('open', '');
-
-    root.querySelector<HTMLElement>('.menu__panel')!.click();
-
-    expect(menu.hasAttribute('open')).toBe(true);
-  });
-
   it('legt über „From template …" einen Zettel aus einer Vorlage an', async () => {
     const source = createList('Wäsche', 'estimate');
     source.tasks = [createTask('Sortieren', 'a'), createTask('Waschen', 'b')];

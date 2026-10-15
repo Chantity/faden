@@ -57,7 +57,8 @@ Tapping the card opens the list.
 
 Via the **menu (⋯)** on the card:
 - **Rename** – change title and time planning.
-- **Duplicate** – create a copy of the list (e.g. as a starting point).
+- **Duplicate** – create a copy of the list (e.g. as a starting point). The
+  copy is called “Name (2)”, “Name (3)” and so on.
 - **Save list as template** – keep the structure for later (see section 8).
 - **Move up / Move down** – change the order.
 - **Archive** – the list moves to the archive (expandable at the bottom).
@@ -65,8 +66,22 @@ Via the **menu (⋯)** on the card:
 - **Delete** – remove the list. “Undo” appears at the bottom – you have about
   8 seconds.
 
-The menu closes when you click/tap anywhere outside it, without having to pick
-anything.
+The menu closes when you click/tap anywhere outside it (or press **Esc**),
+without having to pick anything.
+
+Every list has its **own name**: two lists can't be called the same (upper and
+lower case don't count as a difference). If a name is taken, the dialog says so
+quietly and waits until you choose another one.
+
+**Finished lists archive themselves:** when you come back to the overview, every
+list whose todos are all done moves to the archive. A notice at the bottom
+offers **“Undo”**.
+
+**The archive** (expandable at the bottom) shows for each list its mode label
+and, expandable, **“Contained todos”** in the order of the flow. Each archived
+list has **Restore**, **Delete** and a menu (⋯) with **Rename**, **Duplicate**
+(the copy starts fresh: not archived, nothing checked off) and **Save list as
+template**.
 
 At the top right you'll also find **“New list”** as well as **Undo** (↶) and
 **Redo** (↷) for your latest changes. If you have saved templates,
@@ -75,7 +90,8 @@ dialog; title and time planning are taken over and can still be changed before
 creating.
 
 **On a computer** (wide window), an open list shows all your lists on the left
-– for switching quickly. **«** collapses this column, **»** expands it again.
+– for switching quickly, each with its mode label. **«** collapses this column,
+**»** expands it again.
 **On a phone**, “New list” is a round button at the bottom right, and dialogs
 slide in from the bottom.
 
@@ -101,8 +117,9 @@ appears at the bottom. It doesn't block anything and disappears by itself.
 
 ### 6. The list itself (detail view)
 
-A list has two views you can switch between at the top (the app remembers your
-last choice per list):
+At the top you see the title, the progress and – if the list uses a time
+planning – its mode label. A list has two views you can switch between below
+(the app remembers your last choice per list):
 
 - **Now** (default): only the todos you can do right now – as large cards with
   a wide **“Done”** button. The **“✚”** at the top right adds a single,
@@ -161,11 +178,9 @@ the full list “Still to come …”.
   this leaves a gap at that point (two separate parts). Both can be undone.
 - **“New separate strand”**: an independent new chain on the same list.
 
-An open menu (the three dots on a card) closes when you click/tap on the empty
-diagram area, without having to pick anything. In “Now”, the ⋯ menu closes
-with a click/tap outside it **or on the three dots again**; the area next to
-the three dots also belongs to the menu and closes it. Only a click inside the
-menu content keeps it open.
+Every menu in the app (the three dots ⋯) closes with a click/tap anywhere
+outside it, **on the three dots again** or with **Esc**, without having to pick
+anything. Only a click inside the menu content keeps it open.
 
 Pan with one finger (phone) or the mouse; zoom with two fingers (phone),
 **Ctrl + mouse wheel** or the visible **+/-** buttons (computer). “Fit all”
@@ -365,7 +380,8 @@ Ein Tipp auf die Karte öffnet den Zettel.
 
 Über das **Menü (⋯)** auf der Karte:
 - **Umbenennen** – Titel und Zeitplanung ändern.
-- **Duplizieren** – Kopie des Zettels anlegen (z. B. als Ausgangspunkt).
+- **Duplizieren** – Kopie des Zettels anlegen (z. B. als Ausgangspunkt). Die
+  Kopie heißt „Name (2)“, „Name (3)“ usw.
 - **Zettel als Vorlage speichern** – die Struktur für später aufheben (siehe
   Kap. 8).
 - **Nach oben / Nach unten** – Reihenfolge ändern.
@@ -374,8 +390,22 @@ Ein Tipp auf die Karte öffnet den Zettel.
 - **Löschen** – Zettel entfernen. Unten erscheint „Rückgängig" – du hast ca.
   8 Sekunden Zeit.
 
-Das Menü schließt sich mit einem Klick/Tipp irgendwo außerhalb, ohne dass du
-etwas auswählen musst.
+Das Menü schließt sich mit einem Klick/Tipp irgendwo außerhalb (oder mit
+**Esc**), ohne dass du etwas auswählen musst.
+
+Jeder Zettel hat einen **eigenen Namen**: Zwei Zettel können nicht gleich heißen
+(Groß-/Kleinschreibung zählt nicht als Unterschied). Ist ein Name vergeben, sagt
+der Dialog das ruhig und wartet, bis du einen anderen wählst.
+
+**Fertige Zettel archivieren sich selbst:** Kommst du zurück in die Übersicht,
+wandert jeder Zettel, dessen ToDos alle erledigt sind, ins Archiv. Unten
+erscheint ein Hinweis mit **„Rückgängig“**.
+
+**Das Archiv** (unten aufklappbar) zeigt zu jedem Zettel das Modus-Kürzel und,
+aufklappbar, die **„Enthaltenen ToDos“** in Ablauf-Reihenfolge. Jeder
+archivierte Zettel hat **Wiederherstellen**, **Löschen** und ein Menü (⋯) mit
+**Umbenennen**, **Duplizieren** (die Kopie startet frisch: nicht archiviert,
+nichts abgehakt) und **Zettel als Vorlage speichern**.
 
 Oben rechts findest du außerdem **„+ Neuer Zettel"** sowie **Rückgängig** (↶)
 und **Wiederholen** (↷) für die letzten Änderungen. Hast du Vorlagen gespeichert,
@@ -383,8 +413,8 @@ steht daneben **„Aus Vorlage …"**: Im Anlegen-Dialog wählst du die Vorlage;
 und Zeitplanung werden übernommen und lassen sich vor dem Anlegen noch ändern.
 
 **Am PC** (breites Fenster) steht beim geöffneten Zettel links die Liste aller
-Zettel – zum schnellen Wechseln. Mit **«** klappst du sie ein, mit **»** wieder
-aus. **Auf dem Handy** liegt „+ Neuer Zettel" als runder Button unten rechts,
+Zettel – zum schnellen Wechseln, jeweils mit Modus-Kürzel. Mit **«** klappst du
+sie ein, mit **»** wieder aus. **Auf dem Handy** liegt „+ Neuer Zettel" als runder Button unten rechts,
 und Dialoge kommen von unten herein.
 
 ### 5. Rückgängig und Wiederholen
@@ -409,8 +439,9 @@ Nach einem Löschen oder Abhaken erscheint unten ein ruhiges Hinweisband mit
 
 ### 6. Der Zettel selbst (Detailansicht)
 
-Ein Zettel hat zwei Sichten, die du oben umschalten kannst (die App merkt sich
-deine letzte Wahl je Zettel):
+Oben stehen Titel, Fortschritt und – falls der Zettel eine Zeitplanung nutzt –
+das Modus-Kürzel. Darunter schaltest du zwischen zwei Sichten um (die App merkt
+sich deine letzte Wahl je Zettel):
 
 - **Jetzt dran** (Standard): nur die ToDos, die gerade machbar sind – als große
   Karten mit einem breiten **„Erledigt"**-Button. Mit dem **„✚"** rechts oben
@@ -468,11 +499,9 @@ findest du die vollständige Liste „Danach kommt noch …".
   Stelle eine Lücke (zwei getrennte Teile). Beides lässt sich rückgängig machen.
 - **„Neuer eigener Strang"**: eine unabhängige neue Kette auf demselben Zettel.
 
-Ein geöffnetes Menü (die drei Punkte an der Karte) schließt sich mit einem
-Klick/Tipp auf die freie Diagrammfläche, ohne dass du etwas auswählen musst.
-In „Jetzt dran" schließt sich das ⋯-Menü durch einen Klick/Tipp außerhalb **oder
-wieder auf die drei Punkte**; die Fläche neben den drei Punkten gehört ebenfalls
-zum Menü und schließt es. Nur ein Klick im Menüinhalt lässt es offen.
+Jedes Menü der App (die drei Punkte ⋯) schließt sich mit einem Klick/Tipp
+irgendwo außerhalb, **wieder auf die drei Punkte** oder mit **Esc**, ohne dass
+du etwas auswählen musst. Nur ein Klick im Menüinhalt lässt es offen.
 
 Verschieben mit einem Finger (Handy) oder Maus; Zoomen mit zwei Fingern
 (Handy), **Strg + Mausrad** oder den sichtbaren **+/-**-Buttons (PC). „Alles

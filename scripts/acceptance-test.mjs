@@ -189,7 +189,11 @@ async function seed() {
       tasks: [task('x', 'Spiegel putzen'), task('y', 'Handtücher wechseln')],
       edges: [edge('x', 'y')],
     }),
-    list('alt', 'Archivierter Zettel', 12, { archived: true }),
+    list('alt', 'Archivierter Zettel', 12, {
+      archived: true,
+      timeboxMode: 'estimate',
+      tasks: [task('z', 'Altes ToDo', { done: true, estimateMinutes: 10 })],
+    }),
   ];
   const templates = [
     {
@@ -329,6 +333,11 @@ for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.include
       await openPage(p);
       for (const issue of await page.eval(CHECK_PAGE)) problems.push(`${p.name}: ${issue}`);
     }
+    // Archiv aufgeklappt (Chip, „Enthaltene ToDos", ⋯-Menü)
+    await openPage(PAGES[0]);
+    await page.eval(`document.querySelectorAll('details.archived, details.archived__tasks').forEach((d) => (d.open = true))`);
+    await page.eval(`document.querySelector('details.archived').scrollIntoView()`);
+    for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Archiv: ${issue}`);
     // Dialog öffnen (Neuer Zettel) und prüfen
     await openPage(PAGES[0]);
     await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === '+ New list').click()`);
@@ -382,6 +391,43 @@ for (const vp of VIEWPORTS.filter((v) => !process.env.VIEWPORT || v.name.include
     return `${PAGES.length} Seiten + Dialog ohne Befund`;
   });
 }
+
+// ---------------------------------------------- M: ⋯-Menüs schließen ---
+
+const OPEN_MENUS = `document.querySelectorAll('details.menu[open], .popover').length`;
+
+await test('M Jedes ⋯-Menü schließt per Klick außerhalb und mit Esc', async () => {
+  await viewport(1280, 800);
+  const cases = [
+    { name: 'Übersicht: Zettel-Karte', page: PAGES[0], open: `document.querySelector('.cards details.menu summary').click()` },
+    {
+      name: 'Übersicht: archivierter Zettel',
+      page: PAGES[0],
+      open: `document.querySelector('details.archived').open = true;
+             document.querySelector('.archived details.menu summary').click()`,
+    },
+    { name: 'Jetzt dran: Karte', page: PAGES[1], open: `document.querySelector('.task-card details.menu summary').click()` },
+    { name: 'Zettel-Kopf', page: PAGES[1], open: `document.querySelector('.detail-head details.menu summary').click()` },
+    { name: 'Ablauf: Karte', page: PAGES[2], open: `document.querySelector('.node__menu-btn').click()` },
+  ];
+  const problems = [];
+  for (const c of cases) {
+    for (const how of ['Klick', 'Esc']) {
+      await openPage(c.page);
+      await page.eval(c.open);
+      if ((await page.eval(OPEN_MENUS)) === 0) {
+        problems.push(`${c.name}: Menü ging nicht auf`);
+        continue;
+      }
+      if (how === 'Klick') await page.eval(`document.querySelector('h1').click()`);
+      else await page.press('Escape');
+      await new Promise((r) => setTimeout(r, 50));
+      if ((await page.eval(OPEN_MENUS)) !== 0) problems.push(`${c.name}: bleibt nach ${how} offen`);
+    }
+  }
+  assert(problems.length === 0, problems.join('; '));
+  return `${cases.length} Menüs, je per Klick außerhalb und per Esc geschlossen`;
+});
 
 // ------------------------------------------------- 12: Reizarm ---
 

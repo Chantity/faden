@@ -9,6 +9,7 @@ import { SettingsStore } from './core/state/settings.store';
 import { TemplatesStore } from './core/state/templates.store';
 import { ViewStore } from './core/state/view.store';
 import { InstallBanner } from './shared/install-banner/install-banner';
+import { closeMenusOnClick, closeMenusOnEscape } from './shared/menus';
 import { Snackbar } from './shared/snackbar/snackbar';
 
 @Component({
@@ -17,8 +18,14 @@ import { Snackbar } from './shared/snackbar/snackbar';
   imports: [RouterOutlet, RouterLink, RouterLinkActive, InstallBanner, Snackbar],
   styleUrl: './app.css',
   templateUrl: './app.html',
+  host: {
+    '(document:click)': 'onDocumentClick($event)',
+    '(document:keydown.escape)': 'onEscape($event)',
+  },
 })
 export class App {
+  protected readonly onDocumentClick = closeMenusOnClick;
+  protected readonly onEscape = closeMenusOnEscape;
   private readonly lists = inject(ListsStore);
   private readonly settings = inject(SettingsStore);
   private readonly templates = inject(TemplatesStore);

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   inject,
   Injector,
@@ -10,6 +11,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nStore } from '../../core/i18n/i18n.store';
+import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import {
   TIMEBOX_MODES,
@@ -44,6 +46,8 @@ import { focusAfterRender } from '../../shared/focus';
 
         @if (error()) {
           <p class="field__error" role="alert">{{ error() }}</p>
+        } @else if (taken()) {
+          <p class="field__hint" role="status">{{ t().listDialog.titleTaken }}</p>
         }
 
         @if (!editing() && templates().length > 0) {
@@ -84,7 +88,7 @@ import { focusAfterRender } from '../../shared/focus';
 
         <div class="sheet__actions">
           <button type="button" class="btn" (click)="close()">{{ t().common.cancel }}</button>
-          <button type="submit" class="btn btn--primary">
+          <button type="submit" class="btn btn--primary" [disabled]="taken()">
             {{ editing() ? t().common.save : t().listDialog.create }}
           </button>
         </div>
@@ -137,6 +141,11 @@ import { focusAfterRender } from '../../shared/focus';
 
     .field__error {
       color: var(--color-danger);
+      margin: 0;
+    }
+
+    .field__hint {
+      color: var(--color-warn);
       margin: 0;
     }
 
@@ -195,6 +204,7 @@ export class ListDialog {
   private readonly templateSelect = viewChild<ElementRef<HTMLSelectElement>>('templateSelect');
   private readonly i18n = inject(I18nStore);
   protected readonly templates = inject(TemplatesStore).templates;
+  private readonly store = inject(ListsStore);
 
   protected readonly t = this.i18n.t;
   protected readonly modes = TIMEBOX_MODES;
@@ -206,15 +216,20 @@ export class ListDialog {
   protected readonly error = signal('');
   protected readonly templateId = signal<string | null>(null);
 
-  private editingId: string | null = null;
+  private readonly editingId = signal<string | null>(null);
   private restoreFocusTo: HTMLElement | null = null;
+
+  /** Zettel-Namen sind eindeutig: ein vergebener Name sperrt das Speichern. */
+  protected readonly taken = computed(
+    () => this.title().trim() !== '' && this.store.isTitleTaken(this.title(), this.editingId() ?? undefined),
+  );
 
   readonly saved = output<ListDialogResult>();
 
   /** Neuer Zettel; mit `fromTemplate` ist die erste Vorlage vorausgewählt. */
   showCreate(fromTemplate = false): void {
     this.editing.set(false);
-    this.editingId = null;
+    this.editingId.set(null);
     this.title.set('');
     this.timeboxMode.set('none');
     this.templateId.set(null);
@@ -226,7 +241,7 @@ export class ListDialog {
 
   showEdit(list: TodoList): void {
     this.editing.set(true);
-    this.editingId = list.id;
+    this.editingId.set(list.id);
     this.title.set(list.title);
     this.timeboxMode.set(list.timeboxMode);
     this.templateId.set(null);
@@ -249,7 +264,10 @@ export class ListDialog {
     const next = this.templates().find((t) => t.id === id);
     this.templateId.set(next ? next.id : null);
     if (!next) return;
-    if (this.title().trim() === '' || this.title() === previous?.title) this.title.set(next.title);
+    const suggested = (template: typeof next) => this.store.uniqueTitle(template.title);
+    if (this.title().trim() === '' || (previous && this.title() === suggested(previous))) {
+      this.title.set(suggested(next));
+    }
     this.timeboxMode.set(next.timeboxMode);
     if (this.error()) this.error.set('');
   }
@@ -264,8 +282,9 @@ export class ListDialog {
       this.error.set(this.i18n.t().errors.titleTooLong(TITLE_MAX_LENGTH));
       return;
     }
+    if (this.taken()) return;
     this.saved.emit({
-      id: this.editingId,
+      id: this.editingId(),
       title,
       timeboxMode: this.timeboxMode(),
       templateId: this.editing() ? null : this.templateId(),

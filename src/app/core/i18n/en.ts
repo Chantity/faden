@@ -50,6 +50,7 @@ export const en = {
       'A list is a to-do list with a flow. Create your first list and write down what needs doing.',
     archivedHeading: 'Archived lists',
     archivedCount: (n: number): string => (n === 1 ? '1 archived list' : `${n} archived lists`),
+    archivedTasks: (n: number): string => (n === 1 ? 'Contained todo (1)' : `Contained todos (${n})`),
     progress: (done: number, total: number): string => `${done} of ${total} done`,
     emptyList: 'No todos yet',
     nowDoing: (title: string): string => `Now: ${title}`,
@@ -247,6 +248,7 @@ export const en = {
     templateLabel: 'From template',
     noTemplate: 'No template (empty list)',
     fromTemplate: 'From template …',
+    titleTaken: 'There is already a list with this name.',
   },
 
   timebox: {
@@ -313,6 +315,8 @@ export const en = {
     listArchived: 'List archived.',
     listRestored: 'List restored.',
     listDuplicated: 'List duplicated.',
+    autoArchivedOne: (title: string): string => `“${title}” is done and was archived.`,
+    autoArchivedMany: (n: number): string => `${n} finished lists were archived.`,
     saveFailed: 'Saving failed – please try again later.',
   },
 

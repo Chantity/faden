@@ -65,7 +65,12 @@ const MAX_SCALE = 2;
   selector: 'app-flow-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
-  host: { '(document:keydown)': 'onKeydown($event)' },
+  host: {
+    '(document:keydown)': 'onKeydown($event)',
+    // Menüs öffnen mit stopPropagation; jeder andere Klick irgendwo schließt sie.
+    '(document:click)': 'closeMenus()',
+    '(document:keydown.escape)': 'closeMenus()',
+  },
   template: `
     <div class="flow" (wheel)="onWheel($event)">
       <div class="flow__zoom">
@@ -105,7 +110,6 @@ const MAX_SCALE = 2;
         <div
           #wrap
           class="flow__wrap"
-          (click)="closeMenus()"
           (pointerdown)="onPointerDown($event)"
           (pointermove)="onPointerMove($event)"
           (pointerup)="onPointerUp($event)"
@@ -886,7 +890,7 @@ export class FlowView {
     this.edgeMenu.set({ edgeId, x: midX - 100, y: midY + 12 });
   }
 
-  /** Klick auf die freie Fläche schließt ein offenes Menü, ohne eine Auswahl zu treffen. */
+  /** Klick irgendwo (oder Esc) schließt ein offenes Menü, ohne eine Auswahl zu treffen. */
   protected closeMenus(): void {
     this.nodeMenu.set(null);
     this.edgeMenu.set(null);

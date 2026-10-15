@@ -144,7 +144,8 @@ async function assertSwIntact(page) {
 
 async function assertAppWithData(page) {
   await page.waitFor(APP_READY, 'App rendert');
-  await page.waitFor(`document.body.innerText.includes(${JSON.stringify(LIST_TITLE)})`, 'Daten sichtbar');
+  // textContent: Der abgehakte Zettel liegt (automatisch archiviert) im zugeklappten Archiv.
+  await page.waitFor(`document.body.textContent.includes(${JSON.stringify(LIST_TITLE)})`, 'Daten sichtbar');
 }
 
 // ----------------------------------------------------------------- Tests ---

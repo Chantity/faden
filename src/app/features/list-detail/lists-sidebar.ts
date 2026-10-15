@@ -39,6 +39,9 @@ import { ViewStore } from '../../core/state/view.store';
               >
                 <span class="side__title">{{ list.title }}</span>
                 <span class="side__progress muted">{{ progressLabel(list) }}</span>
+                @if (list.timeboxMode !== 'none') {
+                  <span class="badge">{{ t().timebox.modes[list.timeboxMode] }}</span>
+                }
               </a>
             </li>
           }
@@ -106,6 +109,12 @@ import { ViewStore } from '../../core/state/view.store';
 
     .side__progress {
       font-size: 0.85rem;
+      font-weight: 400;
+    }
+
+    .side__link .badge {
+      align-self: flex-start;
+      margin-top: var(--space-1);
       font-weight: 400;
     }
   `,
