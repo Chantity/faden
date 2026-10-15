@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PwaService } from '../../core/pwa/pwa.service';
+import { FirstRunStore } from '../first-run/first-run.store';
 
 /** localStorage-Schlüssel: Nutzer hat das Banner mit „Ignorieren“ geschlossen. */
 export const INSTALL_BANNER_DISMISSED_KEY = 'faden.installBannerDismissed';
@@ -74,9 +75,15 @@ export class InstallBanner {
   private readonly dismissed = signal(readDismissed());
   protected readonly iosSteps = signal(false);
 
+  private readonly firstRun = inject(FirstRunStore);
+
+  // Erst nach den Erst-Start-Popups (Speicher-Hinweis, Anleitung).
   protected readonly visible = computed(
     () =>
-      !this.dismissed() && !this.pwa.installed() && (this.pwa.canPrompt() || this.pwa.isIos()),
+      this.firstRun.done() &&
+      !this.dismissed() &&
+      !this.pwa.installed() &&
+      (this.pwa.canPrompt() || this.pwa.isIos()),
   );
 
   protected async install(): Promise<void> {

@@ -74,7 +74,9 @@ src/app/
 └─ shared/
    ├─ menus.ts                      gemeinsames Schließen aller ⋯-Menüs (Klick, Esc)
    ├─ focus.ts                      focusAfterRender (Fokus in neu erscheinende Felder)
-   ├─ install-banner/               Hinweis „Als App installieren"
+   ├─ first-run/                    Erst-Start: Speicher-Hinweis → Anleitung anbieten (FirstRunStore)
+   ├─ guide/                        Anleitungs-Dialog (lädt guide/guide.html, setzt Anker)
+   ├─ install-banner/               Hinweis „Als App installieren" (erst nach first-run)
    └─ snackbar/                     nicht-modaler Hinweisband-Dienst + Komponente
 ```
 
@@ -339,6 +341,7 @@ Bausteine:
 | `scripts/generate-icons.mjs` | Rastert die Icon-Geometrie (Quelle: `public/icons/icon.svg`) ohne Fremdpakete zu PNG/ICO (`npm run icons`). |
 | `core/pwa/pwa.service.ts` | Registriert `./sw.js` (nur Produktion, nach `load`), fängt `beforeinstallprompt` ab, erkennt iOS und installierten Modus, fragt den SW nach dem Precache-Status („Offline bereit"). |
 | `scripts/pwa-test.mjs` | Automatisierte Pflichttests, siehe `docs/PWA-TESTS.md`. |
+| `scripts/guide.mjs`, `scripts/lib/markdown.mjs` | Läuft vor `ng build` und `ng serve`: wandelt `docs/USER-GUIDE.md` mit einem eigenen kleinen Konverter (nur die genutzten Elemente, keine Abhängigkeit; Tests mit `npm run test:scripts`) in das Fragment `public/guide/guide.html` um und kopiert `docs/images/`. Nicht eingecheckt; über den Build im Precache, also offline lesbar. |
 
 Ablauf im Service Worker:
 
@@ -369,6 +372,7 @@ npm test           # Unit-Tests (Vitest)
 npm run build      # Produktionsbuild + Precache-Liste nach dist/faden/browser
 npm run test:pwa   # PWA-/Offline-Pflichttests gegen den Produktionsbuild
 npm run test:acceptance  # Abnahme: Tastatur, Responsive, Reizarm (docs/ACCEPTANCE.md)
+npm run test:scripts     # Tests der Build-Skripte (Anleitungs-Konverter, node --test)
 npm run icons      # Icons neu erzeugen (nur nach Änderung am Icon)
 ```
 
@@ -422,3 +426,5 @@ Entscheidungen werden hier ergänzt.
 | Erst-Start-Merker | `localStorage` (z. B. `faden.installBannerDismissed`), nicht IndexedDB. | Synchron lesbar (kein Aufblitzen beim Start); reine Anzeige-Merker gehören nicht ins Backup. |
 | Testwerkzeuge | Browser-Tests steuern Edge/Chrome headless über das DevTools-Protokoll mit Node-WebSocket; Tippen als echte Tastendrücke. | Keine Fremdpakete; `Input.insertText` ahmt eine IME-Eingabe nach und testet die Tastatur nicht. |
 | Deployment | GitHub Actions → GitHub Pages bei Push auf `main`: Unit-Tests, `npm run build`. Kein `--base-href`, kein `404.html`. | `<base href="./">` läuft unter jedem Pfad; Hash-Routing braucht keinen Fallback. |
+| Anleitung in der App | Beim Build gerendertes HTML-Fragment, per `[innerHTML]` mit aktivem Sanitizer. Der Sanitizer entfernt `id`s; der Dialog setzt die Anker nach dem Rendern neu und fängt `#…`-Links ab. | Eine Quelle (`docs/USER-GUIDE.md`) für GitHub und App, offline verfügbar, keine Markdown-Bibliothek. Ohne Abfangen würde ein Anker-Link die Hash-Route wechseln. |
+| Erst-Start-Hinweise | `FirstRunStore` (localStorage `faden.storageNoticeAck`, `faden.guideOffered`); Speicher-Hinweis modal und nur per „Verstanden“ schließbar, danach das Anleitungs-Angebot, erst dann das Installations-Banner. | Bewusste Ausnahme von „keine Pop-ups“ (Wunsch des Nutzers); jeder Hinweis kommt genau einmal. Browser-Tests setzen die Merker über `skipFirstRunNotices` vorab. |

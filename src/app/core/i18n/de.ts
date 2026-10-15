@@ -169,6 +169,25 @@ export const de = {
     dismiss: 'Ignorieren',
   },
 
+  firstRun: {
+    storageTitle: 'Deine Daten bleiben bei dir',
+    storageBody:
+      'Faden speichert keine Cookies. Damit die App funktioniert, legt sie deine Zettel und Einstellungen im Speicher dieses Browsers ab. Sie verlassen dein Gerät nicht.',
+    storageLeave: 'Wenn du damit nicht einverstanden bist, verlasse diese Seite bitte.',
+    understood: 'Verstanden',
+    guideTitle: 'Anleitung lesen?',
+    guideBody: 'Eine kurze Anleitung erklärt alle Funktionen. Du findest sie auch später in den Einstellungen.',
+    guideRead: 'Anleitung lesen',
+    guideIgnore: 'Ignorieren',
+  },
+
+  guide: {
+    title: 'Anleitung',
+    close: 'Schließen',
+    loading: 'Anleitung wird geladen …',
+    loadError: 'Die Anleitung konnte gerade nicht geladen werden. Sie ist verfügbar, sobald Faden einmal vollständig geladen wurde.',
+  },
+
   focus: {
     tabFocus: 'Jetzt dran',
     tabFlow: 'Ablauf',
@@ -419,6 +438,9 @@ export const de = {
     offlineReady: 'Offline bereit – Faden läuft jetzt auch ohne Internet.',
     offlinePending: 'Offline-Betrieb wird vorbereitet …',
     offlineUnsupported: 'Offline-Betrieb ist hier nicht aktiv (nur in der veröffentlichten App).',
+    helpHeading: 'Hilfe',
+    guideOpen: 'Anleitung lesen',
+    repoLink: 'Faden auf GitHub (Quellcode, Fehler melden)',
   },
 
   a11y: {

@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build && node scripts/precache.mjs",
+    "start": "node scripts/guide.mjs && ng serve",
+    "build": "node scripts/guide.mjs && ng build && node scripts/precache.mjs",
+    "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
     "icons": "node scripts/generate-icons.mjs",
     "test:pwa": "node scripts/pwa-test.mjs",
     "test:acceptance": "node scripts/acceptance-test.mjs",

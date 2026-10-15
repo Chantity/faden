@@ -37,15 +37,16 @@ describe('SettingsPage – Konflikte beim Zusammenführen', () => {
     const input = root.querySelector('input[type=file]') as HTMLInputElement;
     Object.defineProperty(input, 'files', { value: [new File([json], 'b.json')] });
     input.dispatchEvent(new Event('change'));
-    await vi.waitFor(() => expect(root.querySelector('dialog')!.open).toBe(true));
+    const dialog = () => root.querySelector('dialog[open]');
+    await vi.waitFor(() => expect(dialog()).not.toBeNull());
     await fixture.whenStable();
-    expect(root.querySelector('dialog')!.textContent).toContain('“b.json” is a valid backup.');
+    expect(dialog()!.textContent).toContain('“b.json” is a valid backup.');
 
     const button = (label: string) =>
-      [...root.querySelectorAll<HTMLButtonElement>('dialog button')].find((b) => b.textContent?.trim() === label)!;
+      [...dialog()!.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === label)!;
     button('Merge').click();
     await fixture.whenStable();
-    expect(root.querySelector('dialog')!.textContent).toContain('This list already exists:');
+    expect(dialog()!.textContent).toContain('This list already exists:');
     expect(root.querySelector('.conflicts')!.textContent).toContain('einkauf');
     const radios = root.querySelectorAll<HTMLInputElement>('input[name=strategy]');
     expect(radios).toHaveLength(4);

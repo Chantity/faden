@@ -6,6 +6,9 @@
 /out-tsc
 /bazel-out
 
+# Aus docs/USER-GUIDE.md erzeugt (scripts/guide.mjs)
+/public/guide
+
 # Node
 /node_modules
 npm-debug.log

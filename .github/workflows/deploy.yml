@@ -30,8 +30,12 @@ jobs:
       - name: Unit tests
         run: npm test -- --watch=false
 
-      # `npm run build` = `ng build` + `scripts/precache.mjs`. Without the
-      # precache list the service worker cannot work offline.
+      - name: Build script tests
+        run: npm run test:scripts
+
+      # `npm run build` = `scripts/guide.mjs` (in-app guide) + `ng build` +
+      # `scripts/precache.mjs`. Without the precache list the service worker
+      # cannot work offline.
       # No --base-href: index.html uses `<base href="./">`, so the build runs
       # under any path (e.g. /<repo>/) unchanged. No 404.html needed either –
       # the app uses hash routing.

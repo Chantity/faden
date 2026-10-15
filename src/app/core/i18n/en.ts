@@ -169,6 +169,25 @@ export const en = {
     dismiss: 'Ignore',
   },
 
+  firstRun: {
+    storageTitle: 'Your data stays with you',
+    storageBody:
+      'Faden doesn’t store any cookies. To work, the app keeps your lists and settings in this browser’s storage. They never leave your device.',
+    storageLeave: 'If you don’t agree with this, please leave this page.',
+    understood: 'Got it',
+    guideTitle: 'Read the guide?',
+    guideBody: 'A short guide explains every feature. You can also find it later in the settings.',
+    guideRead: 'Read the guide',
+    guideIgnore: 'Ignore',
+  },
+
+  guide: {
+    title: 'Guide',
+    close: 'Close',
+    loading: 'Loading the guide …',
+    loadError: 'The guide could not be loaded right now. It is available once Faden has been loaded completely.',
+  },
+
   focus: {
     tabFocus: 'Now',
     tabFlow: 'Flow',
@@ -420,6 +439,9 @@ export const en = {
     offlineReady: 'Offline ready – Faden now works without internet.',
     offlinePending: 'Preparing offline use …',
     offlineUnsupported: 'Offline use is not active here (only in the published app).',
+    helpHeading: 'Help',
+    guideOpen: 'Read the guide',
+    repoLink: 'Faden on GitHub (source code, report a problem)',
   },
 
   a11y: {

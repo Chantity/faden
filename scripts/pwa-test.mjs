@@ -14,7 +14,15 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assert, createRunner, findBrowser, launchBrowser, serveFile, sleep } from './lib/browser.mjs';
+import {
+  assert,
+  createRunner,
+  findBrowser,
+  launchBrowser,
+  serveFile,
+  skipFirstRunNotices,
+  sleep,
+} from './lib/browser.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const distDir = join(root, 'dist', 'faden', 'browser');
@@ -98,7 +106,11 @@ async function launch() {
 }
 
 const closeBrowser = () => browser.close();
-const newPage = () => browser.newPage();
+const newPage = async () => {
+  const tab = await browser.newPage();
+  await skipFirstRunNotices(tab);
+  return tab;
+};
 
 // ------------------------------------------------------------ Hilfsmittel ---
 
@@ -231,8 +243,13 @@ await test('2 Server aus: App startet, anlegen, abhaken, Export', async () => {
   const backup = JSON.parse(readFileSync(join(downloads, file), 'utf8'));
   const list = backup.lists.find((l) => l.title === LIST_TITLE);
   assert(list?.tasks[0]?.title === TASK_TITLE && list.tasks[0].done, 'Backup enthält Änderungen nicht');
+
+  // Anleitung kommt aus dem Precache
+  await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Read the guide').click()`);
+  await page.waitFor(`document.querySelector('dialog[open] .guide__content h2')`, 'Anleitung offline');
+  await page.press('Escape');
   await assertSwIntact(page);
-  return `Zettel + ToDo offline angelegt und abgehakt, ${file} exportiert`;
+  return `Zettel + ToDo offline angelegt und abgehakt, ${file} exportiert, Anleitung offline gelesen`;
 });
 
 for (const [name, m] of [

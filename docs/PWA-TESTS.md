@@ -27,7 +27,7 @@ Das Skript braucht **keine** Zusatzpakete (Node ≥ 22). Es
 | # | Test | Wie geprüft |
 |---|---|---|
 | 1 | Installierbarkeit / Precache | Einmal online laden. SW übernimmt die Seite; aktiver Precache enthält **alle** Dateien aus `precache-manifest.json`; `Page.getAppManifest` ohne Fehler; `Page.getInstallabilityErrors` leer; Einstellungen zeigen „Offline ready". |
-| 2 | Server aus | Server beenden, neu laden. App startet; per Oberfläche Zettel anlegen, ToDo anlegen, abhaken; Backup exportieren (Download wird geprüft und enthält die Änderungen). |
+| 2 | Server aus | Server beenden, neu laden. App startet; per Oberfläche Zettel anlegen, ToDo anlegen, abhaken; Backup exportieren (Download wird geprüft und enthält die Änderungen); Anleitung in den Einstellungen öffnen (kommt aus dem Precache). |
 | 3 | Überall 404 | 3× neu laden, jedes Mal Update-Prüfung des Browsers erzwingen (`registration.update()`, entspricht der automatischen Prüfung nach 24 h). Erwartung: App + Daten da, Update-Prüfung schlägt fehl, SW registriert, Precache unverändert und vollständig. |
 | 4a | Überall 500 | wie 3. |
 | 4b | Captive-Portal-HTML | wie 3 (`sw.js`, Manifest, `precache-manifest.json` liefern HTML mit 200). |
@@ -59,17 +59,17 @@ Der eigene Service Worker hat keine zeitgesteuerte Logik.
 
 | Test | Datum | Ergebnis | Notizen |
 |---|---|---|---|
-| 1 Installierbarkeit | 2026-10-14 | bestanden | 17 Dateien in `faden-v1-b200e83d45a60299`, installierbar, „Offline ready" |
-| 2 Server aus | 2026-10-14 | bestanden | Anlegen, Abhaken, Export offline |
-| 3 Server 404 | 2026-10-14 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
-| 4a Server 500 | 2026-10-14 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
-| 4b Captive-Portal | 2026-10-14 | bestanden | Update-Prüfung: `SecurityError` (MIME), SW + Cache intakt |
-| 4c Keine Auto-Updates | 2026-10-14 | bestanden | Installierte Version bleibt aktiv |
-| 8a Update unvollständig | 2026-10-14 | bestanden | Alte Version bleibt, kein Rest-Cache |
-| 8b Update vollständig | 2026-10-14 | bestanden | Umschalten erst nach vollständigem Laden |
-| 5 Hash-Route offline | 2026-10-14 | bestanden | – |
-| 6 Daten nach Neustart | 2026-10-14 | bestanden | 2 Browser-Neustarts |
-| 7 Keine externen Requests | 2026-10-14 | bestanden | 293 Requests, alle an den eigenen Host |
+| 1 Installierbarkeit | 2026-10-15 | bestanden | 18 Dateien (inkl. `guide/guide.html`), installierbar, „Offline ready" |
+| 2 Server aus | 2026-10-15 | bestanden | Anlegen, Abhaken, Export, Anleitung lesen – alles offline |
+| 3 Server 404 | 2026-10-15 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
+| 4a Server 500 | 2026-10-15 | bestanden | Update-Prüfung: `TypeError`, SW + Cache intakt |
+| 4b Captive-Portal | 2026-10-15 | bestanden | Update-Prüfung: `SecurityError` (MIME), SW + Cache intakt |
+| 4c Keine Auto-Updates | 2026-10-15 | bestanden | Installierte Version bleibt aktiv |
+| 8a Update unvollständig | 2026-10-15 | bestanden | Alte Version bleibt, kein Rest-Cache |
+| 8b Update vollständig | 2026-10-15 | bestanden | Umschalten erst nach vollständigem Laden |
+| 5 Hash-Route offline | 2026-10-15 | bestanden | – |
+| 6 Daten nach Neustart | 2026-10-15 | bestanden | 2 Browser-Neustarts |
+| 7 Keine externen Requests | 2026-10-15 | bestanden | 296 Requests, alle an den eigenen Host |
 
 Umgebung: Windows 10, Microsoft Edge (headless, Chromium), Node 24.21, Build 1.0.0.
 Nicht automatisiert: Safari/iOS (kein WebKit-Testbrowser verfügbar) und

@@ -7,7 +7,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { APP_VERSION } from '../../app-meta';
+import { APP_REPO_URL, APP_VERSION } from '../../app-meta';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { SUPPORTED_LOCALES, type Locale } from '../../core/model';
@@ -18,11 +18,13 @@ import { ListsStore } from '../../core/state/lists.store';
 import { describeBackupIssue } from '../../core/i18n/backup-error';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
+import { GuideDialog } from '../../shared/guide/guide-dialog';
 import { formatBytes } from '../../core/time';
 
 @Component({
   selector: 'app-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [GuideDialog],
   template: `
     <h1>{{ t().nav.settings }}</h1>
 
@@ -130,6 +132,15 @@ import { formatBytes } from '../../core/time';
           }
         }
       }
+    </section>
+
+    <section class="card block">
+      <h2>{{ t().settings.helpHeading }}</h2>
+      <div class="actions">
+        <button type="button" class="btn" (click)="guide.open()">{{ t().settings.guideOpen }}</button>
+        <a class="btn" [href]="repoUrl" target="_blank" rel="noopener">{{ t().settings.repoLink }}</a>
+      </div>
+      <app-guide-dialog #guide />
     </section>
 
     <section class="card block">
@@ -340,6 +351,7 @@ export class SettingsPage {
   private readonly i18n = inject(I18nStore);
   protected readonly t = this.i18n.t;
   protected readonly appVersion = APP_VERSION;
+  protected readonly repoUrl = APP_REPO_URL;
 
   protected readonly themeOptions = computed<{ value: ThemeChoice; label: string }[]>(() => {
     const s = this.t().settings;

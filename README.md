@@ -41,6 +41,7 @@ npm test                # unit tests (Vitest)
 npm run build           # production build into dist/faden/browser
 npm run test:pwa        # mandatory offline tests (Edge/Chrome headless)
 npm run test:acceptance # acceptance: keyboard, responsive, reduced motion
+npm run test:scripts    # tests for the build scripts (guide converter)
 ```
 
 **Deployment:** Every push to `main` runs the unit tests, builds the app and
@@ -105,6 +106,7 @@ npm test                # Unit-Tests (Vitest)
 npm run build           # Produktionsbuild nach dist/faden/browser
 npm run test:pwa        # Offline-Pflichttests (Edge/Chrome headless)
 npm run test:acceptance # Abnahme: Tastatur, Responsive, Reizarm
+npm run test:scripts    # Tests der Build-Skripte (Anleitungs-Konverter)
 ```
 
 **Deployment:** Jeder Push auf `main` führt die Unit-Tests aus, baut die App

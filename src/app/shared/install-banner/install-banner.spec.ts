@@ -2,12 +2,16 @@ import { TestBed } from '@angular/core/testing';
 import { PwaService } from '../../core/pwa/pwa.service';
 import { FadenDb } from '../../core/storage';
 import { INSTALL_BANNER_DISMISSED_KEY, InstallBanner } from './install-banner';
+import { FirstRunStore, GUIDE_OFFERED_KEY, STORAGE_NOTICE_KEY } from '../first-run/first-run.store';
 
 describe('InstallBanner', () => {
   let pwa: PwaService;
 
   beforeEach(async () => {
     localStorage.removeItem(INSTALL_BANNER_DISMISSED_KEY);
+    // Die Erst-Start-Popups sind hier schon erledigt (eigener Test unten).
+    localStorage.setItem(STORAGE_NOTICE_KEY, '1');
+    localStorage.setItem(GUIDE_OFFERED_KEY, '1');
     await TestBed.configureTestingModule({
       imports: [InstallBanner],
       providers: [{ provide: FadenDb, useFactory: () => new FadenDb() }],
@@ -15,7 +19,23 @@ describe('InstallBanner', () => {
     pwa = TestBed.inject(PwaService);
   });
 
-  afterEach(() => localStorage.removeItem(INSTALL_BANNER_DISMISSED_KEY));
+  afterEach(() => {
+    for (const key of [INSTALL_BANNER_DISMISSED_KEY, STORAGE_NOTICE_KEY, GUIDE_OFFERED_KEY]) localStorage.removeItem(key);
+  });
+
+  it('wartet, bis die Erst-Start-Popups erledigt sind', async () => {
+    const firstRun = TestBed.inject(FirstRunStore);
+    firstRun.guideOffered.set(false);
+    pwa.canPrompt.set(true);
+    const fixture = TestBed.createComponent(InstallBanner);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.install-banner')).toBeNull();
+
+    firstRun.markGuideOffered();
+    await fixture.whenStable();
+    expect(root.querySelector('.install-banner')).not.toBeNull();
+  });
 
   async function render(): Promise<HTMLElement> {
     const fixture = TestBed.createComponent(InstallBanner);

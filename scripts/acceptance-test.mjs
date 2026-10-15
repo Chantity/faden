@@ -11,7 +11,15 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assert, createRunner, findBrowser, launchBrowser, serveFile } from './lib/browser.mjs';
+import {
+  assert,
+  createRunner,
+  FIRST_RUN_KEYS,
+  findBrowser,
+  launchBrowser,
+  serveFile,
+  skipFirstRunNotices,
+} from './lib/browser.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const distDir = join(root, 'dist', 'faden', 'browser');
@@ -25,12 +33,10 @@ const BASE = `http://127.0.0.1:${server.address().port}/`;
 const profile = mkdtempSync(join(tmpdir(), 'faden-accept-'));
 const browser = await launchBrowser(findBrowser(), profile);
 const { test, finish } = createRunner();
+// Test F prüft die Erst-Start-Hinweise in einem eigenen Tab; alle anderen
+// Tests laufen mit vorab gesetzten Merkern, damit nichts mitten hineinfällt.
 let page = await browser.newPage();
-// Einmalige Erst-Start-Hinweise sind nicht Gegenstand dieser Tests: Ihre Merker
-// vorab setzen, damit sie nicht mitten in einem Tab-Durchlauf auftauchen.
-await page.send('Page.addScriptToEvaluateOnNewDocument', {
-  source: `try { localStorage.setItem('faden.installBannerDismissed', '1'); } catch {}`,
-});
+await skipFirstRunNotices(page);
 
 async function viewport(width, height) {
   await page.send('Emulation.setDeviceMetricsOverride', {
@@ -489,6 +495,56 @@ await test('12 prefers-reduced-motion: keine Übergänge/Animationen', async () 
   await page.send('Emulation.setEmulatedMedia', { features: [] });
   assert(problems.length === 0, problems.join('; '));
   return 'auf allen Seiten keine laufenden Übergänge';
+});
+
+// ------------------------------------------- F: Erst-Start-Hinweise ---
+
+await test('F Erst-Start: Speicher-Hinweis → Anleitung, nur Tastatur, Handy 360', async () => {
+  page = await browser.newPage(); // ohne vorab gesetzte Merker
+  await viewport(360, 740);
+  await page.goto(BASE);
+  await page.eval(`${JSON.stringify(FIRST_RUN_KEYS)}.forEach((k) => localStorage.removeItem(k))`);
+  await page.reload();
+  const openTitle = `document.querySelector('dialog[open] h2')?.textContent.trim()`;
+  const problems = [];
+
+  await page.waitFor(`${openTitle} === 'Your data stays with you'`, 'Speicher-Hinweis');
+  for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Speicher-Hinweis: ${issue}`);
+  await page.press('Escape');
+  await new Promise((r) => setTimeout(r, 100));
+  assert((await page.eval(openTitle)) === 'Your data stays with you', 'Speicher-Hinweis lässt sich per Esc schließen');
+  assert(await page.eval(`document.activeElement.textContent.trim() === 'Got it'`), '„Got it“ nicht fokussiert');
+  await page.press('Enter');
+
+  await page.waitFor(`${openTitle} === 'Read the guide?'`, 'Anleitungs-Angebot');
+  for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Anleitungs-Angebot: ${issue}`);
+  await tabTo(`${activeText} === 'Read the guide'`, '„Read the guide“');
+  await page.press('Enter');
+
+  await page.waitFor(`document.querySelector('dialog[open] .guide__content h2')`, 'Anleitung geladen');
+  await new Promise((r) => setTimeout(r, 100));
+  const atTop = (id) => `(() => {
+    const body = document.querySelector('dialog[open] .guide__body');
+    const heading = document.getElementById('${id}');
+    return Math.abs(heading.getBoundingClientRect().top - body.getBoundingClientRect().top) < 40;
+  })()`;
+  assert(await page.eval(atTop('english')), 'Anleitung steht nicht beim englischen Teil');
+  const fullHeight = await page.eval(`document.querySelector('dialog[open]').getBoundingClientRect().height >= innerHeight - 1`);
+  if (!fullHeight) problems.push('Anleitung auf dem Handy nicht in voller Höhe');
+  for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Anleitung: ${issue}`);
+  const hash = await page.eval('location.hash');
+  await page.eval(`document.querySelector('dialog[open] .guide__content a[href="#deutsch"]').click()`);
+  await new Promise((r) => setTimeout(r, 100));
+  assert(await page.eval(atTop('deutsch')), 'Anker-Link springt nicht zum deutschen Teil');
+  assert((await page.eval('location.hash')) === hash, 'Anker-Link wechselt die Route');
+  await page.press('Escape');
+
+  await page.reload();
+  await page.waitFor(APP_READY, 'App rendert');
+  await new Promise((r) => setTimeout(r, 300));
+  assert((await page.eval(`document.querySelectorAll('dialog[open]').length`)) === 0, 'Hinweise erscheinen erneut');
+  assert(problems.length === 0, '\n    - ' + problems.join('\n    - '));
+  return 'Reihenfolge, Esc gesperrt, Anleitung bei #english, Anker im Dialog, danach nie wieder';
 });
 
 await browser.close();

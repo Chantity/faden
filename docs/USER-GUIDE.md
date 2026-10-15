@@ -36,8 +36,11 @@ lost, and everything can be undone.
 
 ### 3. Getting started
 
-1. Open the app. The first time, you see an empty state.
-2. Tap **“Create your first list”**.
+1. Open the app. The very first time, two notes appear one after the other:
+   that Faden keeps your data only in this browser (no cookies; **“Got
+   it”**), and an offer to **read this guide**. Both appear only once; the
+   guide is always available under **Settings → Help**.
+2. You see an empty state. Tap **“Create your first list”**.
 3. Enter a title (e.g. “Load the dishwasher”).
 4. Optionally choose a **time planning** (see section 7). The default is
    “No time planning”.
@@ -331,6 +334,9 @@ unchanged (with “Undo”).
   With **“Check for a new version”** you ask for one; if there is one,
   **“New version … available – update now?”** appears. The new version is
   first downloaded completely; if that fails, everything stays as it was.
+- **Help**: **“Read the guide”** opens this guide inside the app (also
+  offline). **“Faden on GitHub”** opens the source code and the place to
+  report problems in a new tab.
 - **Backup and data**: **“Download backup”** creates
   `faden-backup-YYYY-MM-DD.json` and remembers the date
   (“Last backup: today / X days ago / No backup created yet”). **“Share
@@ -420,8 +426,12 @@ Nichts geht verloren, und alles lässt sich rückgängig machen.
 
 ### 3. Erste Schritte
 
-1. App öffnen. Beim ersten Mal siehst du einen leeren Zustand.
-2. **„Ersten Zettel anlegen"** antippen.
+1. App öffnen. Beim allerersten Mal erscheinen nacheinander zwei Hinweise:
+   dass Faden deine Daten nur in diesem Browser ablegt (keine Cookies;
+   **„Verstanden“**) und das Angebot, **diese Anleitung zu lesen**. Beide
+   kommen nur einmal; die Anleitung findest du immer unter **Einstellungen →
+   Hilfe**.
+2. Du siehst einen leeren Zustand. **„Ersten Zettel anlegen"** antippen.
 3. Titel eingeben (z. B. „Geschirrspüler einräumen").
 4. Optional eine **Zeitplanung** wählen (siehe Abschnitt 7). Standard ist
    „Keine Zeitplanung".
@@ -715,6 +725,9 @@ bestehende ToDos bleiben unverändert (mit „Rückgängig").
   selbst**. Mit **„Nach neuer Version suchen"** fragst du nach; gibt es eine,
   erscheint **„Neue Version … – jetzt aktualisieren?"**. Die neue Version wird
   erst vollständig heruntergeladen; klappt das nicht, bleibt alles, wie es war.
+- **Hilfe**: **„Anleitung lesen“** öffnet diese Anleitung in der App (auch
+  offline). **„Faden auf GitHub“** öffnet den Quellcode und die Stelle zum
+  Melden von Fehlern in einem neuen Tab.
 - **Sicherung und Daten**: **„Sicherung herunterladen"** erstellt
   `faden-backup-JJJJ-MM-TT.json` und merkt sich das Datum
   („Letztes Backup: heute / vor X Tagen / noch kein Backup"). **„Teilen"** nutzt

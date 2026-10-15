@@ -7,3 +7,6 @@ export const APP_SHORT_NAME = 'Faden';
 
 // Zur Buildzeit aus package.json übernommen (der Bundler übernimmt nur dieses Feld).
 export const APP_VERSION: string = version;
+
+/** Quellcode und Fehlermeldungen (nur ein Link; die App selbst fragt dort nie an). */
+export const APP_REPO_URL = 'https://github.com/Chantity/faden';

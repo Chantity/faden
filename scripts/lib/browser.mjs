@@ -142,6 +142,19 @@ export async function launchBrowser(browserPath, profile) {
   return { cdp, close, newPage: () => newPage(cdp) };
 }
 
+/** localStorage-Merker der einmaligen Erst-Start-Hinweise (Speicher, Anleitung, Installation). */
+export const FIRST_RUN_KEYS = ['faden.storageNoticeAck', 'faden.guideOffered', 'faden.installBannerDismissed'];
+
+/**
+ * Markiert in diesem Tab vor jedem Laden die Erst-Start-Hinweise als erledigt,
+ * damit sie nicht mitten in andere Tests fallen (sie haben eigene Tests).
+ */
+export async function skipFirstRunNotices(page) {
+  await page.send('Page.addScriptToEvaluateOnNewDocument', {
+    source: `try { for (const k of ${JSON.stringify(FIRST_RUN_KEYS)}) localStorage.setItem(k, '1'); } catch {}`,
+  });
+}
+
 /** Öffnet einen neuen Tab und liefert kleine Helfer zum Steuern. */
 export async function newPage(cdp) {
   const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' });

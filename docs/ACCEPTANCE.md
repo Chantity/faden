@@ -9,7 +9,8 @@ Kriterien (Definition of Done, `docs/DESIGN-PRINCIPLES.md` B5).
 npm test                 # Unit-Tests (Vitest)
 npm run build            # Produktionsbuild + Precache-Liste
 npm run test:pwa         # Offline-/PWA-Pflichttests (docs/PWA-TESTS.md)
-npm run test:acceptance  # Abnahme: Tastatur, Responsive, Reizarm
+npm run test:acceptance  # Abnahme: Tastatur, Responsive, Reizarm, Erst-Start
+npm run test:scripts     # Build-Skripte (Anleitungs-Konverter)
 ```
 
 `test:acceptance` lässt sich mit `VIEWPORT=360` (bzw. `quer`, `768`, `1280`)
@@ -38,6 +39,7 @@ auf eine Bildschirmgröße einschränken.
 | 17 | **Checkliste:** Beschreibung als Text oder Checkliste umschaltbar ohne Inhaltsverlust (Haken entfallen beim Wechsel zu Text); Punkte direkt auf der Karte in „Jetzt dran“ abhakbar. | Unit-Tests `checklist.spec`, `task-editor.spec`, `focus-view.spec`; `test:acceptance` Tests 8 | ✔ |
 | 18 | **Zeitplanung mit Start + Dauer:** Zeit im Sheet als Zusammenfassungszeile (beim Anlegen im Tagesplan/festen Zeitplan aufgeklappt); Pause am Pfeil nur bei > 0; Verschieben für Zettel oder Strang mit Vorschau, im Tagesplan nie über 0:00/24:00; relatives Einfügen vor dem ersten, nach dem letzten und dazwischen (beide Optionen, Verzweigungen), nur im eigenen Strang, ein Undo-Schritt; „+1 Tag“ behält die Uhrzeit über die Zeitumstellung. | Unit-Tests `time.spec` (`pauseBetween`, `relativeContext`, `placeRelative`, `shiftPlan` mit Bereich und Zeitumstellung, `shiftLeavesDay`), `task-editor.spec` (Zeit), `plan-editor.spec`, `flow-view.spec`; `test:acceptance` Tests 8 (Ablauf und Sheet im Tagesplan) | ✔ |
 | 19 | **Konflikte beim Zusammenführen:** Gleichnamige Zettel (ohne Groß-/Kleinschreibung) werden angezeigt; eine Wahl für alle: als „Name (2)“, überschreiben (ID und Position bleiben, vorher Sicherung), nicht importieren, nur neuere (Gleichstand = überspringen); Ergebnis „n importiert, n übersprungen, n überschrieben“. | Unit-Tests `storage.spec` (`findConflicts`, `resolveConflicts` alle vier Strategien, Roundtrip), `backup.service.spec` (Sicherung vor dem Überschreiben), `settings-page.spec` (Konflikt-Dialog) | ✔ |
+| 20 | **Erst-Start und Anleitung:** Beim ersten Start modaler Speicher-Hinweis (nur „Verstanden“ schließt ihn), danach einmal das Angebot, die Anleitung zu lesen; das Installations-Banner erst danach. Die Anleitung öffnet im Vollbild beim Teil der eingestellten Sprache, Anker-Links bleiben im Dialog, sie ist offline lesbar und in den Einstellungen erreichbar; dort auch der Link zum Repository. | `test:acceptance` Test F (nur Tastatur, 360 px, Tippflächen); `test:pwa` Test 2 (Anleitung offline); Unit-Tests `first-run.spec`, `guide-dialog.spec`, `install-banner.spec`; `test:scripts` (Konverter) | ✔ |
 
 ## Manuelle Testdaten
 
@@ -86,6 +88,7 @@ Konflikt-Dialog mit allen vier Wahlen ausprobieren.
   fixed`/`sticky`, z. B. der runde „+ Neuer Zettel“-Button): Sie sind durch
   Weiterscrollen erreichbar; der zusätzliche Abstand unten in der Übersicht
   sorgt dafür, dass auch das letzte Element frei liegt.
-- Einmalige Erst-Start-Hinweise (Installations-Banner) sind in den
-  Abnahmetests vorab als „gesehen“ markiert, damit sie nicht mitten in einen
-  Tab-Durchlauf fallen; sie haben eigene Tests.
+- Einmalige Erst-Start-Hinweise (Speicher-Hinweis, Anleitungs-Angebot,
+  Installations-Banner) sind in den Browser-Tests vorab als „gesehen“ markiert
+  (`skipFirstRunNotices`), damit sie nicht mitten in einen Tab-Durchlauf
+  fallen; Test F prüft sie in einem eigenen Tab ohne diese Merker.

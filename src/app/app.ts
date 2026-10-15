@@ -8,6 +8,7 @@ import { ListsStore } from './core/state/lists.store';
 import { SettingsStore } from './core/state/settings.store';
 import { TemplatesStore } from './core/state/templates.store';
 import { ViewStore } from './core/state/view.store';
+import { FirstRun } from './shared/first-run/first-run';
 import { InstallBanner } from './shared/install-banner/install-banner';
 import { closeMenusOnClick, closeMenusOnEscape } from './shared/menus';
 import { Snackbar } from './shared/snackbar/snackbar';
@@ -15,7 +16,7 @@ import { Snackbar } from './shared/snackbar/snackbar';
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, InstallBanner, Snackbar],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, InstallBanner, Snackbar, FirstRun],
   styleUrl: './app.css',
   templateUrl: './app.html',
   host: {
