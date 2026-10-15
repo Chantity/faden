@@ -594,7 +594,11 @@ await test('F Erst-Start: Speicher-Hinweis → Anleitung, nur Tastatur, Handy 36
   await page.goto(BASE);
   await page.eval(`${JSON.stringify(FIRST_RUN_KEYS)}.forEach((k) => localStorage.removeItem(k))`);
   await page.reload();
-  const openTitle = `document.querySelector('dialog[open] h2')?.textContent.trim()`;
+  // Titel = die Überschrift, auf die aria-labelledby zeigt (der Start-Dialog hat zwei).
+  const openTitle = `(() => {
+    const d = document.querySelector('dialog[open]');
+    return d && d.querySelector('#' + d.getAttribute('aria-labelledby'))?.textContent.trim();
+  })()`;
   const problems = [];
 
   await page.waitFor(`${openTitle} === 'Your data stays with you'`, 'Speicher-Hinweis');
@@ -605,8 +609,14 @@ await test('F Erst-Start: Speicher-Hinweis → Anleitung, nur Tastatur, Handy 36
   assert(await page.eval(`document.activeElement.textContent.trim() === 'Got it'`), '„Got it“ nicht fokussiert');
   await page.press('Enter');
 
-  await page.waitFor(`${openTitle} === 'Read the guide?'`, 'Anleitungs-Angebot');
-  for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Anleitungs-Angebot: ${issue}`);
+  await page.waitFor(`${openTitle} === 'How do you want to start?'`, 'Start-Angebot');
+  for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Start-Angebot: ${issue}`);
+  // Sprache gleich hier wählbar – und zurück.
+  const pickLanguage = (locale) => page.eval(`document.querySelector('dialog[open] input[value=${locale}]').click()`);
+  await pickLanguage('de');
+  await page.waitFor(`${openTitle} === 'Wie möchtest du starten?'`, 'Start-Angebot auf Deutsch');
+  await pickLanguage('en');
+  await page.waitFor(`${openTitle} === 'How do you want to start?'`, 'Start-Angebot wieder auf Englisch');
   await tabTo(`${activeText} === 'Read the guide'`, '„Read the guide“');
   await page.press('Enter');
 
@@ -629,6 +639,83 @@ await test('F Erst-Start: Speicher-Hinweis → Anleitung, nur Tastatur, Handy 36
   assert((await page.eval(`document.querySelectorAll('dialog[open]').length`)) === 0, 'Hinweise erscheinen erneut');
   assert(problems.length === 0, '\n    - ' + problems.join('\n    - '));
   return 'Reihenfolge, Esc gesperrt, Anleitung nur auf Englisch und von oben, danach nie wieder';
+});
+
+await test('T Geführte Tour: Grundlagen mit echten Aktionen, dann „Mehr anzeigen“ (Handy 360)', async () => {
+  await viewport(360, 740);
+  const tourTitle = `document.querySelector('.tour .tour__title')?.textContent.trim()`;
+  const tourButton = (label) =>
+    page.eval(`[...document.querySelectorAll('.tour button')].find((b) => b.textContent.trim() === ${JSON.stringify(label)}).click()`);
+  const click = (selector) => page.eval(`document.querySelector(${JSON.stringify(selector)}).click()`);
+  const step = async (title, label = 'Got it') => {
+    await page.waitFor(`${tourTitle} === ${JSON.stringify(title)}`, `Tour-Schritt „${title}“`);
+    await tourButton(label);
+  };
+  const problems = [];
+
+  // Start aus „Über“ (wiederholbar), mit eingeschaltetem einfachem Modus wie bei neuen Nutzern.
+  await page.goto(BASE + '#/einstellungen');
+  await page.waitFor(APP_READY, 'Einstellungen');
+  await page.eval(`(() => { const c = document.querySelector('.check-row input'); if (!c.checked) c.click(); })()`);
+  await page.goto(BASE + '#/ueber');
+  await page.waitFor(`[...document.querySelectorAll('button')].some((b) => b.textContent.trim() === 'Start the guided tour')`, 'Tour-Knopf');
+  await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Start the guided tour').click()`);
+
+  await page.waitFor(`${tourTitle} === 'Your first list'`, 'erster Tour-Schritt');
+  assert(await page.eval(`document.activeElement.closest('.tour') !== null`), 'Fokus nicht im Tour-Hinweis');
+  for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Tour-Hinweis: ${issue}`);
+  await page.waitFor(`document.querySelector('[data-tour="new-list"]').classList.contains('tour-target')`, 'Ziel hervorgehoben');
+  await tourButton('Got it');
+  await page.waitFor(`document.querySelector('.tour--bar')`, 'Tour als Leiste');
+  for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Tour-Leiste: ${issue}`);
+  await click('[data-tour="new-list"]');
+  await page.waitFor(`document.querySelector('dialog[open] input[name=title]')?.value.startsWith('Practice list')`, 'Name vorgeschlagen');
+  assert(!(await page.eval(`!!document.querySelector('.tour')`)), 'Tour-Hinweis über offenem Dialog');
+  await page.press('Enter');
+
+  await step('Add todos');
+  await page.waitFor(`document.querySelector('[data-tour-list].tour-target')`, 'Übungszettel hervorgehoben');
+  await click('.tour-target');
+  await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Sheet von selbst offen');
+  for (const title of ['Clear plates', 'Load dishwasher']) {
+    await page.type(title);
+    await page.press('Enter');
+    await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)}) && document.activeElement.value === ''`, 'nächstes Feld');
+  }
+  await click('dialog[open] .sheet__actions .btn--primary');
+
+  await step('Now');
+  await click('.task-card__done');
+  await step('Undo');
+  await click('[data-tour="undo"]');
+  await step('Forgot something?');
+  await click('.task-card .menu summary');
+  await page.eval(`[...document.querySelectorAll('.task-card .menu__panel button')].find((b) => b.textContent.trim() === 'Insert after').click()`);
+  await page.waitFor(`document.activeElement?.matches(${JSON.stringify(SHEET_TITLE)})`, 'Sheet „Danach einfügen“');
+  await page.type('Switch on');
+  await click('dialog[open] .sheet__actions .btn--primary');
+  await step('The flow');
+  await click('[data-tour="view-flow"]');
+  await step('Edit');
+  await page.waitFor(`document.querySelector('.flow__canvas .node')`, 'Ablauf');
+  await click('.flow__canvas .node__menu-btn');
+  await page.eval(`[...document.querySelectorAll('.popover button')].find((b) => b.textContent.trim() === 'Edit').click()`);
+  await page.waitFor(`document.querySelector('dialog[open]')`, 'Bearbeiten offen');
+  await page.press('Escape');
+  await step('When everything is done', 'Next');
+
+  await page.waitFor(`${tourTitle} === 'Those are the basics'`, 'Ende der Grundlagen');
+  assert(await page.eval(`document.querySelector('.tour').textContent.includes('simple mode')`), 'Text zum einfachen Modus fehlt');
+  await tourButton('Show more');
+  await page.waitFor(`${tourTitle} === 'Branches'`, 'erweiterte Schritte');
+  await page.goto(BASE + '#/einstellungen');
+  await page.waitFor(`document.querySelector('.check-row input')`, 'Einstellungen');
+  assert(!(await page.eval(`document.querySelector('.check-row input').checked`)), 'Einfacher Modus noch an');
+  await tourButton('End tour');
+  await page.waitFor(`!document.querySelector('.tour')`, 'Tour beendet');
+  assert((await page.eval(`localStorage.getItem('faden.tourActive')`)) === null, 'Tour-Merker bleibt stehen');
+  assert(problems.length === 0, '\n    - ' + problems.join('\n    - '));
+  return 'Start aus „Über“, 8 Grundlagen-Schritte per Klick/Tastatur, Hinweis wartet bei offenem Dialog, „Mehr anzeigen“ schaltet den einfachen Modus aus';
 });
 
 await browser.close();

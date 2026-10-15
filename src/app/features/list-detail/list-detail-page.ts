@@ -56,6 +56,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
             <button
               type="button"
               class="icon-btn"
+              data-tour="undo"
               [disabled]="!store.canUndo(current.id)"
               [attr.aria-label]="t().common.undo"
               (click)="undo()"
@@ -82,7 +83,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
               </button>
             }
             <details class="menu">
-              <summary class="icon-btn" [attr.aria-label]="t().a11y.actionsFor(current.title)">⋯</summary>
+              <summary class="icon-btn" data-tour="list-menu" [attr.aria-label]="t().a11y.actionsFor(current.title)">⋯</summary>
               <div class="menu__panel" role="menu">
                 <button type="button" (click)="editList(current); closeMenu($event)">
                   {{ t().common.rename }}
@@ -124,6 +125,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
           <button
             type="button"
             class="view-toggle__btn"
+            data-tour="view-flow"
             [class.is-active]="view() === 'flow'"
             [attr.aria-pressed]="view() === 'flow'"
             (click)="setView('flow')"

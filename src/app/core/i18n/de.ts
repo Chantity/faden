@@ -6,6 +6,7 @@ import type { ConflictStrategy } from '../storage/backup';
 import type { ShortcutScope } from '../keymap';
 import type { CompletedListsAction, SimpleFeature } from '../preferences';
 import type { SchemeRole } from '../color-scheme';
+import type { TourStepId } from '../tour';
 
 export const de = {
   app: {
@@ -184,10 +185,91 @@ export const de = {
       'Faden speichert keine Cookies. Damit die App funktioniert, legt sie deine Zettel und Einstellungen im Speicher dieses Browsers ab. Sie verlassen dein Gerät nicht.',
     storageLeave: 'Wenn du damit nicht einverstanden bist, verlasse diese Seite bitte.',
     understood: 'Verstanden',
-    guideTitle: 'Anleitung lesen?',
-    guideBody: 'Eine kurze Anleitung erklärt alle Funktionen. Du findest sie auch später in den Einstellungen.',
+    guideTitle: 'Wie möchtest du starten?',
+    guideBody:
+      'Die geführte Tour zeigt dir in ein paar Minuten die wichtigsten Handgriffe direkt in der App. Die Anleitung erklärt alles zum Nachlesen. Beides findest du später unter „Über“.',
     guideRead: 'Anleitung lesen',
     guideIgnore: 'Ignorieren',
+    tourStart: 'Geführte Tour',
+  },
+
+  tour: {
+    label: 'Geführte Tour',
+    stepOf: (n: number, total: number): string => `Schritt ${n} von ${total}`,
+    gotIt: 'Verstanden',
+    next: 'Weiter',
+    showHint: 'Hinweis zeigen',
+    end: 'Tour beenden',
+    practiceName: 'Übungszettel',
+    finish: 'Fertig',
+    more: 'Mehr anzeigen',
+    keep: 'Behalten',
+    deletePractice: 'Übungszettel löschen',
+    start: 'Geführte Tour starten',
+    steps: {
+      createList: {
+        title: 'Dein erster Zettel',
+        body: 'Ein Zettel sammelt alles, was zu einer Aufgabe gehört – etwa „Küche aufräumen“. Tippe auf „Neuer Zettel“ und lege ihn an; der Name „Übungszettel“ ist schon eingetragen.',
+      },
+      fill: {
+        title: 'ToDos anlegen',
+        body: 'Öffne den Übungszettel. Ein leerer Zettel fragt gleich nach dem ersten ToDo: Titel eintippen, Enter – das nächste Feld wartet schon. Lege zwei oder drei ToDos in ihrer Reihenfolge an und tippe dann auf „Fertig“.',
+      },
+      markDone: {
+        title: 'Jetzt dran',
+        body: '„Jetzt dran“ zeigt nur, was gerade möglich ist. Hake das ToDo ab – dann kommt das nächste.',
+      },
+      undo: {
+        title: 'Rückgängig',
+        body: 'Aus Versehen abgehakt? ↶ (oder Strg+Z) nimmt den letzten Schritt zurück. Probier es aus.',
+      },
+      insertAfter: {
+        title: 'Etwas vergessen?',
+        body: 'Im ⋯-Menü einer Karte fügt „Danach einfügen“ ein ToDo direkt dahinter ein. Lege so ein weiteres an.',
+      },
+      flow: {
+        title: 'Der Ablauf',
+        body: '„Ablauf“ zeigt alle ToDos als Faden, von oben nach unten. Schalte um.',
+      },
+      edit: {
+        title: 'Bearbeiten',
+        body: 'Im ⋯-Menü einer Karte öffnet „Bearbeiten“ das ToDo. Unter „Muss vorher erledigt sein“ wählst du, was davor kommt. Schließe den Dialog danach wieder.',
+      },
+      archive: {
+        title: 'Wenn alles erledigt ist',
+        body: 'Ist ein Zettel ganz abgehakt, wandert er beim nächsten Besuch der Übersicht ins Archiv. Was genau passiert, stellst du unter Einstellungen → Für Fortgeschrittene ein.',
+      },
+      more: {
+        title: 'Das sind die Grundlagen',
+        body: 'Bisher lief die App im einfachen Modus, der einiges ausblendet, damit der Anfang leicht bleibt. Faden kann mehr: Verzweigungen (mehrere Vorarbeiten, parallele Stränge), Zeitplanung mit Uhrzeiten, Vorlagen und eigene Tastenkürzel und Farben. Den einfachen Modus kannst du jederzeit in den Einstellungen ein- und ausschalten.',
+      },
+      branch: {
+        title: 'Verzweigungen',
+        body: 'Im Ablauf legt „Nachfolgeaufgabe erstellen“ im ⋯-Menü einer Karte einen Schritt an, der neben dem bisherigen Nachfolger herläuft. Probier es aus.',
+      },
+      links: {
+        title: 'Verbindungen',
+        body: 'Im Bearbeiten-Dialog zeigen „Muss vorher erledigt sein“ und „Kommt danach“ jetzt alle Verbindungen als Liste – beliebig viele, mit × zum Lösen.',
+      },
+      timing: {
+        title: 'Zeitplanung',
+        body: 'Über ⋯ → „Umbenennen“ am Zettel wählst du die Zeitplanung: Zeitschätzung, Tagesplan mit Uhrzeiten oder fester Zeitplan über mehrere Tage.',
+      },
+      templates: {
+        title: 'Vorlagen',
+        body: 'Kommt etwas immer wieder? ⋯ → „Zettel als Vorlage speichern“ – im Tab „Vorlagen“ legst du daraus jederzeit einen neuen Zettel an.',
+      },
+      advanced: {
+        title: 'Für Fortgeschrittene',
+        body: 'Unter Einstellungen → Für Fortgeschrittene änderst du Tastenkürzel und Farbschema und legst fest, was der einfache Modus ausblendet.',
+      },
+      cleanup: {
+        title: 'Geschafft!',
+        body: 'Möchtest du den Übungszettel behalten oder löschen?',
+      },
+    } satisfies Record<TourStepId, { title: string; body: string }>,
+    moreWithoutSimple:
+      'Faden kann noch mehr: Verzweigungen (mehrere Vorarbeiten, parallele Stränge), Zeitplanung mit Uhrzeiten, Vorlagen und eigene Tastenkürzel und Farben.',
   },
 
   guide: {

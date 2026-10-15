@@ -5,6 +5,7 @@ import { PageTitleService } from '../../core/i18n/page-title';
 import { PwaService } from '../../core/pwa/pwa.service';
 import { SettingsStore } from '../../core/state/settings.store';
 import { GuideDialog } from '../../shared/guide/guide-dialog';
+import { TourService } from '../../shared/tour/tour.service';
 import { formatBytes } from '../../core/time';
 
 /** „Über“: Version, Hilfe und Speicher – was man liest, statt es einzustellen. */
@@ -58,6 +59,7 @@ import { formatBytes } from '../../core/time';
     <section class="card block">
       <h2>{{ t().settings.helpHeading }}</h2>
       <div class="actions">
+        <button type="button" class="btn btn--primary" (click)="tour.startTour()">{{ t().tour.start }}</button>
         <button type="button" class="btn" (click)="guide.open()">{{ t().settings.guideOpen }}</button>
         <a class="btn" [href]="repoUrl" target="_blank" rel="noopener">{{ t().settings.repoLink }}</a>
       </div>
@@ -115,6 +117,7 @@ export class AboutPage {
   private readonly settings = inject(SettingsStore);
   protected readonly t = inject(I18nStore).t;
   protected readonly pwa = inject(PwaService);
+  protected readonly tour = inject(TourService);
   protected readonly appVersion = APP_VERSION;
   protected readonly repoUrl = APP_REPO_URL;
 

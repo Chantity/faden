@@ -12,6 +12,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { SettingsStore } from '../../core/state/settings.store';
+import { TourService } from '../../shared/tour/tour.service';
 import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import {
@@ -197,6 +198,7 @@ export class ListDialog {
 
   protected readonly t = this.i18n.t;
   protected readonly settings = inject(SettingsStore);
+  private readonly tour = inject(TourService);
   /** Modus, den Zettel oder Vorlage mitbringen – bleibt auch im einfachen Modus wählbar. */
   private readonly ownMode = signal<TimeboxMode>('none');
   protected readonly modes = computed(() =>
@@ -232,7 +234,9 @@ export class ListDialog {
   showCreate(fromTemplate = false): void {
     this.editing.set(false);
     this.editingId.set(null);
-    this.title.set('');
+    // Während der geführten Tour ist der Übungszettel schon benannt.
+    const suggested = this.tour.suggestedListTitle();
+    this.title.set(suggested ? this.store.uniqueTitle(suggested) : '');
     this.timeboxMode.set('none');
     this.ownMode.set('none');
     this.templateId.set(null);

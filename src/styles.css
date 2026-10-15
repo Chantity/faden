@@ -573,3 +573,9 @@ input[type='checkbox'] {
   flex: none;
   margin: 0;
 }
+
+/* Von der geführten Tour erklärtes Element. */
+.tour-target {
+  outline: 3px dashed var(--color-primary);
+  outline-offset: 3px;
+}

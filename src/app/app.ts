@@ -12,11 +12,12 @@ import { FirstRun } from './shared/first-run/first-run';
 import { InstallBanner } from './shared/install-banner/install-banner';
 import { closeMenusOnClick, closeMenusOnEscape } from './shared/menus';
 import { Snackbar } from './shared/snackbar/snackbar';
+import { TourOverlay } from './shared/tour/tour-overlay';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, InstallBanner, Snackbar, FirstRun],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, InstallBanner, Snackbar, FirstRun, TourOverlay],
   styleUrl: './app.css',
   templateUrl: './app.html',
   host: {

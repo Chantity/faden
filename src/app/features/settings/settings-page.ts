@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
-import { SUPPORTED_LOCALES, type Locale } from '../../core/model';
 import { BackupService } from '../../core/backup/backup.service';
 import { PwaService, type OfflineState } from '../../core/pwa/pwa.service';
 import { findConflicts, validateBackup, type BackupIssue, type ConflictStrategy } from '../../core/storage';
@@ -18,11 +17,12 @@ import { describeBackupIssue } from '../../core/i18n/backup-error';
 import { SettingsStore, type ThemeChoice } from '../../core/state/settings.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { RouterLink } from '@angular/router';
+import { LanguagePicker } from '../../shared/language-picker';
 
 @Component({
   selector: 'app-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, LanguagePicker],
   template: `
     <h1>{{ t().nav.settings }}</h1>
 
@@ -45,21 +45,8 @@ import { RouterLink } from '@angular/router';
     </section>
 
     <section class="card block">
-      <h2>{{ t().settings.languageHeading }}</h2>
-      <div class="options">
-        @for (option of languageOptions(); track option.value) {
-          <label class="option" [class.is-selected]="settings.language() === option.value">
-            <input
-              type="radio"
-              name="language"
-              [value]="option.value"
-              [checked]="settings.language() === option.value"
-              (change)="settings.setLanguage(option.value)"
-            />
-            <span>{{ option.label }}</span>
-          </label>
-        }
-      </div>
+      <h2 id="settings-language">{{ t().settings.languageHeading }}</h2>
+      <app-language-picker labelledBy="settings-language" />
     </section>
 
     <section class="card block">
@@ -299,15 +286,6 @@ export class SettingsPage {
       { value: 'light', label: s.themeLight },
       { value: 'dark', label: s.themeDark },
     ];
-  });
-
-  protected readonly languageOptions = computed<{ value: Locale; label: string }[]>(() => {
-    const s = this.t().settings;
-    const labels: Record<Locale, string> = {
-      en: s.languageEnglish,
-      de: s.languageGerman,
-    };
-    return SUPPORTED_LOCALES.map((value) => ({ value, label: labels[value] }));
   });
 
   protected readonly pwa = inject(PwaService);

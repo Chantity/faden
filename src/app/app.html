@@ -4,13 +4,13 @@
     <span>{{ appName }}</span>
   </a>
   <nav class="app-header__nav" [attr.aria-label]="t().a11y.mainNav">
-    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" data-tour="nav-lists">
       {{ t().nav.lists }}
     </a>
     @if (!settings.simple()('templatesTab')) {
-      <a routerLink="/vorlagen" routerLinkActive="is-active">{{ t().nav.templates }}</a>
+      <a routerLink="/vorlagen" routerLinkActive="is-active" data-tour="nav-templates">{{ t().nav.templates }}</a>
     }
-    <a routerLink="/einstellungen" routerLinkActive="is-active">{{ t().nav.settings }}</a>
+    <a routerLink="/einstellungen" routerLinkActive="is-active" data-tour="nav-settings">{{ t().nav.settings }}</a>
     <a routerLink="/ueber" routerLinkActive="is-active">{{ t().nav.about }}</a>
   </nav>
 </header>
@@ -22,3 +22,4 @@
 
 <app-snackbar />
 <app-first-run />
+<app-tour-overlay />

@@ -10,6 +10,11 @@
 
 **New**
 
+- **Guided tour:** the first start now offers a guided tour next to the guide.
+  It walks you through the basics with real actions on a practice list – one
+  hint at a time, which you can end at any point – and then, if you like,
+  through the advanced features. Replay it under **About → Help**. The start
+  dialog also lets you pick the language right away.
 - **Simple mode:** new installs start in simple mode, which hides rarely used
   features such as branches, fixed schedules and some menu entries. In the edit
   dialog you pick one prerequisite and one follow-up instead of several. Switch
@@ -90,6 +95,11 @@
 
 **Neu**
 
+- **Geführte Tour:** Der erste Start bietet jetzt neben der Anleitung eine
+  geführte Tour an. Sie zeigt die Grundlagen mit echten Handgriffen an einem
+  Übungszettel – ein Hinweis nach dem anderen, jederzeit beendbar – und auf
+  Wunsch danach die erweiterten Funktionen. Wiederholen unter **Über → Hilfe**.
+  Im Start-Dialog lässt sich außerdem gleich die Sprache wählen.
 - **Einfacher Modus:** Neue Installationen starten im einfachen Modus. Er blendet
   selten gebrauchte Funktionen aus, etwa Verzweigungen, feste Zeitpläne und
   einige Menüeinträge. Im Bearbeiten-Dialog wählt man je eine Vorarbeit und einen

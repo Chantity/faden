@@ -25,7 +25,7 @@
           {{ t().listDialog.fromTemplate }}
         </button>
       }
-      <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <button type="button" class="btn btn--primary" data-tour="new-list" (click)="openCreate()">
         + {{ t().lists.newList }}
       </button>
     </div>
@@ -66,7 +66,7 @@
     <ul class="cards">
       @for (list of store.lists(); track list.id) {
         <li class="card list-card">
-          <a class="list-card__main" [routerLink]="['/zettel', list.id]">
+          <a class="list-card__main" [routerLink]="['/zettel', list.id]" [attr.data-tour-list]="list.id">
             <span class="list-card__title clamp-2">{{ list.title }}</span>
             <span class="badge">{{ modeLabel(list.timeboxMode) }}</span>
             <span class="list-card__progress muted">{{ progressLabel(list) }}</span>

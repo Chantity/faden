@@ -5,6 +5,7 @@ import type { ConflictStrategy } from '../storage/backup';
 import type { ShortcutScope } from '../keymap';
 import type { CompletedListsAction, SimpleFeature } from '../preferences';
 import type { SchemeRole } from '../color-scheme';
+import type { TourStepId } from '../tour';
 import type { Translations } from './types';
 
 export const en = {
@@ -184,10 +185,91 @@ export const en = {
       'Faden doesn’t store any cookies. To work, the app keeps your lists and settings in this browser’s storage. They never leave your device.',
     storageLeave: 'If you don’t agree with this, please leave this page.',
     understood: 'Got it',
-    guideTitle: 'Read the guide?',
-    guideBody: 'A short guide explains every feature. You can also find it later in the settings.',
+    guideTitle: 'How do you want to start?',
+    guideBody:
+      'The guided tour shows you the most important moves right in the app, in a few minutes. The guide explains everything to read up on. You can find both later under “About”.',
     guideRead: 'Read the guide',
     guideIgnore: 'Ignore',
+    tourStart: 'Guided tour',
+  },
+
+  tour: {
+    label: 'Guided tour',
+    stepOf: (n: number, total: number): string => `Step ${n} of ${total}`,
+    gotIt: 'Got it',
+    next: 'Next',
+    showHint: 'Show hint',
+    end: 'End tour',
+    practiceName: 'Practice list',
+    finish: 'Done',
+    more: 'Show more',
+    keep: 'Keep',
+    deletePractice: 'Delete practice list',
+    start: 'Start the guided tour',
+    steps: {
+      createList: {
+        title: 'Your first list',
+        body: 'A list collects everything that belongs to one task – like “Tidy the kitchen”. Tap “New list” and create it; the name “Practice list” is already filled in.',
+      },
+      fill: {
+        title: 'Add todos',
+        body: 'Open the practice list. An empty list asks for the first todo right away: type a title, press Enter – the next field is already waiting. Add two or three todos in their order, then tap “Finish”.',
+      },
+      markDone: {
+        title: 'Now',
+        body: '“Now” shows only what is possible right now. Tick off the todo – then the next one comes up.',
+      },
+      undo: {
+        title: 'Undo',
+        body: 'Ticked off by mistake? ↶ (or Ctrl+Z) takes back the last step. Try it.',
+      },
+      insertAfter: {
+        title: 'Forgot something?',
+        body: 'In the ⋯ menu of a card, “Insert after” adds a todo right behind it. Add one more that way.',
+      },
+      flow: {
+        title: 'The flow',
+        body: '“Flow” shows all todos as a thread, from top to bottom. Switch to it.',
+      },
+      edit: {
+        title: 'Edit',
+        body: 'In the ⋯ menu of a card, “Edit” opens the todo. Under “Must be done before” you choose what comes first. Close the dialog afterwards.',
+      },
+      archive: {
+        title: 'When everything is done',
+        body: 'Once a list is completely ticked off, it moves to the archive the next time you open the overview. You can choose what happens under Settings → Advanced.',
+      },
+      more: {
+        title: 'Those are the basics',
+        body: 'So far the app ran in simple mode, which hides a few things so getting started stays easy. Faden can do more: branches (several prerequisites, parallel strands), time planning with clock times, templates, and your own keyboard shortcuts and colors. You can switch simple mode on and off in the settings at any time.',
+      },
+      branch: {
+        title: 'Branches',
+        body: 'In the flow, “Create successor task” in the ⋯ menu of a card adds a step that runs next to the existing successor. Try it.',
+      },
+      links: {
+        title: 'Connections',
+        body: 'In the edit dialog, “Must be done before” and “Comes after” now list all connections – as many as you like, with × to remove one.',
+      },
+      timing: {
+        title: 'Time planning',
+        body: 'Via ⋯ → “Rename” on the list you choose the time planning: time estimate, day plan with clock times, or a fixed schedule over several days.',
+      },
+      templates: {
+        title: 'Templates',
+        body: 'Something comes up again and again? ⋯ → “Save list as template” – in the “Templates” tab you can create a new list from it any time.',
+      },
+      advanced: {
+        title: 'Advanced',
+        body: 'Under Settings → Advanced you change keyboard shortcuts and the color scheme, and decide what simple mode hides.',
+      },
+      cleanup: {
+        title: 'All done!',
+        body: 'Do you want to keep or delete the practice list?',
+      },
+    } satisfies Record<TourStepId, { title: string; body: string }>,
+    moreWithoutSimple:
+      'Faden can do more: branches (several prerequisites, parallel strands), time planning with clock times, templates, and your own keyboard shortcuts and colors.',
   },
 
   guide: {
