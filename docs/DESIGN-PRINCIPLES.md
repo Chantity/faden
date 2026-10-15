@@ -292,7 +292,8 @@ Eine Änderung ist fertig, wenn:
    `npm run test:scripts`,
 4. alle betroffenen Dokumente aktuell sind: `README.md`, `docs/ARCHITECTURE.md`,
    `docs/USER-GUIDE.md` (Englisch **und** Deutsch), `docs/ACCEPTANCE.md`,
-   `docs/PWA-TESTS.md` und diese Datei,
+   `docs/PWA-TESTS.md`, `CHANGELOG.md` (für Nutzer sichtbare Änderungen) und
+   diese Datei,
 5. bei sichtbaren Änderungen der Oberfläche die Bilder der Anleitung mit
    `npm run screenshots` neu erzeugt und gesichtet sind (sie liegen bewusst im
    Repo: GitHub zeigt die Anleitung direkt an, und nur ein bewusster Lauf ändert
@@ -307,7 +308,17 @@ Eine Änderung ist fertig, wenn:
 - Bleibende Entscheidungen landen in der passenden Datei (Prinzip → hier,
   Technik → `ARCHITECTURE.md`, Bedienung → `USER-GUIDE.md`).
 
-### B7. Git
+### B7. Versionen und Changelog
+
+- **Zu Beginn** der Arbeit an einer neuen Version wird die Version sofort
+  angehoben (`npm version x.y.z --no-git-tag-version`), damit Zwischenstände im
+  Browser (Einstellungen → Version) schon die neue Nummer zeigen.
+- Jede Version bekommt einen Eintrag in `CHANGELOG.md` (Englisch, dann
+  Deutsch), der während der Arbeit mitwächst. Die App zeigt ihn unter
+  „Was ist neu?“.
+- App-Version und Speicherschema (`SCHEMA_VERSION`) sind getrennte Nummern.
+
+### B8. Git
 
 - Commits mit Autorin **Chantity** (`git -c user.name="Chantity"
   -c user.email="herrfrautut@gmail.com" commit …`), ohne Claude-Attribution.

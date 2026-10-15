@@ -28,7 +28,8 @@ Language).
 4. **“Done”** checks a todo off; the next one moves up automatically.
 5. The **“Flow”** view shows the whole list as a flowchart.
 
-Detailed instructions are in the [user guide](docs/USER-GUIDE.md#english).
+Detailed instructions are in the [user guide](docs/USER-GUIDE.md#english),
+changes per version in the [changelog](CHANGELOG.md#english).
 The technical structure is described in the
 [architecture](docs/ARCHITECTURE.md) (German).
 
@@ -94,7 +95,8 @@ Sprache).
 5. Die Ansicht **„Ablauf"** zeigt den ganzen Zettel als Ablaufdiagramm.
 
 Die ausführliche Anleitung steht im
-[Benutzerhandbuch](docs/USER-GUIDE.md#deutsch). Wie die App technisch aufgebaut
+[Benutzerhandbuch](docs/USER-GUIDE.md#deutsch), die Änderungen je Version im
+[Änderungsprotokoll](CHANGELOG.md#deutsch). Wie die App technisch aufgebaut
 ist, beschreibt die [Architektur](docs/ARCHITECTURE.md).
 
 ### Entwicklung

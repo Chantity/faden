@@ -1,0 +1,89 @@
+# Faden – Changelog / Änderungen
+
+[English](#english) · [Deutsch](#deutsch)
+
+---
+
+## English
+
+### 2.1.0
+
+**New**
+
+- **Advanced settings:** a new page **Settings → Advanced** lets you change
+  every keyboard shortcut.
+- **What's new:** this changelog, available under **Settings → Version → “What's
+  new?”** – also offline.
+
+**Improved**
+
+- Long titles – with or without spaces – now wrap everywhere instead of
+  overflowing cards. Cards in the overview show at most two lines.
+- Every list shows its time planning, including “No time planning”. The labels
+  are only as wide as their text.
+- Names behave the same everywhere: an empty or already used name keeps the
+  button disabled, with a short hint right below the field.
+- Template names are unique, like list names; existing duplicates become
+  “Name (2)”.
+- Dragging the flow diagram with the mouse no longer selects text.
+- The overview no longer briefly shows “Create your first list” while your
+  lists are loading.
+
+### 2.0.0
+
+- One sheet for creating and editing todos; Enter creates instantly.
+- Checklists as todo notes, ticked off right on the card.
+- Time planning with start + duration, breaks on the arrows, inserting with
+  relative times, shifting a single strand.
+- Finished lists archive themselves; the archive shows contents and has a menu.
+- Unique list names; smarter backup import for lists with the same name.
+- First-start notes and a built-in guide with screenshots, also offline.
+
+### 1.0.0
+
+- First release: lists with a flow (prerequisites, branches, strands), the
+  “Now” view, undo/redo, time planning, templates, backup, works fully offline
+  as an installable app.
+
+---
+
+## Deutsch
+
+### 2.1.0
+
+**Neu**
+
+- **Für Fortgeschrittene:** Unter **Einstellungen → Für Fortgeschrittene**
+  lässt sich jedes Tastenkürzel ändern.
+- **Was ist neu?:** dieses Änderungsprotokoll, erreichbar unter
+  **Einstellungen → Version → „Was ist neu?“** – auch offline.
+
+**Verbessert**
+
+- Lange Titel – mit oder ohne Leerzeichen – brechen jetzt überall um, statt aus
+  den Karten zu ragen. Karten in der Übersicht zeigen höchstens zwei Zeilen.
+- Jeder Zettel zeigt seine Zeitplanung, auch „Keine Zeitplanung“. Die Etiketten
+  sind nur so breit wie ihr Text.
+- Namen verhalten sich überall gleich: Ein leerer oder schon vergebener Name
+  sperrt den Knopf, mit einem kurzen Hinweis direkt unter dem Feld.
+- Vorlagen-Namen sind eindeutig wie Zettel-Namen; vorhandene Doppelte werden
+  zu „Name (2)“.
+- Beim Verschieben des Ablaufs mit der Maus wird kein Text mehr markiert.
+- Die Übersicht zeigt beim Laden nicht mehr kurz „Ersten Zettel anlegen“.
+
+### 2.0.0
+
+- Ein Sheet zum Anlegen und Bearbeiten von ToDos; Enter legt sofort an.
+- Checklisten als Notiz, direkt auf der Karte abhakbar.
+- Zeitplanung mit Start + Dauer, Pausen an den Pfeilen, Einfügen mit relativen
+  Zeiten, einzelnen Strang verschieben.
+- Fertige Zettel archivieren sich selbst; das Archiv zeigt den Inhalt und hat
+  ein Menü.
+- Eindeutige Zettel-Namen; Import mit Wahl bei gleichnamigen Zetteln.
+- Erst-Start-Hinweise und eine Anleitung mit Bildern in der App, auch offline.
+
+### 1.0.0
+
+- Erste Version: Zettel mit Ablauf (Vorarbeiten, Verzweigungen, Stränge), die
+  Ansicht „Jetzt dran“, Rückgängig/Wiederholen, Zeitplanung, Vorlagen,
+  Sicherung, vollständig offline als installierbare App.
