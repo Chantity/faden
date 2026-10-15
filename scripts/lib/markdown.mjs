@@ -140,3 +140,29 @@ export function markdownToHtml(markdown, options = {}) {
   flush();
   return html.join('\n');
 }
+
+/**
+ * Teilt ein zweisprachiges Dokument (`## English` … `---` … `## Deutsch` …) in
+ * je einen Teil pro Sprache – ohne Kopf, Sprach-Links und Sprach-Überschrift.
+ */
+export function splitLanguages(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const start = (heading) => {
+    const index = lines.indexOf(heading);
+    if (index < 0) throw new Error(`Abschnitt „${heading}“ fehlt`);
+    return index;
+  };
+  const en = start('## English');
+  const de = start('## Deutsch');
+  const trim = (part) => {
+    const body = [...part];
+    // Trennlinie vor dem nächsten Sprachabschnitt fällt weg.
+    while (body.length && /^(---)?\s*$/.test(body[body.length - 1])) body.pop();
+    while (body.length && body[0].trim() === '') body.shift();
+    return body.join('\n') + '\n';
+  };
+  return {
+    en: trim(lines.slice(en + 1, de > en ? de : undefined)),
+    de: trim(lines.slice(de + 1, en > de ? en : undefined)),
+  };
+}

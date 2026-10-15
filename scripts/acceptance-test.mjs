@@ -610,22 +610,17 @@ await test('F Erst-Start: Speicher-Hinweis → Anleitung, nur Tastatur, Handy 36
   await tabTo(`${activeText} === 'Read the guide'`, '„Read the guide“');
   await page.press('Enter');
 
-  await page.waitFor(`document.querySelector('dialog[open] .guide__content h2')`, 'Anleitung geladen');
+  await page.waitFor(`document.querySelector('dialog[open] .guide__content h3')`, 'Anleitung geladen');
   await new Promise((r) => setTimeout(r, 100));
-  const atTop = (id) => `(() => {
+  const guide = await page.eval(`(() => {
     const body = document.querySelector('dialog[open] .guide__body');
-    const heading = document.getElementById('${id}');
-    return Math.abs(heading.getBoundingClientRect().top - body.getBoundingClientRect().top) < 40;
-  })()`;
-  assert(await page.eval(atTop('english')), 'Anleitung steht nicht beim englischen Teil');
+    return { top: body.scrollTop, text: body.textContent };
+  })()`);
+  assert(guide.top === 0, 'Anleitung beginnt nicht oben');
+  assert(!guide.text.includes('So bedienst du'), 'Englische Anleitung enthält den deutschen Teil');
   const fullHeight = await page.eval(`document.querySelector('dialog[open]').getBoundingClientRect().height >= innerHeight - 1`);
   if (!fullHeight) problems.push('Anleitung auf dem Handy nicht in voller Höhe');
   for (const issue of await page.eval(CHECK_PAGE)) problems.push(`Anleitung: ${issue}`);
-  const hash = await page.eval('location.hash');
-  await page.eval(`document.querySelector('dialog[open] .guide__content a[href="#deutsch"]').click()`);
-  await new Promise((r) => setTimeout(r, 100));
-  assert(await page.eval(atTop('deutsch')), 'Anker-Link springt nicht zum deutschen Teil');
-  assert((await page.eval('location.hash')) === hash, 'Anker-Link wechselt die Route');
   await page.press('Escape');
 
   await page.reload();
@@ -633,7 +628,7 @@ await test('F Erst-Start: Speicher-Hinweis → Anleitung, nur Tastatur, Handy 36
   await new Promise((r) => setTimeout(r, 300));
   assert((await page.eval(`document.querySelectorAll('dialog[open]').length`)) === 0, 'Hinweise erscheinen erneut');
   assert(problems.length === 0, '\n    - ' + problems.join('\n    - '));
-  return 'Reihenfolge, Esc gesperrt, Anleitung bei #english, Anker im Dialog, danach nie wieder';
+  return 'Reihenfolge, Esc gesperrt, Anleitung nur auf Englisch und von oben, danach nie wieder';
 });
 
 await browser.close();

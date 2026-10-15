@@ -29,6 +29,8 @@
 
 - **New tab “About”:** version, help and storage moved there, so the settings
   only hold what you actually set.
+- The guide and “What’s new?” show only your language, starting at the top –
+  and switch along when you change the language.
 - An empty list opens “New todo” right away.
 - On wide screens, the list of lists on the left scrolls on its own instead of
   making the whole page longer.
@@ -109,6 +111,8 @@
 
 - **Neuer Tab „Über“:** Version, Hilfe und Speicher sind dorthin umgezogen; in
   den Einstellungen steht nur noch, was man wirklich einstellt.
+- Anleitung und „Was ist neu?“ zeigen nur noch deine Sprache, von oben an –
+  und wechseln mit, wenn du die Sprache umstellst.
 - Ein leerer Zettel öffnet gleich „Neues ToDo“.
 - Auf breiten Bildschirmen scrollt die Zettel-Liste links für sich, statt die
   ganze Seite zu verlängern.

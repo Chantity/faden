@@ -1,7 +1,7 @@
 // Tests für den Anleitungs-Konverter:  node --test scripts/
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { markdownToHtml, slug } from './markdown.mjs';
+import { markdownToHtml, slug, splitLanguages } from './markdown.mjs';
 
 test('Überschriften mit GitHub-Ankern, Trennlinie', () => {
   assert.equal(
@@ -71,4 +71,13 @@ test('Tabellen', () => {
     markdownToHtml('| Term | Meaning |\n|---|---|\n| **List** | A list. |'),
     '<table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>List</strong></td><td>A list.</td></tr></tbody></table>',
   );
+});
+
+test('teilt zweisprachige Dokumente je Sprache, ohne Kopf und Trennlinie', () => {
+  const md = [
+    '# Titel', '', '[English](#english) · [Deutsch](#deutsch)', '', '---', '',
+    '## English', '', 'Hello', '', '---', '', '## Deutsch', '', 'Hallo', '',
+  ].join('\n');
+  assert.deepEqual(splitLanguages(md), { en: 'Hello\n', de: 'Hallo\n' });
+  assert.throws(() => splitLanguages('## English\n\nnur eine Sprache'), /Deutsch/);
 });

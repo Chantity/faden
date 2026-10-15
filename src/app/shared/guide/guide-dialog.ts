@@ -2,23 +2,25 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
   Injectable,
   Injector,
   signal,
+  untracked,
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { I18nStore } from '../../core/i18n/i18n.store';
+import type { Locale } from '../../core/model';
 
-/** Vom Build erzeugt (scripts/guide.mjs) und vorab gecacht – also auch offline da. */
-const DOCUMENTS = {
-  guide: 'guide/guide.html',
-  changelog: 'guide/changelog.html',
-} as const;
+export type GuideDocument = 'guide' | 'changelog';
 
-export type GuideDocument = keyof typeof DOCUMENTS;
+/** Vom Build erzeugt (scripts/guide.mjs), je Sprache eine Datei, vorab gecacht – also auch offline da. */
+export function documentUrl(doc: GuideDocument, locale: Locale): string {
+  return `guide/${doc}.${locale}.html`;
+}
 
 /** Eindeutige Überschriften-IDs, falls mehrere Dialoge gleichzeitig im DOM sind. */
 let nextId = 0;
@@ -30,18 +32,19 @@ let nextId = 0;
  */
 @Injectable({ providedIn: 'root' })
 export class GuideLoader {
-  private readonly loading = new Map<GuideDocument, Promise<string>>();
+  private readonly loading = new Map<string, Promise<string>>();
 
-  load(doc: GuideDocument): Promise<string> {
-    let pending = this.loading.get(doc);
+  load(doc: GuideDocument, locale: Locale): Promise<string> {
+    const url = documentUrl(doc, locale);
+    let pending = this.loading.get(url);
     if (!pending) {
-      pending = fetch(DOCUMENTS[doc])
+      pending = fetch(url)
         .then((response) => (response.ok ? response.text() : Promise.reject(new Error(String(response.status)))))
         .catch((error: unknown) => {
-          this.loading.delete(doc);
+          this.loading.delete(url);
           throw error;
         });
-      this.loading.set(doc, pending);
+      this.loading.set(url, pending);
     }
     return pending;
   }
@@ -57,8 +60,8 @@ function slug(text: string): string {
 }
 
 /**
- * Anleitung (docs/USER-GUIDE.md) im Vollbild-Dialog, gescrollt zum Teil der
- * eingestellten Sprache.
+ * Anleitung (docs/USER-GUIDE.md) oder Änderungsprotokoll im Vollbild-Dialog, in
+ * der eingestellten Sprache; wechselt sie bei offenem Dialog, kommt die andere Datei.
  */
 @Component({
   selector: 'app-guide-dialog',
@@ -187,19 +190,41 @@ export class GuideDialog {
   protected readonly failed = signal(false);
 
   private restoreFocusTo: HTMLElement | null = null;
+  /** Datei, die gerade angezeigt wird oder lädt – verhindert doppeltes Laden und veraltete Antworten. */
+  private shown = '';
+
+  constructor() {
+    // Nur bei Sprachwechsel nachladen; das erste Laden übernimmt open().
+    effect(() => {
+      const locale = this.i18n.locale();
+      const doc = untracked(this.doc);
+      if (this.dialogRef().nativeElement.open && this.shown && this.shown !== documentUrl(doc, locale)) {
+        void this.load(doc, locale);
+      }
+    });
+  }
 
   /** Öffnet die Anleitung oder das Änderungsprotokoll („Was ist neu?“). */
   async open(doc: GuideDocument = 'guide'): Promise<void> {
     this.restoreFocusTo = document.activeElement as HTMLElement | null;
-    this.failed.set(false);
-    if (doc !== this.doc()) this.html.set(null);
     this.doc.set(doc);
     const dialog = this.dialogRef().nativeElement;
     if (!dialog.open) dialog.showModal();
+    await this.load(doc, this.i18n.locale());
+  }
+
+  private async load(doc: GuideDocument, locale: Locale): Promise<void> {
+    const url = documentUrl(doc, locale);
+    if (url === this.shown && !this.failed()) return;
+    this.shown = url;
+    this.failed.set(false);
+    this.html.set(null);
     try {
-      this.html.set(await this.loader.load(doc));
+      const html = await this.loader.load(doc, locale);
+      if (this.shown !== url) return;
+      this.html.set(html);
     } catch {
-      this.failed.set(true);
+      if (this.shown === url) this.failed.set(true);
       return;
     }
     afterNextRender(() => this.prepare(), { injector: this.injector });
@@ -214,13 +239,13 @@ export class GuideDialog {
     this.restoreFocusTo = null;
   }
 
-  /** Anker setzen und zum Teil der eingestellten Sprache springen. */
+  /** Anker setzen (für Links im Dokument) und oben beginnen. */
   private prepare(): void {
     const body = this.bodyRef().nativeElement;
     for (const heading of body.querySelectorAll<HTMLElement>('h1, h2, h3, h4')) {
       heading.id = slug(heading.textContent ?? '');
     }
-    this.scrollTo(this.i18n.locale() === 'de' ? 'deutsch' : 'english');
+    body.scrollTop = 0;
   }
 
   /** Links auf Anker scrollen im Dialog, statt die (Hash-)Route zu wechseln. */

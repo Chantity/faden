@@ -248,13 +248,16 @@ await test('2 Server aus: App startet, anlegen, abhaken, Export', async () => {
   await page.goto(BASE + '#/ueber');
   await page.waitFor(`[...document.querySelectorAll('button')].some((b) => b.textContent.trim() === 'Read the guide')`, 'Tab „About“');
   await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Read the guide').click()`);
-  await page.waitFor(`document.querySelector('dialog[open] .guide__content h2')`, 'Anleitung offline');
+  await page.waitFor(`document.querySelector('dialog[open] .guide__content h3')`, 'Anleitung offline');
   await page.press('Escape');
   await page.eval(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'What’s new?').click()`);
   await page.waitFor(`document.querySelector('dialog[open] .guide__content h3')?.textContent.trim() === ${JSON.stringify(manifest.version)}`, 'Changelog offline');
   await page.press('Escape');
+  // Die deutsche Fassung ist ebenso vorab gecacht.
+  const german = await page.eval(`Promise.all(['guide', 'changelog'].map((d) => fetch('guide/' + d + '.de.html').then((r) => r.ok)))`);
+  assert(german.every(Boolean), 'Deutsche Anleitung/Changelog fehlen offline');
   await assertSwIntact(page);
-  return `Zettel + ToDo offline angelegt und abgehakt, ${file} exportiert, Anleitung und Changelog offline gelesen`;
+  return `Zettel + ToDo offline angelegt und abgehakt, ${file} exportiert, Anleitung und Changelog offline gelesen (EN + DE vorab gecacht)`;
 });
 
 for (const [name, m] of [
