@@ -28,7 +28,7 @@ export class App {
   protected readonly onDocumentClick = closeMenusOnClick;
   protected readonly onEscape = closeMenusOnEscape;
   private readonly lists = inject(ListsStore);
-  private readonly settings = inject(SettingsStore);
+  protected readonly settings = inject(SettingsStore);
   private readonly templates = inject(TemplatesStore);
   private readonly view = inject(ViewStore);
   private readonly backup = inject(BackupService);

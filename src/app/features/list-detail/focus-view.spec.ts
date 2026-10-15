@@ -147,6 +147,18 @@ describe('FocusView', () => {
     expect(after.edges.length).toBe(0);
   });
 
+  it('zeigt im einfachen Modus nur Bearbeiten, Danach einfügen und Löschen', async () => {
+    await TestBed.inject(SettingsStore).setSimpleEnabled(true);
+    const list = tripleList();
+    TestBed.inject(ListsStore).addExisting(list);
+    const fixture = TestBed.createComponent(FocusView);
+    fixture.componentRef.setInput('list', list);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const items = [...root.querySelectorAll('.menu__panel button')].map((b) => b.textContent?.trim());
+    expect(items).toEqual(['Edit', 'Insert after', 'Delete']);
+  });
+
   it('zeigt die Option nicht, wenn es nichts zu verbinden gibt', async () => {
     const list = chainList();
     TestBed.inject(ListsStore).addExisting(list);

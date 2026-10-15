@@ -156,13 +156,15 @@ import type { CreateRequest } from './task-editor';
                     <button type="button" (click)="startAfter(task); closeMenu($event)">
                       {{ t().focus.menu.addAfter }}
                     </button>
-                    <button type="button" (click)="startSplit(task); closeMenu($event)">
-                      {{ t().focus.menu.splitAfter }}
-                    </button>
+                    @if (!settings.simple()('focusMenu')) {
+                      <button type="button" (click)="startSplit(task); closeMenu($event)">
+                        {{ t().focus.menu.splitAfter }}
+                      </button>
+                    }
                     <button type="button" class="danger" (click)="remove(task); closeMenu($event)">
                       {{ t().focus.menu.delete }}
                     </button>
-                    @if (deleteBridges(list(), task.id)) {
+                    @if (deleteBridges(list(), task.id) && !settings.simple()('deleteOnly')) {
                       <button
                         type="button"
                         class="danger"
@@ -350,7 +352,7 @@ export class FocusView {
   private readonly store = inject(ListsStore);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
-  private readonly settings = inject(SettingsStore);
+  protected readonly settings = inject(SettingsStore);
   private readonly nowStore = inject(NowStore);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 

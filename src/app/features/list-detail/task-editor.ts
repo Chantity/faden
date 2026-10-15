@@ -27,6 +27,7 @@ import {
   insertAt,
   nextInChain,
   predecessors,
+  singleLinkOptions,
   successors,
   type InsertPosition,
 } from '../../core/graph';
@@ -275,7 +276,15 @@ function withoutEmpty(task: Task): Task {
         @if (!creating()) {
         <div class="links">
           <section class="links__group">
-            <h3>{{ t().editor.predecessors }}</h3>
+            <h3 id="links-prev">{{ t().editor.predecessors }}</h3>
+            @if (singleLinks() && prevs().length <= 1) {
+              <select class="single-link" aria-labelledby="links-prev" (change)="setSinglePrev($event)">
+                <option value="" [selected]="prevs().length === 0">{{ t().editor.noLink }}</option>
+                @for (candidate of singlePrevOptions(); track candidate.id) {
+                  <option [value]="candidate.id" [selected]="candidate.id === prevs()[0]?.id">{{ candidate.title }}</option>
+                }
+              </select>
+            } @else {
             <ul class="chips">
               @for (task of prevs(); track task.id) {
                 <li class="chip">
@@ -300,10 +309,19 @@ function withoutEmpty(task: Task): Task {
                 }
               </select>
             </label>
+            }
           </section>
 
           <section class="links__group">
-            <h3>{{ t().editor.successors }}</h3>
+            <h3 id="links-succ">{{ t().editor.successors }}</h3>
+            @if (singleLinks() && succs().length <= 1) {
+              <select class="single-link" aria-labelledby="links-succ" (change)="setSingleSucc($event)">
+                <option value="" [selected]="succs().length === 0">{{ t().editor.noLink }}</option>
+                @for (candidate of singleSuccOptions(); track candidate.id) {
+                  <option [value]="candidate.id" [selected]="candidate.id === succs()[0]?.id">{{ candidate.title }}</option>
+                }
+              </select>
+            } @else {
             <ul class="chips">
               @for (task of succs(); track task.id) {
                 <li class="chip">
@@ -328,6 +346,7 @@ function withoutEmpty(task: Task): Task {
                 }
               </select>
             </label>
+            }
           </section>
         </div>
         }
@@ -518,8 +537,10 @@ function withoutEmpty(task: Task): Task {
       line-height: 1;
     }
 
-    .add-link select {
+    .add-link select,
+    .single-link {
       min-height: var(--touch-min);
+      max-width: 100%;
       padding: 0 var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: var(--radius);
@@ -705,6 +726,22 @@ export class TaskEditor {
   protected readonly succCandidates = computed<Task[]>(() =>
     this.candidates((t) => !this.prevs().some((s) => s.id === t.id)),
   );
+
+  /** Einfacher Modus: je ein Dropdown statt Chip-Liste (solange es höchstens eine Verbindung gibt). */
+  protected readonly singleLinks = computed(() => this.settings.simple()('simpleLinks'));
+
+  /** Aktueller Vorgänger plus freie Enden davor – so bleibt die Kette gerade und kreisfrei. */
+  protected readonly singlePrevOptions = computed<Task[]>(() => {
+    const list = this.list();
+    const id = this.taskId();
+    return list && id ? singleLinkOptions(list, id, 'prev') : [];
+  });
+
+  protected readonly singleSuccOptions = computed<Task[]>(() => {
+    const list = this.list();
+    const id = this.taskId();
+    return list && id ? singleLinkOptions(list, id, 'succ') : [];
+  });
 
   private candidates(extra: (task: Task) => boolean): Task[] {
     const list = this.list();
@@ -983,6 +1020,45 @@ export class TaskEditor {
     const value = (event.target as HTMLSelectElement).value;
     this.resetSelect(event);
     if (value) this.connect(this.taskId(), value, 'after');
+  }
+
+  protected setSinglePrev(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.replaceSingle(this.prevs()[0]?.id, value, (other, self) => [other, self]);
+  }
+
+  protected setSingleSucc(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.replaceSingle(this.succs()[0]?.id, value, (other, self) => [self, other]);
+  }
+
+  /** Alte Verbindung lösen, neue setzen – ein Rückgängig-Schritt. */
+  private replaceSingle(
+    current: string | undefined,
+    next: string,
+    edgeOf: (other: string, self: string) => [string, string],
+  ): void {
+    const list = this.list();
+    const self = this.taskId();
+    if (!list || !self || (current ?? '') === next) return;
+    try {
+      this.store.editList(list.id, (l) => {
+        let result = l;
+        if (current) {
+          const [from, to] = edgeOf(current, self);
+          const edge = l.edges.find((e) => e.from === from && e.to === to);
+          if (edge) result = disconnect(result, edge.id);
+        }
+        if (next) {
+          const [from, to] = edgeOf(next, self);
+          result = connect(result, from, to);
+        }
+        return result;
+      });
+      this.error.set('');
+    } catch (error) {
+      this.error.set(describeGraphError(this.t(), list, error));
+    }
   }
 
   protected removePrev(prevId: string): void {

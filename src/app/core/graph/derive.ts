@@ -132,3 +132,15 @@ function taskMap(list: TodoList): Map<string, Task> {
 export function deleteBridges(list: TodoList, taskId: string): boolean {
   return list.edges.some((e) => e.to === taskId) && list.edges.some((e) => e.from === taskId);
 }
+
+/**
+ * Auswahl für ein einzelnes Dropdown (einfacher Modus): der aktuelle Nachbar plus
+ * alle ToDos mit freiem Ende auf dieser Seite (kein Nachfolger bzw. kein Vorgänger),
+ * die keinen Kreis erzeugen. So bleibt eine Kette gerade, ohne Verzweigung.
+ */
+export function singleLinkOptions(list: TodoList, taskId: string, side: 'prev' | 'succ'): Task[] {
+  const current = new Set((side === 'prev' ? predecessors(list, taskId) : successors(list, taskId)).map((t) => t.id));
+  const cycle = reachableIds(list, taskId, side === 'prev' ? 'out' : 'inc');
+  const free = (id: string) => (side === 'prev' ? successors(list, id) : predecessors(list, id)).length === 0;
+  return list.tasks.filter((t) => t.id !== taskId && (current.has(t.id) || (free(t.id) && !cycle.has(t.id))));
+}

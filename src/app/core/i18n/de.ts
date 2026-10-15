@@ -233,6 +233,7 @@ export const de = {
     titleLabel: 'Titel',
     notesLabel: 'Notizen',
     predecessors: 'Muss vorher erledigt sein',
+    noLink: '– keine –',
     successors: 'Kommt danach',
     addLink: '+ hinzufügen',
     removeLink: (title: string): string => `${title} entfernen`,
@@ -369,6 +370,30 @@ export const de = {
     saved: (label: string, keys: string): string => `${label}: jetzt ${keys}.`,
     cancelled: 'Nicht geändert.',
     custom: 'geändert',
+  },
+
+  simple: {
+    heading: 'Einfacher Modus',
+    toggle: 'Einfachen Modus verwenden',
+    intro:
+      'Blendet selten gebrauchte Funktionen aus, damit der Anfang leicht bleibt – etwa Verzweigungen und feste Uhrzeiten.',
+    detailsLink: 'Einstellen, was ausgeblendet wird',
+    showHeading: 'Im einfachen Modus trotzdem zeigen',
+    showHint: 'Hake an, was du auch im einfachen Modus sehen möchtest.',
+    offHint: 'Der einfache Modus ist aus – alles ist sichtbar.',
+    features: {
+      listModes: 'Alle Zeitplanungen beim Zettel (Tagesplan, fester Zeitplan)',
+      fromTemplate: 'Zettel „Aus Vorlage“ anlegen',
+      listMenu: '„Duplizieren“, „Nach oben“ und „Nach unten“ im ⋯-Menü der Übersicht',
+      focusMenu: '„Nachfolgeaufgabe erstellen“ im ⋯-Menü von „Jetzt dran“',
+      flowMenu:
+        'Im ⋯-Menü des Ablaufs: Nachfolge- und Voraufgabe erstellen, Verschieben, Strang als Vorlage; „Pfeil entfernen“',
+      simpleLinks: 'Mehrere Vorarbeiten und Nachfolger im Bearbeiten-Dialog (sonst je eine Auswahl)',
+      deleteOnly: '„Löschen, ohne zu verbinden“',
+      templatesTab: 'Tab „Vorlagen“',
+      insertTemplate: '„Vorlage in Zettel einfügen“',
+      shortcutHelp: 'Knopf „?“ mit den Tastenkürzeln',
+    } satisfies Record<SimpleFeature, string>,
   },
 
   schemes: {

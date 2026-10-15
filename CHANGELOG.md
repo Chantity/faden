@@ -10,6 +10,11 @@
 
 **New**
 
+- **Simple mode:** new installs start in simple mode, which hides rarely used
+  features such as branches, fixed schedules and some menu entries. In the edit
+  dialog you pick one prerequisite and one follow-up instead of several. Switch
+  it off under **Settings**, or choose under **Settings → Advanced** exactly what
+  stays visible. Existing installs keep everything as it was.
 - **Shift from here:** in the flow, the ⋯ menu of a todo with times can shift
   just that todo and everything after it – the todos before it stay put.
 - **Finished lists:** choose under **Settings → Advanced** whether finished
@@ -79,6 +84,12 @@
 
 **Neu**
 
+- **Einfacher Modus:** Neue Installationen starten im einfachen Modus. Er blendet
+  selten gebrauchte Funktionen aus, etwa Verzweigungen, feste Zeitpläne und
+  einige Menüeinträge. Im Bearbeiten-Dialog wählt man je eine Vorarbeit und einen
+  Nachfolger statt mehrerer. Ausschalten unter **Einstellungen**, oder unter
+  **Einstellungen → Für Fortgeschrittene** genau wählen, was sichtbar bleibt.
+  Bestehende Installationen behalten alles wie bisher.
 - **Ab hier verschieben:** Im Ablauf kann das ⋯-Menü eines ToDos mit Uhrzeit
   nur dieses ToDo und alles danach verschieben – die Vorarbeiten bleiben stehen.
 - **Erledigte Zettel:** Unter **Einstellungen → Für Fortgeschrittene** lässt

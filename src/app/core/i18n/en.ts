@@ -233,6 +233,7 @@ export const en = {
     titleLabel: 'Title',
     notesLabel: 'Notes',
     predecessors: 'Must be done before',
+    noLink: '– none –',
     successors: 'Comes after',
     addLink: '+ add',
     removeLink: (title: string): string => `Remove ${title}`,
@@ -369,6 +370,30 @@ export const en = {
     saved: (label: string, keys: string): string => `${label}: now ${keys}.`,
     cancelled: 'Not changed.',
     custom: 'changed',
+  },
+
+  simple: {
+    heading: 'Simple mode',
+    toggle: 'Use simple mode',
+    intro:
+      'Hides rarely used features so getting started stays easy – such as branches and fixed times.',
+    detailsLink: 'Choose what is hidden',
+    showHeading: 'Show anyway in simple mode',
+    showHint: 'Tick what you want to see even in simple mode.',
+    offHint: 'Simple mode is off – everything is visible.',
+    features: {
+      listModes: 'All time planning modes for lists (day plan, fixed schedule)',
+      fromTemplate: 'Create a list “From template”',
+      listMenu: '“Duplicate”, “Move up” and “Move down” in the ⋯ menu of the overview',
+      focusMenu: '“Create successor task” in the ⋯ menu of “Now”',
+      flowMenu:
+        'In the ⋯ menu of the flow: create successor and predecessor tasks, shifting, save strand as template; “Remove arrow”',
+      simpleLinks: 'Several prerequisites and successors in the edit dialog (otherwise one choice each)',
+      deleteOnly: '“Delete without reconnecting”',
+      templatesTab: '“Templates” tab',
+      insertTemplate: '“Insert template into list”',
+      shortcutHelp: '“?” button with the keyboard shortcuts',
+    } satisfies Record<SimpleFeature, string>,
   },
 
   schemes: {

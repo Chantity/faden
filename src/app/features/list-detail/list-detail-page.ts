@@ -71,14 +71,16 @@ import { InsertTemplateDialog } from './insert-template-dialog';
             >
               ↷
             </button>
-            <button
-              type="button"
-              class="icon-btn"
-              [attr.aria-label]="t().shortcuts.title"
-              (click)="help().open()"
-            >
-              ?
-            </button>
+            @if (!settings.simple()('shortcutHelp')) {
+              <button
+                type="button"
+                class="icon-btn"
+                [attr.aria-label]="t().shortcuts.title"
+                (click)="help().open()"
+              >
+                ?
+              </button>
+            }
             <details class="menu">
               <summary class="icon-btn" [attr.aria-label]="t().a11y.actionsFor(current.title)">⋯</summary>
               <div class="menu__panel" role="menu">
@@ -93,7 +95,7 @@ import { InsertTemplateDialog } from './insert-template-dialog';
                 <button type="button" (click)="saveAsTemplate(current); closeMenu($event)">
                   {{ t().templates.saveList }}
                 </button>
-                @if (templates.templates().length > 0) {
+                @if (templates.templates().length > 0 && !settings.simple()('insertTemplate')) {
                   <button type="button" (click)="insertDialog().open(current.id); closeMenu($event)">
                     {{ t().templates.insert }}
                   </button>
@@ -250,7 +252,7 @@ export class ListDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly snackbar = inject(SnackbarService);
   private readonly i18n = inject(I18nStore);
-  private readonly settings = inject(SettingsStore);
+  protected readonly settings = inject(SettingsStore);
   protected readonly templates = inject(TemplatesStore);
 
   private readonly editor = viewChild.required(TaskEditor);

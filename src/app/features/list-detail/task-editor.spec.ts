@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { TaskEditor } from './task-editor';
 import { ListsStore } from '../../core/state/lists.store';
+import { SettingsStore } from '../../core/state/settings.store';
 import { FadenDb } from '../../core/storage';
 import { createList, createTask, edgeId, type TodoList } from '../../core/model';
 
@@ -290,5 +291,56 @@ describe('TaskEditor – Anlegen und Checkliste', () => {
       expect(root.querySelector('[role=alert]')).toBeTruthy();
       expect(store.getList(list.id)!.tasks).toHaveLength(2);
     });
+  });
+});
+
+describe('TaskEditor – einfacher Modus', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TaskEditor],
+      providers: [{ provide: FadenDb, useFactory: () => new FadenDb() }],
+    }).compileComponents();
+    await TestBed.inject(SettingsStore).setSimpleEnabled(true);
+  });
+
+  it('zeigt je ein Dropdown und ersetzt die Verbindung in einem Schritt', async () => {
+    // a → b, c steht allein
+    const list = createList('Kette');
+    list.tasks = [createTask('A', 'a'), createTask('B', 'b'), createTask('C', 'c')];
+    list.edges = [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }];
+    const store = TestBed.inject(ListsStore);
+    store.addExisting(list);
+    const fixture = TestBed.createComponent(TaskEditor);
+    fixture.componentInstance.open(list.id, 'b');
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.querySelector('.chips')).toBeNull();
+    const prev = root.querySelector<HTMLSelectElement>('select[aria-labelledby="links-prev"]')!;
+    expect([...prev.options].map((o) => o.textContent?.trim())).toEqual(['– none –', 'A', 'C']);
+    expect(prev.value).toBe('a');
+
+    prev.value = 'c';
+    prev.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    expect(store.getList(list.id)!.edges.map((e) => e.id)).toEqual([edgeId('c', 'b')]);
+
+    store.undo(list.id);
+    expect(store.getList(list.id)!.edges.map((e) => e.id)).toEqual([edgeId('a', 'b')]);
+  });
+
+  it('zeigt bei mehreren Vorarbeiten weiter die Chip-Liste', async () => {
+    const list = createList('Verzweigt');
+    list.tasks = [createTask('A', 'a'), createTask('B', 'b'), createTask('C', 'c')];
+    list.edges = [
+      { id: edgeId('a', 'c'), from: 'a', to: 'c' },
+      { id: edgeId('b', 'c'), from: 'b', to: 'c' },
+    ];
+    TestBed.inject(ListsStore).addExisting(list);
+    const fixture = TestBed.createComponent(TaskEditor);
+    fixture.componentInstance.open(list.id, 'c');
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelectorAll('.chips .chip')).toHaveLength(2);
   });
 });

@@ -63,6 +63,22 @@ import { RouterLink } from '@angular/router';
     </section>
 
     <section class="card block">
+      <h2>{{ t().simple.heading }}</h2>
+      <label class="check-row">
+        <input
+          type="checkbox"
+          [checked]="settings.simpleEnabled()"
+          (change)="settings.setSimpleEnabled($any($event.target).checked)"
+        />
+        <span>{{ t().simple.toggle }}</span>
+      </label>
+      <p class="muted">{{ t().simple.intro }}</p>
+      <div class="actions">
+        <a class="btn" routerLink="/einstellungen/fortgeschritten" fragment="simple-heading">{{ t().simple.detailsLink }} →</a>
+      </div>
+    </section>
+
+    <section class="card block">
       <h2>{{ t().settings.installHeading }}</h2>
       <p class="muted" role="status">{{ offlineLabel() }}</p>
       @if (pwa.installed()) {

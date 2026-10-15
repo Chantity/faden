@@ -20,7 +20,7 @@
       >
         ↷
       </button>
-      @if (templates().length > 0) {
+      @if (templates().length > 0 && !settings.simple()('fromTemplate')) {
         <button type="button" class="btn" (click)="openCreate(true)">
           {{ t().listDialog.fromTemplate }}
         </button>
@@ -83,18 +83,22 @@
               <button type="button" (click)="openEdit(list); closeMenu($event)">
                 {{ t().common.rename }}
               </button>
-              <button type="button" (click)="duplicate(list); closeMenu($event)">
-                {{ t().common.duplicate }}
-              </button>
+              @if (!settings.simple()('listMenu')) {
+                <button type="button" (click)="duplicate(list); closeMenu($event)">
+                  {{ t().common.duplicate }}
+                </button>
+              }
               <button type="button" (click)="saveAsTemplate(list); closeMenu($event)">
                 {{ t().templates.saveList }}
               </button>
-              <button type="button" (click)="move(list, 'up'); closeMenu($event)">
-                {{ t().common.moveUp }}
-              </button>
-              <button type="button" (click)="move(list, 'down'); closeMenu($event)">
-                {{ t().common.moveDown }}
-              </button>
+              @if (!settings.simple()('listMenu')) {
+                <button type="button" (click)="move(list, 'up'); closeMenu($event)">
+                  {{ t().common.moveUp }}
+                </button>
+                <button type="button" (click)="move(list, 'down'); closeMenu($event)">
+                  {{ t().common.moveDown }}
+                </button>
+              }
               <button type="button" (click)="archive(list); closeMenu($event)">
                 {{ t().common.archive }}
               </button>

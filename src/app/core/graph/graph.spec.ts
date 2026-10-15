@@ -21,6 +21,7 @@ import {
   openPredecessors,
   predecessors,
   progress,
+  singleLinkOptions,
   successors,
   topologicalOrder,
   transitiveReduction,
@@ -461,5 +462,24 @@ describe('validateGraph', () => {
     const codes = validateGraph(list).map((i) => i.code);
     expect(codes).toContain('duplicate-edge');
     expect(codes).toContain('unknown-task');
+  });
+});
+
+describe('singleLinkOptions (einfacher Modus)', () => {
+  // a → b → c, dazu d allein und e → f
+  const list = makeList(
+    ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => makeTask(id)),
+    [makeEdge('a', 'b'), makeEdge('b', 'c'), makeEdge('e', 'f')],
+  );
+  const ids = (tasks: Task[]) => tasks.map((t) => t.id);
+
+  it('bietet als Vorgänger nur freie Enden ohne Kreis plus den aktuellen', () => {
+    // a (aktuell), d und f haben keinen Nachfolger; c liegt dahinter → Kreis.
+    expect(ids(singleLinkOptions(list, 'b', 'prev'))).toEqual(['a', 'd', 'f']);
+  });
+
+  it('bietet als Nachfolger nur ToDos ohne Vorgänger ohne Kreis plus den aktuellen', () => {
+    // c (aktuell), d und e haben keinen Vorgänger; a liegt davor → Kreis.
+    expect(ids(singleLinkOptions(list, 'b', 'succ'))).toEqual(['c', 'd', 'e']);
   });
 });

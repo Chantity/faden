@@ -8,7 +8,7 @@ import {
   Injector,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { PageTitleService } from '../../core/i18n/page-title';
 import { SettingsStore } from '../../core/state/settings.store';
@@ -23,7 +23,7 @@ import {
   type ShortcutScope,
 } from '../../core/keymap';
 import { shortcutLabel } from '../../shared/shortcut-label';
-import { COMPLETED_LISTS_ACTIONS, NOTE_KINDS } from '../../core/preferences';
+import { COMPLETED_LISTS_ACTIONS, NOTE_KINDS, SIMPLE_FEATURES } from '../../core/preferences';
 
 const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
 
@@ -37,6 +37,33 @@ const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
     <a class="back" routerLink="/einstellungen">← {{ t().titles.settings }}</a>
     <h1>{{ t().advanced.title }}</h1>
     <p class="muted">{{ t().advanced.intro }}</p>
+
+    <section class="card block" aria-labelledby="simple-heading">
+      <h2 id="simple-heading">{{ t().simple.heading }}</h2>
+      <label class="check-row">
+        <input
+          type="checkbox"
+          [checked]="settings.simpleEnabled()"
+          (change)="settings.setSimpleEnabled($any($event.target).checked)"
+        />
+        <span>{{ t().simple.toggle }}</span>
+      </label>
+      <p class="muted">{{ t().simple.intro }}</p>
+      <fieldset class="group" [disabled]="!settings.simpleEnabled()">
+        <legend class="field__label">{{ t().simple.showHeading }}</legend>
+        <p class="muted">{{ settings.simpleEnabled() ? t().simple.showHint : t().simple.offHint }}</p>
+        @for (feature of simpleFeatures; track feature) {
+          <label class="check-row">
+            <input
+              type="checkbox"
+              [checked]="!!settings.settings().simpleMode?.show?.[feature]"
+              (change)="settings.setSimpleShow(feature, $any($event.target).checked)"
+            />
+            <span>{{ t().simple.features[feature] }}</span>
+          </label>
+        }
+      </fieldset>
+    </section>
 
     <section class="card block" aria-labelledby="notes-heading">
       <h2 id="notes-heading">{{ t().advanced.notesHeading }}</h2>
@@ -164,6 +191,11 @@ const SCOPE_ORDER: readonly ShortcutScope[] = ['focus', 'flow', 'global'];
       padding: 0;
     }
 
+    .group:disabled .check-row {
+      opacity: 0.55;
+      cursor: default;
+    }
+
     h3 {
       margin: var(--space-4) 0 var(--space-2);
     }
@@ -232,6 +264,7 @@ export class AdvancedPage {
   protected readonly settings = inject(SettingsStore);
   protected readonly t = inject(I18nStore).t;
 
+  protected readonly simpleFeatures = SIMPLE_FEATURES;
   protected readonly noteKinds = NOTE_KINDS;
   protected readonly completedActions = COMPLETED_LISTS_ACTIONS;
 
@@ -258,6 +291,11 @@ export class AdvancedPage {
 
   constructor() {
     inject(PageTitleService).set('advanced');
+    // Sprung aus den Einstellungen („Einstellen, was ausgeblendet wird“) zum passenden Abschnitt.
+    const fragment = inject(ActivatedRoute).snapshot.fragment;
+    if (fragment) {
+      afterNextRender(() => this.host.nativeElement.querySelector(`#${CSS.escape(fragment)}`)?.scrollIntoView());
+    }
   }
 
   protected toggleRecording(action: ShortcutAction): void {

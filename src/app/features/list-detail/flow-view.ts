@@ -277,19 +277,21 @@ const MAX_SCALE = 2;
           @if (nodeMenu(); as menu) {
             <div class="popover" [style.left.px]="menu.x" [style.top.px]="menu.y" role="menu">
               <button type="button" (click)="menuEdit(menu.id)">{{ t().focus.menu.edit }}</button>
-              <button type="button" (click)="menuSplit(menu.id)">{{ t().focus.menu.splitAfter }}</button>
-              <button type="button" (click)="menuJoin(menu.id)">{{ t().focus.menu.join }}</button>
-              @if (timed()) {
-                <button type="button" (click)="menuShiftFrom(menu.id)">{{ t().flow.moveFrom }}</button>
-                <button type="button" (click)="menuShiftStrand(menu.id)">{{ t().flow.moveStrand }}</button>
+              @if (!settings.simple()('flowMenu')) {
+                <button type="button" (click)="menuSplit(menu.id)">{{ t().focus.menu.splitAfter }}</button>
+                <button type="button" (click)="menuJoin(menu.id)">{{ t().focus.menu.join }}</button>
+                @if (timed()) {
+                  <button type="button" (click)="menuShiftFrom(menu.id)">{{ t().flow.moveFrom }}</button>
+                  <button type="button" (click)="menuShiftStrand(menu.id)">{{ t().flow.moveStrand }}</button>
+                }
+                <button type="button" (click)="menuSaveStrand(menu.id)">
+                  {{ t().templates.saveStrand }}
+                </button>
               }
-              <button type="button" (click)="menuSaveStrand(menu.id)">
-                {{ t().templates.saveStrand }}
-              </button>
               <button type="button" class="danger" (click)="menuDelete(menu.id)">
                 {{ t().focus.menu.delete }}
               </button>
-              @if (deleteBridges(list(), menu.id)) {
+              @if (deleteBridges(list(), menu.id) && !settings.simple()('deleteOnly')) {
                 <button type="button" class="danger" (click)="menuDelete(menu.id, 'remove-only')">
                   {{ t().focus.menu.deleteOnly }}
                 </button>
@@ -302,9 +304,11 @@ const MAX_SCALE = 2;
               <button type="button" (click)="menuInsertBetween(menu.edgeId)">
                 {{ t().flow.insertBetween }}
               </button>
-              <button type="button" class="danger" (click)="menuRemoveEdge(menu.edgeId)">
-                {{ t().flow.removeEdge }}
-              </button>
+              @if (!settings.simple()('flowMenu')) {
+                <button type="button" class="danger" (click)="menuRemoveEdge(menu.edgeId)">
+                  {{ t().flow.removeEdge }}
+                </button>
+              }
             </div>
           }
         </div>
@@ -614,7 +618,7 @@ export class FlowView {
   private readonly i18n = inject(I18nStore);
   private readonly nowStore = inject(NowStore);
   private readonly templates = inject(TemplatesStore);
-  private readonly settings = inject(SettingsStore);
+  protected readonly settings = inject(SettingsStore);
   private readonly wrap = viewChild<ElementRef<HTMLElement>>('wrap');
 
   readonly list = input.required<TodoList>();

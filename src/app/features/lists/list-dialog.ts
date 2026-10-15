@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nStore } from '../../core/i18n/i18n.store';
+import { SettingsStore } from '../../core/state/settings.store';
 import { ListsStore } from '../../core/state/lists.store';
 import { TemplatesStore } from '../../core/state/templates.store';
 import {
@@ -48,7 +49,7 @@ import { focusAfterRender } from '../../shared/focus';
 
         <p class="field__hint" id="list-title-hint" role="status">{{ hint() }}</p>
 
-        @if (!editing() && templates().length > 0) {
+        @if (!editing() && templates().length > 0 && !settings.simple()('fromTemplate')) {
           <label class="field">
             <span class="field__label">{{ t().listDialog.templateLabel }}</span>
             <select
@@ -67,7 +68,7 @@ import { focusAfterRender } from '../../shared/focus';
 
         <fieldset class="modes">
           <legend class="field__label">{{ t().listDialog.timeboxLabel }}</legend>
-          @for (mode of modes; track mode) {
+          @for (mode of modes(); track mode) {
             <label class="mode" [class.is-selected]="timeboxMode() === mode">
               <input
                 type="radio"
@@ -195,7 +196,14 @@ export class ListDialog {
   private readonly store = inject(ListsStore);
 
   protected readonly t = this.i18n.t;
-  protected readonly modes = TIMEBOX_MODES;
+  protected readonly settings = inject(SettingsStore);
+  /** Modus, den Zettel oder Vorlage mitbringen – bleibt auch im einfachen Modus wählbar. */
+  private readonly ownMode = signal<TimeboxMode>('none');
+  protected readonly modes = computed(() =>
+    this.settings.simple()('listModes')
+      ? TIMEBOX_MODES.filter((m) => m === 'none' || m === 'estimate' || m === this.ownMode())
+      : TIMEBOX_MODES,
+  );
   protected readonly maxTitle = TITLE_MAX_LENGTH;
 
   protected readonly title = signal('');
@@ -226,6 +234,7 @@ export class ListDialog {
     this.editingId.set(null);
     this.title.set('');
     this.timeboxMode.set('none');
+    this.ownMode.set('none');
     this.templateId.set(null);
     this.touched.set(false);
     const first = fromTemplate ? this.templates()[0] : undefined;
@@ -238,6 +247,7 @@ export class ListDialog {
     this.editingId.set(list.id);
     this.title.set(list.title);
     this.timeboxMode.set(list.timeboxMode);
+    this.ownMode.set(list.timeboxMode);
     this.templateId.set(null);
     this.touched.set(false);
     this.open('title');
@@ -263,6 +273,7 @@ export class ListDialog {
       this.title.set(suggested(next));
     }
     this.timeboxMode.set(next.timeboxMode);
+    this.ownMode.set(next.timeboxMode);
   }
 
   protected submit(): void {
