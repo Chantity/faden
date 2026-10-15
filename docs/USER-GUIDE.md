@@ -6,9 +6,9 @@
 
 ## English
 
-How to use “Faden”, page by page. Boxes marked **On a computer** or **On a
-phone** describe what differs between the two; everything else works the same
-everywhere.
+This guide walks through Faden one page at a time. Almost everything works the
+same on a phone and on a computer; where it doesn't, a box marked **On a
+phone** or **On a computer** explains the difference.
 
 ### 1. What is Faden for?
 
@@ -60,7 +60,7 @@ Both notes appear only once. Then:
 ![A hint of the guided tour](images/en/tour.webp)
 
 The tour shows the basics with real actions on a **practice list**: a hint at
-the bottom explains one thing, **“Got it”** hides it, and you do it yourself –
+the edge of the screen explains one thing, **“Got it”** hides it, and you do it yourself –
 then the next hint follows. **“Show hint”** brings the current hint back, **“End
 tour”** stops at any time. While a dialog is open, the hint waits.
 
@@ -481,9 +481,9 @@ Shortcuts only work while no input field is active.
 
 ## Deutsch
 
-So bedienst du „Faden“, Seite für Seite. Kästen mit **Am PC** oder **Auf dem
-Handy** beschreiben, was sich unterscheidet; alles andere funktioniert überall
-gleich.
+Diese Anleitung geht Faden Seite für Seite durch. Fast alles funktioniert auf
+dem Handy und am PC gleich; wo nicht, erklärt ein Kasten mit **Auf dem Handy**
+oder **Am PC** den Unterschied.
 
 ### 1. Wozu ist Faden da?
 
@@ -536,7 +536,7 @@ Beide Hinweise kommen nur einmal. Danach:
 ![Ein Hinweis der geführten Tour](images/de/tour.webp)
 
 Die Tour zeigt die Grundlagen mit echten Handgriffen an einem **Übungszettel**:
-Ein Hinweis unten erklärt eine Sache, **„Verstanden“** blendet ihn aus, und du
+Ein Hinweis am Bildschirmrand erklärt eine Sache, **„Verstanden“** blendet ihn aus, und du
 machst es selbst – dann kommt der nächste Hinweis. **„Hinweis zeigen“** holt den
 aktuellen Hinweis zurück, **„Tour beenden“** hört jederzeit auf. Solange ein
 Dialog offen ist, wartet der Hinweis.
