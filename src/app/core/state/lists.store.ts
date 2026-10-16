@@ -229,9 +229,11 @@ export class ListsStore {
    * Archiviert oder löscht alle Zettel, deren ToDos (mindestens eines) alle
    * erledigt sind – ein Rückgängig-Schritt in der Übersicht. Liefert die betroffenen Zettel.
    */
-  handleCompleted(action: CompletedListsAction): TodoList[] {
+  handleCompleted(action: CompletedListsAction, except: ReadonlySet<string> = new Set()): TodoList[] {
     if (action === 'keep') return [];
-    const done = this.lists().filter((l) => l.tasks.length > 0 && l.tasks.every((t) => t.done));
+    const done = this.lists().filter(
+      (l) => !except.has(l.id) && l.tasks.length > 0 && l.tasks.every((t) => t.done),
+    );
     if (done.length === 0) return [];
     const ids = new Set(done.map((l) => l.id));
     if (action === 'delete') {

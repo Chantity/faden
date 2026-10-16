@@ -95,6 +95,11 @@ describe('TourService', () => {
     expect(settings.simpleEnabled()).toBe(false);
     expect(tour.counter()).toEqual({ n: 11, total: 15 });
 
+    // Auch wenn der Übungszettel inzwischen archiviert ist, bleibt er der Übungszettel.
+    TestBed.inject(ListsStore).archive('p');
+    TestBed.tick();
+    expect(tour.practice()?.id).toBe('p');
+
     // Nachfolgeaufgabe am Strang-Ende: keine Verzweigung, zählt trotzdem.
     TestBed.inject(ListsStore).editList(tour.practiceId()!, (l) => ({
       ...l,

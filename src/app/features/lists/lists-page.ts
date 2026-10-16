@@ -18,6 +18,7 @@ import { modeSwitchOffer, withTimeboxMode } from '../../core/time';
 import { BackupService } from '../../core/backup/backup.service';
 import { ListsStore } from '../../core/state/lists.store';
 import { SettingsStore } from '../../core/state/settings.store';
+import { TourService } from '../../shared/tour/tour.service';
 import { TemplatesStore } from '../../core/state/templates.store';
 import { SnackbarService } from '../../shared/snackbar/snackbar.service';
 import { ListDialog, type ListDialogResult } from './list-dialog';
@@ -37,6 +38,7 @@ export class ListsPage {
   private readonly backup = inject(BackupService);
   private readonly templatesStore = inject(TemplatesStore);
   protected readonly settings = inject(SettingsStore);
+  private readonly tour = inject(TourService);
   protected readonly templates = this.templatesStore.templates;
 
   protected readonly t = this.i18n.t;
@@ -169,7 +171,9 @@ export class ListsPage {
   /** Fertige Zettel wandern beim Betreten der Übersicht ins Archiv oder in den Papierkorb (mit Rückgängig). */
   private handleCompleted(): void {
     const action = this.settings.completedLists();
-    const handled = this.store.handleCompleted(action);
+    // Den Übungszettel der laufenden Tour nicht wegräumen – an ihm wird noch geübt.
+    const practice = this.tour.practiceId();
+    const handled = this.store.handleCompleted(action, new Set(practice ? [practice] : []));
     if (handled.length === 0) return;
     const snack = this.t().snackbar;
     const one = action === 'delete' ? snack.autoDeletedOne : snack.autoArchivedOne;

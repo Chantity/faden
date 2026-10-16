@@ -726,6 +726,13 @@ await test('T Geführte Tour: Grundlagen mit echten Aktionen, dann „Mehr anzei
   await page.press('Escape');
   await page.waitFor(`${tourTitle} === 'When everything is done'`, 'Tour-Schritt „When everything is done“');
   await page.waitFor(`document.querySelectorAll('.node__toggle.tour-target').length >= 4`, 'alle Abhak-Kreise umrahmt');
+  // Wie ein Mensch, der den Hinweis wörtlich nimmt: alles abhaken, zur Übersicht und zurück.
+  const practiceHash = await page.eval('location.hash');
+  await page.eval(`document.querySelectorAll('.node__toggle:not(.is-on)').forEach((b) => b.click())`);
+  await page.goto(BASE + '#/');
+  await page.waitFor(`[...document.querySelectorAll('.list-card__title')].some((e) => e.textContent.trim().startsWith('Practice list'))`, 'Übungszettel nicht archiviert');
+  await page.goto(BASE + practiceHash);
+  await page.waitFor(`document.querySelector('.flow__canvas .node')`, 'zurück im Ablauf');
   await tourButton('Next');
 
   await page.waitFor(`${tourTitle} === 'Those are the basics'`, 'Ende der Grundlagen');

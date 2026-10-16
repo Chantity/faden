@@ -49,7 +49,11 @@ export class TourService {
     const index = this.index();
     return index === null ? null : TOUR_STEPS[index]!;
   });
-  readonly practice = computed(() => this.lists.lists().find((l) => l.id === this.practiceId()));
+  /** Auch archiviert noch der Übungszettel (z. B. von Hand archiviert). */
+  readonly practice = computed(() => {
+    const id = this.practiceId();
+    return this.lists.lists().find((l) => l.id === id) ?? this.lists.archived().find((l) => l.id === id);
+  });
 
   /** „Schritt n von m“: Grundlagen und erweiterte Schritte zählen je für sich weiter. */
   readonly counter = computed(() => {

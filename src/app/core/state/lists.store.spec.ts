@@ -254,6 +254,7 @@ describe('ListsStore – Archiv und Namen', () => {
     store.addExisting(finished('b', 'Fertig B', 1));
 
     expect(store.handleCompleted('keep')).toEqual([]);
+    expect(store.handleCompleted('archive', new Set(['a', 'b']))).toEqual([]); // z. B. Übungszettel der Tour
     expect(store.handleCompleted('delete').map((l) => l.id)).toEqual(['a', 'b']);
     expect(store.lists()).toHaveLength(0);
     expect(store.archived()).toHaveLength(0);
