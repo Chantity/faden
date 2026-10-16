@@ -62,7 +62,10 @@ Both notes appear only once. Then:
 The tour shows the basics with real actions on a **practice list**: a hint at
 the edge of the screen explains one thing, **“Got it”** hides it, and you do it yourself –
 then the next hint follows. **“Show hint”** brings the current hint back, **“End
-tour”** stops at any time. While a dialog is open, the hint waits.
+tour”** stops at any time. While a dialog is open, the hint waits. The tour
+only practices on the practice list: if another list is open, **“Go to practice
+list”** takes you back; if you delete the practice list, **“Undo”** brings it
+back and the tour continues – or **“Restart tour”** starts over.
 
 After the basics, **“Done”** ends the tour and **“Show more”** switches simple
 mode off and shows the advanced features (branches, time planning, templates,
@@ -539,7 +542,10 @@ Die Tour zeigt die Grundlagen mit echten Handgriffen an einem **Übungszettel**:
 Ein Hinweis am Bildschirmrand erklärt eine Sache, **„Verstanden“** blendet ihn aus, und du
 machst es selbst – dann kommt der nächste Hinweis. **„Hinweis zeigen“** holt den
 aktuellen Hinweis zurück, **„Tour beenden“** hört jederzeit auf. Solange ein
-Dialog offen ist, wartet der Hinweis.
+Dialog offen ist, wartet der Hinweis. Geübt wird nur am Übungszettel: Ist ein
+anderer Zettel offen, führt **„Zum Übungszettel“** zurück; löschst du den
+Übungszettel, holt **„Rückgängig“** ihn zurück und die Tour geht weiter – oder
+**„Tour neu starten“** beginnt von vorn.
 
 Nach den Grundlagen beendet **„Fertig“** die Tour, **„Mehr anzeigen“** schaltet
 den einfachen Modus aus und zeigt die erweiterten Funktionen (Verzweigungen,

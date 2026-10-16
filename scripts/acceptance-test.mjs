@@ -684,6 +684,12 @@ await test('T Geführte Tour: Grundlagen mit echten Aktionen, dann „Mehr anzei
   }
   await click('dialog[open] .sheet__actions .btn--primary');
 
+  // Ein anderer Zettel offen: Die Tour führt zum Übungszettel zurück.
+  await page.waitFor(`${tourTitle} === 'Now'`, 'Tour-Schritt „Now“');
+  const practiceUrl = await page.eval('location.hash');
+  await page.goto(BASE + '#/zettel/wohnung');
+  await step('A different list is open', 'Go to practice list');
+  await page.waitFor(`location.hash === ${JSON.stringify(practiceUrl)}`, 'zurück im Übungszettel');
   await step('Now');
   await click('.task-card__done');
   await step('Undo');

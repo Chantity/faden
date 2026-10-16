@@ -201,6 +201,16 @@ export const en = {
     showHint: 'Show hint',
     end: 'End tour',
     practiceName: 'Practice list',
+    goToPractice: 'Go to practice list',
+    restart: 'Restart tour',
+    wrongList: {
+      title: 'A different list is open',
+      body: 'The tour practices on the practice list – your other lists stay untouched.',
+    },
+    gone: {
+      title: 'The practice list is gone',
+      body: 'Bring it back with “Undo” and the tour continues. Or restart it with a new practice list.',
+    },
     finish: 'Done',
     more: 'Show more',
     keep: 'Keep',

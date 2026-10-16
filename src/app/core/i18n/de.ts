@@ -201,6 +201,16 @@ export const de = {
     showHint: 'Hinweis zeigen',
     end: 'Tour beenden',
     practiceName: 'Übungszettel',
+    goToPractice: 'Zum Übungszettel',
+    restart: 'Tour neu starten',
+    wrongList: {
+      title: 'Hier ist ein anderer Zettel offen',
+      body: 'Die Tour übt am Übungszettel – deine anderen Zettel bleiben unberührt.',
+    },
+    gone: {
+      title: 'Der Übungszettel ist weg',
+      body: 'Holst du ihn mit „Rückgängig“ zurück, geht die Tour weiter. Oder starte sie mit einem neuen Übungszettel neu.',
+    },
     finish: 'Fertig',
     more: 'Mehr anzeigen',
     keep: 'Behalten',

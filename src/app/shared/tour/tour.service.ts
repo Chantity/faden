@@ -1,5 +1,7 @@
 import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 import { I18nStore } from '../../core/i18n/i18n.store';
 import { ListsStore } from '../../core/state/lists.store';
 import { SettingsStore } from '../../core/state/settings.store';
@@ -9,6 +11,7 @@ import {
   newTaskId,
   TOUR_ADVANCED_START,
   TOUR_CLEANUP,
+  TOUR_ON_PRACTICE,
   TOUR_STEPS,
   type TourContext,
 } from '../../core/tour';
@@ -53,6 +56,25 @@ export class TourService {
   readonly practice = computed(() => {
     const id = this.practiceId();
     return this.lists.lists().find((l) => l.id === id) ?? this.lists.archived().find((l) => l.id === id);
+  });
+
+  /** Gerade geöffneter Zettel (aus der Route). */
+  private readonly openListId = toSignal(
+    this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd),
+      map(() => listIdOf(this.router.url)),
+    ),
+    { initialValue: listIdOf(this.router.url) },
+  );
+
+  /** Übungszettel gelöscht (weich – „Rückgängig“ holt ihn und die Tour zurück). */
+  readonly practiceGone = computed(() => this.practiceId() !== null && !this.practice());
+
+  /** Ein anderer Zettel ist offen, obwohl der Schritt im Übungszettel spielt. */
+  readonly wrongList = computed(() => {
+    const step = this.step();
+    const open = this.openListId();
+    return !!step && TOUR_ON_PRACTICE.has(step.id) && open !== null && open !== this.practiceId();
   });
 
   /** „Schritt n von m“: Grundlagen und erweiterte Schritte zählen je für sich weiter. */
@@ -105,6 +127,11 @@ export class TourService {
     if (this.step()?.id === 'createList') this.practiceId.set(newListId(this.context()));
     if (this.step()?.id === 'newStrand') this.taskId.set(newTaskId(this.context()));
     this.goTo(index + 1);
+  }
+
+  goToPractice(): void {
+    const id = this.practiceId();
+    if (id) void this.router.navigate(['/zettel', id]).then(() => this.focusRequest.update((n) => n + 1));
   }
 
   /** „Mehr anzeigen“: einfachen Modus aus und weiter mit den erweiterten Schritten. */
@@ -166,4 +193,8 @@ export class TourService {
     this.collapsed.set(false);
     this.index.set(index);
   }
+}
+
+function listIdOf(url: string): string | null {
+  return /^\/zettel\/([^/?#]+)/.exec(url)?.[1] ?? null;
 }

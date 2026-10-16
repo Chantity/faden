@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { TourService } from './tour.service';
 import { ListsStore } from '../../core/state/lists.store';
 import { SettingsStore } from '../../core/state/settings.store';
@@ -11,7 +11,10 @@ import { TOUR_ACTIVE_KEY } from '../first-run/first-run.store';
 describe('TourService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: FadenDb, useFactory: () => new FadenDb() }],
+      providers: [
+        provideRouter([{ path: 'zettel/:id', children: [] }, { path: '**', children: [] }]),
+        { provide: FadenDb, useFactory: () => new FadenDb() },
+      ],
     });
   });
 
@@ -107,6 +110,26 @@ describe('TourService', () => {
       edges: [{ id: edgeId('a', 'b'), from: 'a', to: 'b' }],
     }));
     expect(step()).toBe('links');
+  });
+
+  it('merkt, wenn ein anderer Zettel offen ist oder der Übungszettel gelöscht wurde – Rückgängig holt beides zurück', async () => {
+    const { tour, lists, step } = setup();
+    tour.startTour();
+    lists.addExisting({ ...createList('Practice list'), id: 'p', tasks: [createTask('A', 'a'), createTask('B', 'b')] });
+    lists.addExisting({ ...createList('Other'), id: 'o' });
+    expect(step()).toBe('markDone');
+
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/zettel/o');
+    expect(tour.wrongList()).toBe(true);
+    await router.navigateByUrl('/zettel/p');
+    expect(tour.wrongList()).toBe(false);
+
+    lists.remove('p');
+    expect(tour.practiceGone()).toBe(true);
+    lists.undo();
+    expect(tour.practiceGone()).toBe(false);
+    expect(step()).toBe('markDone');
   });
 
   it('endet ohne Aufräum-Frage, wenn es keinen Übungszettel (mehr) gibt', () => {

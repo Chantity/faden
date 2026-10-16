@@ -218,7 +218,10 @@ nimmt neue Tasten auf; die Tastenkürzel-Hilfe zeigt die aktuelle Belegung.
   `done` erfüllt ist, und merkt sich den Übungszettel. Der `TourOverlay` ist
   nicht modal (die App bleibt bedienbar), steht auf der dem Ziel abgewandten
   Seite, weicht offenen Dialogen sofort (MutationObserver auf `open`) und hebt
-  das Ziel hervor (`.tour-target`). `localStorage['faden.tourActive']` erkennt
+  das Ziel hervor (`.tour-target`). Ist ein anderer Zettel offen (`TOUR_ON_PRACTICE`)
+  oder der Übungszettel gelöscht, zeigt er statt des Schritts „Zum Übungszettel“
+  bzw. „Tour neu starten“; während der Tour räumt die Übersicht den Übungszettel
+  nicht automatisch weg. `localStorage['faden.tourActive']` erkennt
   eine abgebrochene Tour: Beim nächsten Start bietet der Start-Dialog sie erneut
   an.
 

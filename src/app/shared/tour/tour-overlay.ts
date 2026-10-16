@@ -26,7 +26,28 @@ const TARGET_CLASS = 'tour-target';
   template: `
     @if (tour.step(); as step) {
       @if (!tour.dialogOpen()) {
-        @if (!tour.collapsed()) {
+        @if (problem(); as p) {
+          <!-- Weg vom Übungszettel: erst zurückführen, dann geht es normal weiter. -->
+          <section
+            #panel
+            class="tour"
+            [class.is-raised]="raised()"
+            role="dialog"
+            aria-labelledby="tour-title"
+            tabindex="-1"
+          >
+            <h2 id="tour-title" class="tour__title">{{ p.title }}</h2>
+            <p class="tour__body">{{ p.body }}</p>
+            <div class="tour__actions">
+              @if (tour.practiceGone()) {
+                <button type="button" class="btn btn--primary" (click)="tour.startTour()">{{ t().tour.restart }}</button>
+              } @else {
+                <button type="button" class="btn btn--primary" (click)="tour.goToPractice()">{{ t().tour.goToPractice }}</button>
+              }
+              <button type="button" class="btn btn--ghost" (click)="tour.end()">{{ t().tour.end }}</button>
+            </div>
+          </section>
+        } @else if (!tour.collapsed()) {
           <section
             #panel
             class="tour"
@@ -154,6 +175,11 @@ export class TourOverlay {
 
   protected readonly raised = computed(() => this.snackbar.state() !== null);
   protected readonly atTop = signal(false);
+  protected readonly problem = computed(() => {
+    const tour = this.t().tour;
+    if (this.tour.practiceGone()) return tour.gone;
+    return this.tour.wrongList() ? tour.wrongList : null;
+  });
   protected readonly text = computed(() => {
     const step = this.tour.step();
     const tour = this.t().tour;
@@ -191,6 +217,7 @@ export class TourOverlay {
       this.tour.index();
       this.tour.collapsed();
       this.tour.focusRequest();
+      this.problem();
       if (this.tour.active()) this.poll();
       this.panel()?.nativeElement.focus({ preventScroll: true });
     });
@@ -220,7 +247,7 @@ export class TourOverlay {
   private poll(): void {
     const open = document.querySelector('dialog[open]') !== null;
     if (open !== this.tour.dialogOpen()) this.tour.setDialogOpen(open);
-    const targets = open ? [] : this.targets();
+    const targets = open || this.problem() ? [] : this.targets();
     this.highlight(targets);
     const target = targets[0];
     if (target) {

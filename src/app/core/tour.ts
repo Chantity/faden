@@ -121,6 +121,21 @@ export const TOUR_STEPS: readonly TourStep[] = [
   { id: 'cleanup', kind: 'cleanup' },
 ];
 
+/** Schritte, die im Übungszettel spielen (ein anderer offener Zettel lenkt dort ab). */
+export const TOUR_ON_PRACTICE: ReadonlySet<TourStepId> = new Set<TourStepId>([
+  'fill',
+  'markDone',
+  'undo',
+  'insertAfter',
+  'flow',
+  'newStrand',
+  'edit',
+  'archive',
+  'branch',
+  'links',
+  'timing',
+]);
+
 /** Index des ersten erweiterten Schritts (nach „Mehr anzeigen“). */
 export const TOUR_ADVANCED_START = TOUR_STEPS.findIndex((s) => s.id === 'more') + 1;
 export const TOUR_CLEANUP = TOUR_STEPS.findIndex((s) => s.id === 'cleanup');
